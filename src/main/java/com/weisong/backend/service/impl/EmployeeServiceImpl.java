@@ -22,7 +22,7 @@ public class EmployeeServiceImpl implements EmployeeService {
     @Override
     public List<Employee> getAllEmp() {
         return employeeMapper.getAllEmp();
-    }
+    }   
 
     @Override
     public Long insertEmp(Employee employee) {
