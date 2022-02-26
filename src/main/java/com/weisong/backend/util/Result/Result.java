@@ -92,26 +92,10 @@ public class Result <T> {
 
 
 
-    public static Result formatError(int status, String data) {
+    public static Result error(int status, String msg) {
         Result result = new Result();
-        result.setStatus(status);
-        result.setMsg(data + "格式不正确");
-        return result;
-    }
-
-
-
-    public static Result nameFormatError(int status){
-        Result result = new Result();
-        result.setStatus(100);
-        result.setMsg("用户名必须是6-16位数字和字母的组合或者2-5位中文");
-        return result;
-    }
-
-    public static Result repetitionError(){
-        Result result = new Result();
-        result.setStatus(100);
-        result.setMsg("用户名重复");
+        result.setStatus(1);
+        result.setMsg(msg);
         return result;
     }
 

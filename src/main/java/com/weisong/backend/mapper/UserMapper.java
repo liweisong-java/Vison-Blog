@@ -16,19 +16,27 @@ import java.util.Map;
 @Repository
 public interface UserMapper {
 
-    //    注册/添加User
-    @Insert("insert into user(uuid,name,password,email,gender,birth) values(#{uuid},#{name},#{password},#{email},#{gender},#{birth})")
+    //    注册/添加User                    ,gender,birth        ,#{gender},#{birth}
+    @Insert("insert into user(uuid,name,password,email) values(#{uuid},#{name},#{password},#{email})")
     void insertUser(@Param("uuid")String uuid,@Param("name")String name, @Param("password")String password,@Param("email")String email , @Param("gender")Integer gender, @Param("birth")Date birth);
 
     //    通过UUId 注销/删除User
     @Delete("delete from user where uuid=#{uuid}")
     void deleteUserById(@Param("uuid") String uuid);
 
+    //     上传头像
     @Update("UPDATE user SET head_portrait =#{headPortrait} WHERE uuid = #{uuid}")
     void uploadHeadPortrait(@Param("uuid")String uuid,@Param("head_portrait")String headPortrait);
 
-    //      检查User的name合法
-    @Select("SELECT name,COUNT(name) from user GROUP BY name HAVING COUNT(name) > 1")
-    List<User> checkUser(String name);
+    //      检查User的name是否有重名
+    @Select("SELECT COUNT(name) from user where name=#{name}")
+    int checkName(String name);
+
+
+    @Select("SELECT uuid,name,password,email,gender,birth from user where name=#{name}")
+    User findUserByName(String name);
+
+    @Select("SELECT uuid,name,password,email,gender,birth from user where uuid=#{uuid}")
+    User findUserByUuid(String uuid);
 
 }

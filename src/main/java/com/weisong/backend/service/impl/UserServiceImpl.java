@@ -6,6 +6,7 @@ import com.weisong.backend.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.security.Key;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
@@ -37,7 +38,18 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public Boolean checkUser(String name) {
-        return userMapper.checkUser(name) == null ? true : false;
+    public Boolean checkName(String name) {
+        return userMapper.checkName(name) > 0 ? true : false;
     }
+
+    @Override
+    public User findUserByName(User user) {
+        return userMapper.findUserByName(user.getName());
+    }
+
+    @Override
+    public User findUserByUuid(String uuid) {
+        return userMapper.findUserByUuid(uuid);
+    }
+
 }

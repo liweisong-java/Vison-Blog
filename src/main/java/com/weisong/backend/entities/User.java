@@ -1,4 +1,6 @@
 package com.weisong.backend.entities;
+import com.auth0.jwt.JWT;
+import com.auth0.jwt.algorithms.Algorithm;
 import com.weisong.backend.util.UuidBuilderUtils;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -33,16 +35,16 @@ public class User {
     @Column(name="password")
     private String password;
 
-    @NotEmpty(message = "邮箱不能为空")
-    @Email(message = "邮箱格式不正确")
+//    @NotEmpty(message = "邮箱不能为空")
+//    @Email(message = "邮箱格式不正确")
     @Column(name="email")
     private String email;
 
-    @NotNull(message = "性别不能为空")
+//    @NotNull(message = "性别不能为空")
     @Column(name="gender")
     private Integer gender;
 
-    @Past(message = "只能用过去的时间")
+//    @Past(message = "只能用过去的时间")
     @Column(name="birth")
     private Date birth;
 
@@ -50,7 +52,4 @@ public class User {
         return UuidBuilderUtils.createUUID();
     }
 
-    public void setUuid(String uuid) {
-        this.uuid = uuid;
-    }
 }

@@ -20,6 +20,12 @@ public interface UserService {
     //    更新用户头像
     void uploadHeadPortrait(User user);
 
-//          检查User的name合法
-    Boolean checkUser(String lastName);
+    //    检查User的name合法
+    Boolean checkName(String name);
+
+    //    根据name查user
+    User findUserByName(User user);
+
+    //    根据uuid查user
+    User findUserByUuid(String uuid);
 }
