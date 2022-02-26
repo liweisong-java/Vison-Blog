@@ -23,7 +23,7 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public void insertUser(User user) {
-        userMapper.insertEmp(user.getUuid(),user.getName(), user.getEmail(), user.getGender(), user.getBirth());
+        userMapper.insertUser(user.getUuid(),user.getName(), user.getPassword(),user.getEmail(), user.getGender(), user.getBirth());
     }
 
     @Override
@@ -31,8 +31,13 @@ public class UserServiceImpl implements UserService {
         userMapper.deleteUserById(map.get("uuid"));
     }
 
-//    @Override
-//    public Boolean checkUser(String lastName) {
-//        return userMapper.checkUser(lastName) == null ? true : false;
-//    }
+    @Override
+    public void uploadHeadPortrait(User user) {
+        userMapper.uploadHeadPortrait(user.getUuid(),user.getHeadPortrait());
+    }
+
+    @Override
+    public Boolean checkUser(String name) {
+        return userMapper.checkUser(name) == null ? true : false;
+    }
 }

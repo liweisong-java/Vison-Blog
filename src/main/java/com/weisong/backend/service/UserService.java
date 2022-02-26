@@ -17,6 +17,9 @@ public interface UserService {
     //    通过UUId 注销/删除User
     void deleteUserById(Map<String,String> map);
 
-    //      检查User的name合法
-//    Boolean checkUser(String lastName);
+    //    更新用户头像
+    void uploadHeadPortrait(User user);
+
+//          检查User的name合法
+    Boolean checkUser(String lastName);
 }

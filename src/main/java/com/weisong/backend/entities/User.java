@@ -1,5 +1,5 @@
 package com.weisong.backend.entities;
-import com.weisong.backend.util.UuidBuilder;
+import com.weisong.backend.util.UuidBuilderUtils;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -22,11 +22,16 @@ public class User {
     @Column(name="uuid")
     private String uuid;
 
-    private String avatar;
+    @Column(name="head_portrait")
+    private String headPortrait;
 
     @NotEmpty(message = "名字不能为空")
     @Column(name="name")
     private String name;
+
+    @NotEmpty(message = "密码不能为空")
+    @Column(name="password")
+    private String password;
 
     @NotEmpty(message = "邮箱不能为空")
     @Email(message = "邮箱格式不正确")
@@ -42,7 +47,7 @@ public class User {
     private Date birth;
 
     public String getUuid() {
-        return UuidBuilder.createUUID();
+        return UuidBuilderUtils.createUUID();
     }
 
     public void setUuid(String uuid) {

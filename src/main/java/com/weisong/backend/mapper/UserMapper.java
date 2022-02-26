@@ -17,15 +17,18 @@ import java.util.Map;
 public interface UserMapper {
 
     //    注册/添加User
-    @Insert("insert into user(uuid,name,email,gender,birth) values(#{uuid},#{name},#{email},#{gender},#{birth})")
-    void insertEmp(@Param("uuid")String uuid,@Param("name")String name, @Param("email")String email , @Param("gender")Integer gender, @Param("birth")Date birth);
+    @Insert("insert into user(uuid,name,password,email,gender,birth) values(#{uuid},#{name},#{password},#{email},#{gender},#{birth})")
+    void insertUser(@Param("uuid")String uuid,@Param("name")String name, @Param("password")String password,@Param("email")String email , @Param("gender")Integer gender, @Param("birth")Date birth);
 
     //    通过UUId 注销/删除User
     @Delete("delete from user where uuid=#{uuid}")
     void deleteUserById(@Param("uuid") String uuid);
 
+    @Update("UPDATE user SET head_portrait =#{headPortrait} WHERE uuid = #{uuid}")
+    void uploadHeadPortrait(@Param("uuid")String uuid,@Param("head_portrait")String headPortrait);
+
     //      检查User的name合法
-//    @Select("SELECT name,COUNT(name) from user GROUP BY name HAVING COUNT(name) > 1")
-//    List<User> checkUser(String name);
+    @Select("SELECT name,COUNT(name) from user GROUP BY name HAVING COUNT(name) > 1")
+    List<User> checkUser(String name);
 
 }

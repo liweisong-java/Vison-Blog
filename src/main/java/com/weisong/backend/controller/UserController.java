@@ -30,7 +30,7 @@ public class UserController {
 
 //    注册用户
     @ResponseBody
-    @RequestMapping(value = "/registerUser",method = RequestMethod.POST)
+    @RequestMapping(value = "/register",method = RequestMethod.POST)
     public Result registerUser(@RequestBody @Validated User user, BindingResult result){
         logger.info("begin addUser");
         if (result.hasErrors()){
@@ -46,7 +46,7 @@ public class UserController {
 
 //    根据UUID删除用户
     @ResponseBody
-    @RequestMapping(value = "/deleteUser",method = RequestMethod.POST)
+    @RequestMapping(value = "/delete",method = RequestMethod.POST)
     public Result deleteUserById(@RequestBody Map<String,String> map){
         logger.info("begin deleteUserById");
         userService.deleteUserById(map);
@@ -56,29 +56,24 @@ public class UserController {
 
 
 
-//    @ResponseBody
-//    @RequestMapping("/checkUser")
-//    public Result checkUser(@RequestParam("lastName")String lastName){
-//        //先判断用户名是否是合法的表达式;
-//        String regx = "(^[a-zA-Z0-9_-]{6,16}$)|(^[\u2E80-\u9FFF]{2,5})";
-//        if(!lastName.matches(regx)){
-//            //前端需要的
-//            return Result.nameFormatError(100);
-//        }
-//
-//        //数据库用户名重复校验
-//        boolean b = userService.checkUser(lastName);
-//        if(b){
-//            return Result.success();
-//        }else{
-//            return Result.repetitionError();
-//        }
-//
-//    }
+    @ResponseBody
+    @RequestMapping("/checkUser")
+    public Result checkUser(@RequestParam("name")String name){
+        //先判断用户名是否是合法的表达式;
+        String regx = "(^[a-zA-Z0-9_-]{6,16}$)|(^[\u2E80-\u9FFF]{2,5})";
+        if(!name.matches(regx)){
+            //前端需要的
+            return Result.nameFormatError(100);
+        }
 
-    public static void main(String[] args) {
-        String uuid = java.util.UUID.randomUUID().toString().replaceAll("-", "");
-        System.out.println(uuid);
+        //数据库用户名重复校验
+        boolean b = userService.checkUser(name);
+        if(b){
+            return Result.success();
+        }else{
+            return Result.repetitionError();
+        }
+
     }
 
 }
