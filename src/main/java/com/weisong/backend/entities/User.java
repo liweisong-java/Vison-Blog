@@ -1,6 +1,5 @@
 package com.weisong.backend.entities;
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.sun.org.apache.xpath.internal.operations.Bool;
+import com.weisong.backend.util.UuidBuilder;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -17,11 +16,11 @@ import java.util.Date;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-@Table(name ="employee")
-public class Employee {
+@Table(name ="user")
+public class User {
 
-    @Column(name="emp_Id")
-    private Integer emp_Id;
+    @Column(name="uuid")
+    private String uuid;
 
     private String avatar;
 
@@ -38,19 +37,15 @@ public class Employee {
     @Column(name="gender")
     private Integer gender;
 
-
-    @Column(name="departmentName")
-    private String departmentName;
-
-
     @Past(message = "只能用过去的时间")
     @Column(name="birth")
     private Date birth;
 
-    @JsonIgnore
-    @Column(name="enableEnum")
-    private Integer enableEnum;
+    public String getUuid() {
+        return UuidBuilder.createUUID();
+    }
 
-
-    private Boolean isEnable;
+    public void setUuid(String uuid) {
+        this.uuid = uuid;
+    }
 }

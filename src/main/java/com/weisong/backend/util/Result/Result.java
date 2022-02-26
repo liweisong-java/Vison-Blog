@@ -74,14 +74,14 @@ public class Result <T> {
      * 成功
      */
     public static <T> Result<T> success() {
-        return restResult(null, SUCCESS.getStatus(), null);
+        return restResult(null, SUCCESS.getStatus(), SUCCESS.getMsg());
     }
 
     public static <T> Result<T> success(T data) {
-        return restResult(data, SUCCESS.getStatus(), null);
+        return restResult(data, SUCCESS.getStatus(), SUCCESS.getMsg());
     }
     public static <T> Result<T> success(T data, String msg) {
-        return restResult(data, SUCCESS.getStatus(), msg);
+        return restResult(data, SUCCESS.getStatus(), SUCCESS.getMsg());
     }
 
 
