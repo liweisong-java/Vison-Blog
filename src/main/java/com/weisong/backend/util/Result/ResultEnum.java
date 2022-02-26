@@ -1,14 +1,16 @@
-package com.weisong.backend.util.enums;
+package com.weisong.backend.util.Result;
 
 
-
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
 /**
  * @Description:
  * @Author: x
  * @Date :
  */
-
 public enum ResultEnum {
 
     //成功
@@ -21,6 +23,13 @@ public enum ResultEnum {
     private Integer status;
     private String msg;
 
+    public Integer getStatus() {
+        return status;
+    }
+
+    public void setStatus(Integer status) {
+        this.status = status;
+    }
 
     public String getMsg() {
         return msg;
@@ -30,17 +39,9 @@ public enum ResultEnum {
         this.msg = msg;
     }
 
-    public Integer getStatus() {
-        return status;
-    }
-
-    public void setStatus(Integer status) {
-        this.status = status;
-    }
-
     ResultEnum(Integer status, String msg) {
         this.status = status;
         this.msg = msg;
     }
-
 }
+
