@@ -24,7 +24,7 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public void insertUser(User user) {
-        userMapper.insertUser(user.getUuid(),user.getName(), user.getPassword(),user.getEmail(), user.getGender(), user.getBirth());
+        userMapper.insertUser(user.generateUuid(),user.getName(), user.getPassword(),user.getEmail(), user.getGender(), user.getBirth());
     }
 
     @Override
@@ -44,7 +44,8 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public User findUserByName(User user) {
-        return userMapper.findUserByName(user.getName());
+        User userByName = userMapper.findUserByName(user.getName());
+        return userByName;
     }
 
     @Override

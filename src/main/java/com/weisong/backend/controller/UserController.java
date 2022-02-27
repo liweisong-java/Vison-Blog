@@ -1,5 +1,7 @@
 package com.weisong.backend.controller;
 
+
+import com.weisong.backend.Token.PassToken;
 import com.weisong.backend.Token.UserLoginToken;
 import com.weisong.backend.entities.User;
 import com.weisong.backend.service.TokenService;
@@ -80,6 +82,7 @@ public class UserController {
     @UserLoginToken
     @GetMapping("/getMessage")
     public String getMessage(){
+
         return "你已通过验证";
     }
 
