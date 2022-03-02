@@ -3,9 +3,15 @@ package com.weisong.backend.entities;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
+import org.springframework.data.annotation.CreatedDate;
+import org.springframework.data.annotation.LastModifiedDate;
+import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import javax.persistence.Column;
+import javax.persistence.EntityListeners;
 import javax.persistence.Table;
+import javax.validation.constraints.NotEmpty;
 import java.util.Date;
 
 /**
@@ -16,15 +22,18 @@ import java.util.Date;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
+@EntityListeners(AuditingEntityListener.class)
 @Table(name ="article")
 public class Article {
 
     @Column(name="uuid")
     private String uuid;
 
+    @NotEmpty(message = "标题不能为空")
     @Column(name="title")
     private String title;
 
+    @NotEmpty(message = "文章内容不能为空")
     @Column(name="article")
     private String article;
 
@@ -37,9 +46,11 @@ public class Article {
     @Column(name="answer")
     private Integer answer;
 
+    @CreatedDate
     @Column(name="create_date")
     private Date createDate;
 
+    @LastModifiedDate
     @Column(name="update_date")
     private Date updateDate;
 

@@ -1,5 +1,6 @@
 package com.weisong.backend.service.impl;
 
+import com.weisong.backend.entities.Article;
 import com.weisong.backend.entities.User;
 import com.weisong.backend.mapper.ArticleMapper;
 import com.weisong.backend.service.ArticleService;
@@ -20,7 +21,20 @@ public class ArticleServiceImpl implements ArticleService {
     ArticleMapper articleMapper;
 
     @Override
-    public List<User> getAllArticle() {
+    public List<Article> getAllArticle() {
         return articleMapper.getAllArticle();
     }
+
+    @Override
+    public List<Article> addArticle(Article article) {
+        return articleMapper.addArticle(article.getUuid(),article.getTitle(), article.getArticle(),article.getRead(), article.getLike(),
+                article.getAnswer(),article.getCreateDate(),article.getUpdateDate(),article.getName(),article.getCategoryId());
+    }
+
+    @Override
+    public void deleteArticleById(String uuid) {
+        articleMapper.deleteArticleById(uuid);
+    }
+
+
 }

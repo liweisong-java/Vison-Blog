@@ -20,13 +20,12 @@ import java.util.Map;
 
 @RestController
 @RequestMapping(value = "/article")
-@CrossOrigin(origins = "http://localhost:9527", maxAge = 3600)
 public class ArticleController{
     Logger logger = LoggerFactory.getLogger(ArticleController.class);
     @Autowired
     ArticleService articleService;
 
-//    查询所有文章
+//  查询所有文章
     @ResponseBody
     @GetMapping(value = "/listArticle")
     public Result getArticleList(){
@@ -34,18 +33,33 @@ public class ArticleController{
         return Result.success(articleService.getAllArticle());
     }
 
-//    分页查询文章
+//  分页查询文章
     @ResponseBody
     @PostMapping(value = "/listPage")
     public Result<Map<String, Object>> ArticlePageList(@RequestBody Map map){
         Integer pageIndex=(Integer)map.get("pageIndex");
         Integer pageSize=(Integer)map.get("pageSize");
         PageHelper.startPage(pageIndex,pageSize);
-        List<User> list = articleService.getAllArticle();
+        List<Article> list = articleService.getAllArticle();
         PageInfo pageInfo=new PageInfo<>(list);
         return Result.success(Result.pageInfoToMap(pageInfo));
     }
 
+//  添加文章
+    @ResponseBody
+    @RequestMapping(value = "/addArticle",method = RequestMethod.POST)
+    public Result addArticle(@RequestBody Article article){
+        return Result.success(articleService.addArticle(article));
+    }
+
+
+//   删除文章
+    @ResponseBody
+    @RequestMapping(value = "/deleteArticleById",method = RequestMethod.POST)
+    public Result deleteArticleById(@RequestBody String uuid){
+        articleService.deleteArticleById(uuid);
+        return Result.success();
+    }
 
 
 

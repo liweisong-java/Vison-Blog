@@ -25,7 +25,6 @@ import java.util.UUID;
 
 @RestController
 @RequestMapping(value = "/user")
-@CrossOrigin(origins = "http://localhost:8081", maxAge = 3600)
 public class UserController {
     Logger logger = LoggerFactory.getLogger(UserController.class);
     @Autowired
