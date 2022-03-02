@@ -27,7 +27,7 @@ public class ArticleController{
 
 //  查询所有文章
     @ResponseBody
-    @GetMapping(value = "/listArticle")
+    @GetMapping(value = "/list")
     public Result getArticleList(){
         logger.info("begin getArticleList");
         return Result.success(articleService.getAllArticle());
@@ -35,7 +35,7 @@ public class ArticleController{
 
 //  分页查询文章
     @ResponseBody
-    @PostMapping(value = "/listPage")
+    @GetMapping(value = "/listPage")
     public Result<Map<String, Object>> ArticlePageList(@RequestBody Map map){
         Integer pageIndex=(Integer)map.get("pageIndex");
         Integer pageSize=(Integer)map.get("pageSize");

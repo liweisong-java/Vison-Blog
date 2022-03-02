@@ -17,7 +17,7 @@ import java.util.List;
 public interface ArticleMapper {
 
 //    查询所有帖子
-    @Select("select `UUID`,`name`,`email`,`gender`,`birth` from article")
+    @Select("select * from article")
     List<Article> getAllArticle();
 
 

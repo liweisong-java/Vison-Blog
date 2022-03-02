@@ -15,6 +15,7 @@ import org.springframework.validation.BindingResult;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 
@@ -61,9 +62,10 @@ public class UserController {
 
 
     //登录
+    @ResponseBody
     @PostMapping("/login")
     public Object login(@RequestBody User user){
-        JSONObject jsonObject=new JSONObject();
+        Map<String,Object> map=new HashMap<>();
         User userForBase = userService.findUserByName(user);
         if(userForBase==null){
             return Result.error(1, "登录失败，用户名不存在");
@@ -72,9 +74,9 @@ public class UserController {
                 return Result.error(1, "登录失败，密码错误");
             }else {
                 String token = tokenService.getToken(userForBase);
-                jsonObject.put("token", token);
-                jsonObject.put("user", userForBase);
-                return jsonObject;
+                map.put("token",token);
+                map.put("user",userForBase);
+                return Result.success(map);
             }
         }
     }
