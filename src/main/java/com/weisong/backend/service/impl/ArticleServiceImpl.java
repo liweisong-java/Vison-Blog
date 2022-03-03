@@ -22,6 +22,7 @@ public class ArticleServiceImpl implements ArticleService {
 
     @Override
     public List<Article> getAllArticle() {
+        System.out.println("1111");
         return articleMapper.getAllArticle();
     }
 

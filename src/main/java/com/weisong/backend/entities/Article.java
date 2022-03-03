@@ -1,5 +1,7 @@
 package com.weisong.backend.entities;
 
+import com.baomidou.mybatisplus.annotation.TableId;
+import com.baomidou.mybatisplus.annotation.TableName;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -23,9 +25,10 @@ import java.util.Date;
 @NoArgsConstructor
 @AllArgsConstructor
 @EntityListeners(AuditingEntityListener.class)
-@Table(name ="article")
+@TableName("article")
 public class Article {
 
+    @TableId
     @Column(name="uuid")
     private String uuid;
 

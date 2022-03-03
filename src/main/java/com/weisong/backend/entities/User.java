@@ -1,6 +1,8 @@
 package com.weisong.backend.entities;
 import com.auth0.jwt.JWT;
 import com.auth0.jwt.algorithms.Algorithm;
+import com.baomidou.mybatisplus.annotation.TableId;
+import com.baomidou.mybatisplus.annotation.TableName;
 import com.weisong.backend.util.UuidBuilderUtils;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -18,9 +20,10 @@ import java.util.Date;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-@Table(name ="user")
+@TableName("user")
 public class User {
 
+    @TableId
     @Column(name="uuid")
     private String uuid;
 

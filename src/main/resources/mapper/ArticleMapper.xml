@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.weisong.backend.mapper.ArticleMapper">
+
+    <resultMap id="BaseResultMap" type="com.weisong.backend.entities.Article">
+            <id property="uuid" column="uuid" jdbcType="VARCHAR"/>
+            <result property="title" column="title" jdbcType="VARCHAR"/>
+            <result property="article" column="article" jdbcType="VARCHAR"/>
+            <result property="read" column="read" jdbcType="INTEGER"/>
+            <result property="like" column="like" jdbcType="INTEGER"/>
+            <result property="answer" column="answer" jdbcType="INTEGER"/>
+            <result property="createDate" column="create_date" jdbcType="TIMESTAMP"/>
+            <result property="updateDate" column="update_date" jdbcType="TIMESTAMP"/>
+            <result property="name" column="name" jdbcType="VARCHAR"/>
+            <result property="categoryId" column="category_id" jdbcType="INTEGER"/>
+    </resultMap>
+
+    <sql id="Article_Column_List">
+        `uuid`,`title`,`article`,
+        `read`,`like`,`answer`,
+        `create_date`,`update_date`,`name`,
+        `category_id`
+    </sql>
+    <sql id="Receive_Article">
+        #{uuid},#{title},#{article},#{read},#{answer},#{createDate},#{updateDate},#{name},#{categoryId}
+    </sql>
+    <insert id="addArticle">
+        insert into
+        article
+        <include refid="Article_Column_List"/>
+        values
+        (<include refid="Receive_Article"/>)
+    </insert>
+    <delete id="deleteArticleById">
+        delete from article where uuid=#{uuid}
+    </delete>
+    <select id="getAllArticle" resultType="com.weisong.backend.entities.Article">
+        select * from article
+    </select>
+
+
+</mapper>

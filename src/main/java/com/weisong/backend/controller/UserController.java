@@ -1,13 +1,11 @@
 package com.weisong.backend.controller;
 
 
-import com.weisong.backend.Token.PassToken;
 import com.weisong.backend.Token.UserLoginToken;
 import com.weisong.backend.entities.User;
 import com.weisong.backend.service.TokenService;
 import com.weisong.backend.service.UserService;
 import com.weisong.backend.util.Result.Result;
-import net.minidev.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -17,7 +15,6 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.HashMap;
 import java.util.Map;
-import java.util.UUID;
 
 /**
  * @author 李伟松
@@ -96,4 +93,5 @@ public class UserController {
         userService.deleteUserById(map);
         return Result.success();
     }
+
 }

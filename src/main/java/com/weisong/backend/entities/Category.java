@@ -1,5 +1,7 @@
 package com.weisong.backend.entities;
 
+import com.baomidou.mybatisplus.annotation.TableId;
+import com.baomidou.mybatisplus.annotation.TableName;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -15,8 +17,10 @@ import javax.persistence.Table;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-@Table(name ="category")
+@TableName("category")
 public class Category {
+
+    @TableId
     @Column(name="category_id")
     private Integer categoryId;
 

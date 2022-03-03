@@ -1,7 +1,9 @@
 package com.weisong.backend.controller;
 
+import com.auth0.jwt.interfaces.Header;
 import com.github.pagehelper.PageHelper;
 import com.github.pagehelper.PageInfo;
+import com.weisong.backend.Token.UserLoginToken;
 import com.weisong.backend.entities.Article;
 import com.weisong.backend.entities.User;
 import com.weisong.backend.service.ArticleService;
@@ -46,9 +48,11 @@ public class ArticleController{
     }
 
 //  添加文章
+    @UserLoginToken
     @ResponseBody
     @RequestMapping(value = "/addArticle",method = RequestMethod.POST)
     public Result addArticle(@RequestBody Article article){
+        // System.out.println(token);
         return Result.success(articleService.addArticle(article));
     }
 

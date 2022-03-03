@@ -1,4 +1,4 @@
-package com.weisong.backend.controller;
+package com.weisong.backend.filters;
 
 import com.alibaba.fastjson.JSON;
 import com.auth0.jwt.JWT;
@@ -12,7 +12,6 @@ import com.weisong.backend.entities.User;
 import com.weisong.backend.service.UserService;
 import com.weisong.backend.util.Result.Result;
 import lombok.SneakyThrows;
-import org.apache.tomcat.util.http.ResponseUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.method.HandlerMethod;
 import org.springframework.web.servlet.HandlerInterceptor;
@@ -30,13 +29,14 @@ public class AuthenticationInterceptor implements HandlerInterceptor {
     @Override
     public boolean preHandle(HttpServletRequest httpServletRequest, HttpServletResponse response, Object object) throws Exception {
         String token = httpServletRequest.getHeader("token");// 从 http 请求头中取出 token
+
         // 如果不是映射到方法直接通过
         if (!(object instanceof HandlerMethod)) {
             return true;
         }
         HandlerMethod handlerMethod = (HandlerMethod) object;
         Method method = handlerMethod.getMethod();
-        //检查是否有passtoken注释，有则跳过认证
+        //检查是否有passToken注释，有则跳过认证
         if (method.isAnnotationPresent(PassToken.class)) {
             PassToken passToken = method.getAnnotation(PassToken.class);
             if (passToken.required()) {

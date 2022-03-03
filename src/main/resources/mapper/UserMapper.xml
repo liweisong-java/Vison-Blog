@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.weisong.backend.mapper.UserMapper">
+
+    <resultMap id="BaseResultMap" type="com.weisong.backend.entities.User">
+            <id property="uuid" column="uuid" jdbcType="VARCHAR"/>
+            <result property="name" column="name" jdbcType="VARCHAR"/>
+            <result property="password" column="password" jdbcType="VARCHAR"/>
+            <result property="email" column="email" jdbcType="VARCHAR"/>
+            <result property="gender" column="gender" jdbcType="CHAR"/>
+            <result property="birth" column="birth" jdbcType="TIMESTAMP"/>
+            <result property="headPortrait" column="head_portrait" jdbcType="VARCHAR"/>
+    </resultMap>
+
+    <sql id="User_Column_List">
+        `uuid`,`name`,`password`,
+        `email`,`gender`,`birth`,
+        `head_portrait`
+    </sql>
+    <insert id="insertUser">
+        insert into user(`uuid`,`name`,`password`,`email`) values(#{uuid},#{name},#{password},#{email})
+    </insert>
+    <update id="uploadHeadPortrait">
+        UPDATE user SET head_portrait =#{headPortrait} WHERE uuid = #{uuid}
+    </update>
+    <delete id="deleteUserById">
+        delete from user where uuid=#{uuid}
+    </delete>
+    <select id="checkName" resultType="java.lang.Integer">
+        SELECT COUNT(name) from user where `name`= #{name}
+    </select>
+    <select id="findUserByName" resultType="com.weisong.backend.entities.User">
+        SELECT
+        <include refid="User_Column_List"/>
+        from
+        user
+        where `name`=#{name}
+    </select>
+    <select id="findUserByUuid" resultType="com.weisong.backend.entities.User">
+        SELECT
+        <include refid="User_Column_List"/>
+        from
+        user
+        where uuid=#{uuid}
+    </select>
+</mapper>
