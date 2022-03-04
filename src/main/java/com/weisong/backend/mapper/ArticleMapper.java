@@ -23,7 +23,7 @@ public interface ArticleMapper{
 //
 
 //    添加文章
-    List<Article> addArticle(String article_uuid, String title, String article, Integer read, Integer like, Integer answer, Date createDate, Date updateDate, String name, String categoryId);
+    List<Article> addArticle(String article_uuid, String title, String article, Integer read, Integer like, Integer answer, Date createDate, Date updateDate, String user_uuid ,String name, String categoryId);
 
 //    删除文章
     void deleteArticleById(@Param("article_uuid") String article_uuid);

@@ -20,11 +20,11 @@
     <sql id="Article_Column_List">
         `article_uuid`,`title`,`article`,
         `read`,`like`,`answer`,
-        `create_date`,`update_date`,`name`,
+        `create_date`,`update_date`,`user_uuid`,`name`,
         `category_id`
     </sql>
     <sql id="Receive_Article">
-        #{article_uuid},#{title},#{article},#{read},#{answer},#{createDate},#{updateDate},#{name},#{categoryId}
+        #{article_uuid},#{title},#{article},#{read},#{answer},#{createDate},#{updateDate},#{user_uuid},#{name},#{categoryId}
     </sql>
     <insert id="addArticle">
         insert into

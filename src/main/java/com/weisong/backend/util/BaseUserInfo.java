@@ -26,4 +26,5 @@ public class BaseUserInfo {
         Map<String, String> map = getLocalMap();
         return map.get(key);
     }
+
 }

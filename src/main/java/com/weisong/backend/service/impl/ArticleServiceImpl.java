@@ -5,6 +5,7 @@ import com.weisong.backend.entities.User;
 import com.weisong.backend.mapper.ArticleMapper;
 import com.weisong.backend.service.ArticleService;
 import com.weisong.backend.service.UserService;
+import com.weisong.backend.util.BaseUserInfo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -27,9 +28,17 @@ public class ArticleServiceImpl implements ArticleService {
 
     @Override
     public List<Article> addArticle(Article article) {
+        BaseUserInfo.get("user_uuid");
 
-        return articleMapper.addArticle(article.getArticle_uuid(),article.getTitle(), article.getArticle(),article.getRead(), article.getLike(),
-                article.getAnswer(),article.getCreateDate(),article.getUpdateDate(),article.getName(),article.getCategoryId());
+        return articleMapper.addArticle(article.createArticleUuid(),article.getTitle(), article.getArticle(),
+                article.getRead(),
+                article.getLike(),
+                article.getAnswer(),
+                article.getCreateDate(),
+                article.getUpdateDate(),
+                article.getUser_uuid(),
+                article.getName(),
+                article.getCategoryId());
     }
 
     @Override

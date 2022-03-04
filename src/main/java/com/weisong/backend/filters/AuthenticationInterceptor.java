@@ -10,6 +10,7 @@ import com.weisong.backend.Token.PassToken;
 import com.weisong.backend.Token.UserLoginToken;
 import com.weisong.backend.entities.User;
 import com.weisong.backend.service.UserService;
+import com.weisong.backend.util.BaseUserInfo;
 import com.weisong.backend.util.Result.Result;
 import lombok.SneakyThrows;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -66,7 +67,9 @@ public class AuthenticationInterceptor implements HandlerInterceptor {
                     return false;
                 }
                 User user = userService.findUserByUuid(userId);
-                request.setAttribute(LOGIN_USER_KEY, userId);
+                BaseUserInfo.set("user_uuid",userId);
+                BaseUserInfo.set("name",user.getName());
+
                 if (user == null) {
                     new AuthenticationInterceptor().tokenFalse(response,1,"用户不存在，请重新登录");
                     return false;

@@ -51,7 +51,7 @@ public class User {
     @Column(name="birth")
     private Date birth;
 
-    public String generateUuid() {
+    public String createUserUuid() {
         return UuidBuilderUtils.createUUID();
     }
 

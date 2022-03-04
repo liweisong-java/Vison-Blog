@@ -6,6 +6,7 @@ import com.weisong.backend.entities.User;
 import com.weisong.backend.filters.AuthenticationInterceptor;
 import com.weisong.backend.service.TokenService;
 import com.weisong.backend.service.UserService;
+import com.weisong.backend.util.BaseUserInfo;
 import com.weisong.backend.util.Result.Result;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -76,6 +77,7 @@ public class UserController {
                 map.put("user",userForBase);
                 return Result.success(map);
             }
+
         }
     }
     @UserLoginToken

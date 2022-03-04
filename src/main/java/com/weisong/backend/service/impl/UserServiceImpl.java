@@ -24,7 +24,7 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public void insertUser(User user) {
-        userMapper.insertUser(user.generateUuid(),user.getName(), user.getPassword(),user.getEmail(), user.getGender(), user.getBirth());
+        userMapper.insertUser(user.createUserUuid(),user.getName(), user.getPassword(),user.getEmail(), user.getGender(), user.getBirth());
     }
 
     @Override

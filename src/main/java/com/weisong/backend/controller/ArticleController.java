@@ -8,6 +8,7 @@ import com.weisong.backend.entities.Article;
 import com.weisong.backend.entities.User;
 import com.weisong.backend.service.ArticleService;
 import com.weisong.backend.service.UserService;
+import com.weisong.backend.util.BaseUserInfo;
 import com.weisong.backend.util.Result.Result;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -52,6 +53,8 @@ public class ArticleController{
     @ResponseBody
     @RequestMapping(value = "/addArticle",method = RequestMethod.POST)
     public Result addArticle(@RequestBody Article article){
+        article.setName(BaseUserInfo.get("name"));
+        article.setName(BaseUserInfo.get("name"));
         return Result.success(articleService.addArticle(article));
     }
 

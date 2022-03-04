@@ -2,6 +2,7 @@ package com.weisong.backend.entities;
 
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
+import com.weisong.backend.util.UuidBuilderUtils;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -57,9 +58,18 @@ public class Article {
     @Column(name="update_date")
     private Date updateDate;
 
+    @Column(name="user_uuid")
+    private String user_uuid;
+
     @Column(name="name")
     private String name;
 
     @Column(name="category_id")
     private String categoryId;
+
+
+    public String createArticleUuid() {
+        return UuidBuilderUtils.createUUID();
+    }
+
 }
