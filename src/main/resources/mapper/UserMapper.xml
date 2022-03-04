@@ -5,7 +5,7 @@
 <mapper namespace="com.weisong.backend.mapper.UserMapper">
 
     <resultMap id="BaseResultMap" type="com.weisong.backend.entities.User">
-            <id property="uuid" column="uuid" jdbcType="VARCHAR"/>
+            <id property="user_uuid" column="user_uuid" jdbcType="VARCHAR"/>
             <result property="name" column="name" jdbcType="VARCHAR"/>
             <result property="password" column="password" jdbcType="VARCHAR"/>
             <result property="email" column="email" jdbcType="VARCHAR"/>
@@ -15,28 +15,28 @@
     </resultMap>
 
     <sql id="User_Column_List">
-        `uuid`,`name`,`password`,
+        `user_uuid`,`name`,`password`,
         `email`,`gender`,`birth`,
         `head_portrait`
     </sql>
     <insert id="insertUser">
-        insert into user(`uuid`,`name`,`password`,`email`) values(#{uuid},#{name},#{password},#{email})
+        insert into user(`user_uuid`,`name`,`password`,`email`) values(#{user_uuid},#{name},#{password},#{email})
     </insert>
     <update id="uploadHeadPortrait">
-        UPDATE user SET head_portrait =#{headPortrait} WHERE uuid = #{uuid}
+        UPDATE user SET head_portrait =#{headPortrait} WHERE user_uuid = #{user_uuid}
     </update>
     <delete id="deleteUserById">
-        delete from user where uuid=#{uuid}
+        delete from user where user_uuid=#{user_uuid}
     </delete>
     <select id="checkName" resultType="java.lang.Integer">
         SELECT COUNT(name) from user where `name`= #{name}
     </select>
-    <select id="findUserByName" resultType="com.weisong.backend.entities.User">
+    <select id="findUserByNameOrEmail" resultType="com.weisong.backend.entities.User">
         SELECT
         <include refid="User_Column_List"/>
         from
         user
-        where `name`=#{name}
+        where `name`=#{name} or `email`=#{email}
     </select>
     <select id="findUserByUuid" resultType="com.weisong.backend.entities.User">
         SELECT

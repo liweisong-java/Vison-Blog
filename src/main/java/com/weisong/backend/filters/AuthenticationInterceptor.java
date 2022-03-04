@@ -13,23 +13,28 @@ import com.weisong.backend.service.UserService;
 import com.weisong.backend.util.Result.Result;
 import lombok.SneakyThrows;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
+import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.method.HandlerMethod;
 import org.springframework.web.servlet.HandlerInterceptor;
 import org.springframework.web.servlet.ModelAndView;
-
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.PrintWriter;
 import java.lang.reflect.Method;
 
+@Component
 public class AuthenticationInterceptor implements HandlerInterceptor {
+
     @Autowired
     UserService userService;
 
+    public static final String LOGIN_USER_KEY = "LOGIN_USER_KEY";
     @Override
-    public boolean preHandle(HttpServletRequest httpServletRequest, HttpServletResponse response, Object object) throws Exception {
-        String token = httpServletRequest.getHeader("token");// 从 http 请求头中取出 token
+    public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object object) throws Exception {
+        System.out.println("拦截器开始工作");
 
+        String token = request.getHeader("token");// 从 http 请求头中取出 token
         // 如果不是映射到方法直接通过
         if (!(object instanceof HandlerMethod)) {
             return true;
@@ -61,6 +66,7 @@ public class AuthenticationInterceptor implements HandlerInterceptor {
                     return false;
                 }
                 User user = userService.findUserByUuid(userId);
+                request.setAttribute(LOGIN_USER_KEY, userId);
                 if (user == null) {
                     new AuthenticationInterceptor().tokenFalse(response,1,"用户不存在，请重新登录");
                     return false;
@@ -78,6 +84,7 @@ public class AuthenticationInterceptor implements HandlerInterceptor {
         }
         return true;
 
+
     }
 
     @SneakyThrows
@@ -88,18 +95,5 @@ public class AuthenticationInterceptor implements HandlerInterceptor {
         response.setStatus(200);
         PrintWriter out = response.getWriter();
         out.append(ResultString);
-    }
-
-    @Override
-    public void postHandle(HttpServletRequest httpServletRequest,
-                           HttpServletResponse httpServletResponse,
-                           Object o, ModelAndView modelAndView) throws Exception {
-
-    }
-
-    @Override
-    public void afterCompletion(HttpServletRequest httpServletRequest,
-                                HttpServletResponse httpServletResponse,
-                                Object o, Exception e) throws Exception {
     }
 }

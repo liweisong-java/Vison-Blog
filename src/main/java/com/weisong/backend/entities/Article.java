@@ -29,8 +29,8 @@ import java.util.Date;
 public class Article {
 
     @TableId
-    @Column(name="uuid")
-    private String uuid;
+    @Column(name="article_uuid")
+    private String article_uuid;
 
     @NotEmpty(message = "标题不能为空")
     @Column(name="title")

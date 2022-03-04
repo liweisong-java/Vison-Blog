@@ -15,7 +15,7 @@ public class TokenServiceImpl implements TokenService {
 
     public String getToken(User user) {
         String token="";
-        token= JWT.create().withAudience(user.getUuid())
+        token= JWT.create().withAudience(user.getUser_uuid())
                 .sign(Algorithm.HMAC256(user.getPassword()));
         return token;
     }

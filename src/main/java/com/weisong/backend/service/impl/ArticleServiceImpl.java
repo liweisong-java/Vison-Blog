@@ -22,19 +22,19 @@ public class ArticleServiceImpl implements ArticleService {
 
     @Override
     public List<Article> getAllArticle() {
-        System.out.println("1111");
         return articleMapper.getAllArticle();
     }
 
     @Override
     public List<Article> addArticle(Article article) {
-        return articleMapper.addArticle(article.getUuid(),article.getTitle(), article.getArticle(),article.getRead(), article.getLike(),
+
+        return articleMapper.addArticle(article.getArticle_uuid(),article.getTitle(), article.getArticle(),article.getRead(), article.getLike(),
                 article.getAnswer(),article.getCreateDate(),article.getUpdateDate(),article.getName(),article.getCategoryId());
     }
 
     @Override
-    public void deleteArticleById(String uuid) {
-        articleMapper.deleteArticleById(uuid);
+    public void deleteArticleById(String article_uuid) {
+        articleMapper.deleteArticleById(article_uuid);
     }
 
 

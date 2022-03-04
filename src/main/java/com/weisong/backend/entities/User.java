@@ -24,8 +24,8 @@ import java.util.Date;
 public class User {
 
     @TableId
-    @Column(name="uuid")
-    private String uuid;
+    @Column(name="user_uuid")
+    private String user_uuid;
 
     @Column(name="head_portrait")
     private String headPortrait;

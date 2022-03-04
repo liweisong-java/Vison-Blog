@@ -19,6 +19,6 @@ public interface ArticleService {
     List<Article> addArticle(Article article);
 
 //    删除文章
-    void deleteArticleById(@Param("uuid") String uuid);
+    void deleteArticleById(@Param("uuid") String article_uuid);
 
 }

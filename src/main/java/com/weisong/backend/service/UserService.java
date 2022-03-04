@@ -24,8 +24,8 @@ public interface UserService {
     Boolean checkName(String name);
 
     //    根据name查user
-    User findUserByName(User user);
+    User findUserByNameOrEmail(User user);
 
     //    根据uuid查user
-    User findUserByUuid(String uuid);
+    User findUserByUuid(String user_uuid);
 }

@@ -3,6 +3,7 @@ package com.weisong.backend.controller;
 
 import com.weisong.backend.Token.UserLoginToken;
 import com.weisong.backend.entities.User;
+import com.weisong.backend.filters.AuthenticationInterceptor;
 import com.weisong.backend.service.TokenService;
 import com.weisong.backend.service.UserService;
 import com.weisong.backend.util.Result.Result;
@@ -63,7 +64,7 @@ public class UserController {
     @PostMapping("/login")
     public Object login(@RequestBody User user){
         Map<String,Object> map=new HashMap<>();
-        User userForBase = userService.findUserByName(user);
+        User userForBase = userService.findUserByNameOrEmail(user);
         if(userForBase==null){
             return Result.error(1, "登录失败，用户名不存在");
         }else {
@@ -92,6 +93,7 @@ public class UserController {
         logger.info("begin deleteUserById");
         userService.deleteUserById(map);
         return Result.success();
+//        AuthenticationInterceptor.LOGIN_USER_KEY
     }
 
 }

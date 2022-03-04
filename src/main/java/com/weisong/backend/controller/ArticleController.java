@@ -52,7 +52,6 @@ public class ArticleController{
     @ResponseBody
     @RequestMapping(value = "/addArticle",method = RequestMethod.POST)
     public Result addArticle(@RequestBody Article article){
-        // System.out.println(token);
         return Result.success(articleService.addArticle(article));
     }
 
@@ -60,8 +59,8 @@ public class ArticleController{
 //   删除文章
     @ResponseBody
     @RequestMapping(value = "/deleteArticleById",method = RequestMethod.POST)
-    public Result deleteArticleById(@RequestBody String uuid){
-        articleService.deleteArticleById(uuid);
+    public Result deleteArticleById(@RequestBody String article_uuid){
+        articleService.deleteArticleById(article_uuid);
         return Result.success();
     }
 
