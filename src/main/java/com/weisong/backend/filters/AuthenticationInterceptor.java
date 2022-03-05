@@ -67,7 +67,7 @@ public class AuthenticationInterceptor implements HandlerInterceptor {
                     return false;
                 }
                 User user = userService.findUserByUuid(userId);
-                BaseUserInfo.set("user_uuid",userId);
+                BaseUserInfo.set("userUuid",user.getUserUuid());
                 BaseUserInfo.set("name",user.getName());
 
                 if (user == null) {

@@ -25,7 +25,7 @@ public class User {
 
     @TableId
     @Column(name="user_uuid")
-    private String user_uuid;
+    private String userUuid;
 
     @Column(name="head_portrait")
     private String headPortrait;

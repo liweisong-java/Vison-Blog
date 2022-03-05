@@ -21,29 +21,46 @@ public class ArticleServiceImpl implements ArticleService {
     @Autowired
     ArticleMapper articleMapper;
 
+//  查询所有文章
     @Override
     public List<Article> getAllArticle() {
-        return articleMapper.getAllArticle();
+        List<Article> allArticle = articleMapper.getAllArticle();
+        return allArticle;
     }
 
+//    通过id查询文章
     @Override
-    public List<Article> addArticle(Article article) {
-        BaseUserInfo.get("user_uuid");
+    public List<Article> getArticleByUuid(String articleUuid) {
+        return articleMapper.getArticleByUuid(articleUuid);
+    }
 
-        return articleMapper.addArticle(article.createArticleUuid(),article.getTitle(), article.getArticle(),
+    //    阅读量+1
+    @Override
+    public void incView(String articleUuid) {
+        articleMapper.incView(articleUuid);
+    }
+
+//  增加文章
+    @Override
+    public void addArticle(Article article) {
+        articleMapper.addArticle(
+                article.getArticleUuid(),
+                article.getTitle(),
+                article.getArticle(),
                 article.getRead(),
                 article.getLike(),
                 article.getAnswer(),
                 article.getCreateDate(),
                 article.getUpdateDate(),
-                article.getUser_uuid(),
-                article.getName(),
+                BaseUserInfo.get("userUuid"),
+                BaseUserInfo.get("name"),
                 article.getCategoryId());
     }
 
+//    通过id删除文章
     @Override
-    public void deleteArticleById(String article_uuid) {
-        articleMapper.deleteArticleById(article_uuid);
+    public void deleteArticleById(String articleUuid) {
+        articleMapper.deleteArticleById(articleUuid);
     }
 
 

@@ -15,10 +15,16 @@ public interface ArticleService {
 //    查询所有文章
     List<Article> getAllArticle();
 
+//    查询单个文章
+    List<Article> getArticleByUuid(String articleUuid);
+
+//    浏览量+1
+    void incView(String articleUuid);
+
 //    添加文章
-    List<Article> addArticle(Article article);
+    void addArticle(Article article);
 
 //    删除文章
-    void deleteArticleById(@Param("uuid") String article_uuid);
+    void deleteArticleById(String articleUuid);
 
 }

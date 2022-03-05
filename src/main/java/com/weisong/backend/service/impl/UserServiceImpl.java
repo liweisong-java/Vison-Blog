@@ -29,12 +29,12 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public void deleteUserById(Map<String,String> map) {
-        userMapper.deleteUserById(map.get("user_uuid"));
+        userMapper.deleteUserById(map.get("userUuid"));
     }
 
     @Override
     public void uploadHeadPortrait(User user) {
-        userMapper.uploadHeadPortrait(user.getUser_uuid(),user.getHeadPortrait());
+        userMapper.uploadHeadPortrait(user.getUserUuid(),user.getHeadPortrait());
     }
 
     @Override
@@ -49,8 +49,8 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public User findUserByUuid(String user_uuid) {
-        return userMapper.findUserByUuid(user_uuid);
+    public User findUserByUuid(String userUuid) {
+        return userMapper.findUserByUuid(userUuid);
     }
 
 }

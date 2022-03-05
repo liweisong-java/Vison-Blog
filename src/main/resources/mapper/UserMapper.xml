@@ -5,7 +5,7 @@
 <mapper namespace="com.weisong.backend.mapper.UserMapper">
 
     <resultMap id="BaseResultMap" type="com.weisong.backend.entities.User">
-            <id property="user_uuid" column="user_uuid" jdbcType="VARCHAR"/>
+            <id property="userUuid" column="user_uuid" jdbcType="VARCHAR"/>
             <result property="name" column="name" jdbcType="VARCHAR"/>
             <result property="password" column="password" jdbcType="VARCHAR"/>
             <result property="email" column="email" jdbcType="VARCHAR"/>
@@ -15,8 +15,12 @@
     </resultMap>
 
     <sql id="User_Column_List">
-        `user_uuid`,`name`,`password`,
-        `email`,`gender`,`birth`,
+        `user_uuid`,
+        `name`,
+        `password`,
+        `email`,
+        `gender`,
+        `birth`,
         `head_portrait`
     </sql>
     <insert id="insertUser">
@@ -29,7 +33,7 @@
         delete from user where user_uuid=#{user_uuid}
     </delete>
     <select id="checkName" resultType="java.lang.Integer">
-        SELECT COUNT(name) from user where `name`= #{name}
+        SELECT COUNT(`name`) from user where `name`= #{name}
     </select>
     <select id="findUserByNameOrEmail" resultType="com.weisong.backend.entities.User">
         SELECT
@@ -43,6 +47,6 @@
         <include refid="User_Column_List"/>
         from
         user
-        where uuid=#{uuid}
+        where user_uuid=#{user_uuid}
     </select>
 </mapper>

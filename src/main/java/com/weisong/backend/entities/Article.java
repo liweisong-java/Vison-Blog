@@ -1,5 +1,7 @@
 package com.weisong.backend.entities;
 
+import com.baomidou.mybatisplus.annotation.FieldFill;
+import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
 import com.weisong.backend.util.UuidBuilderUtils;
@@ -30,41 +32,39 @@ import java.util.Date;
 public class Article {
 
     @TableId
-    @Column(name="article_uuid")
-    private String article_uuid;
+    @TableField(value = "articleUuid")
+    private String articleUuid;
 
     @NotEmpty(message = "标题不能为空")
-    @Column(name="title")
+    @TableField(value = "title")
     private String title;
 
     @NotEmpty(message = "文章内容不能为空")
-    @Column(name="article")
+    @TableField(value = "article")
     private String article;
 
-    @Column(name="read")
+    @TableField(value = "read")
     private Integer read;
 
-    @Column(name="like")
+    @TableField(value = "like")
     private Integer like;
 
-    @Column(name="answer")
+    @TableField(value = "answer")
     private Integer answer;
 
-    @CreatedDate
-    @Column(name="create_date")
+    @TableField(value = "create_date")
     private Date createDate;
 
-    @LastModifiedDate
-    @Column(name="update_date")
+    @TableField(value = "update_date")
     private Date updateDate;
 
-    @Column(name="user_uuid")
-    private String user_uuid;
+    @TableField(value = "userUuid")
+    private String userUuid;
 
-    @Column(name="name")
+    @TableField(value = "name")
     private String name;
 
-    @Column(name="category_id")
+    @TableField(value = "categoryId")
     private String categoryId;
 
 

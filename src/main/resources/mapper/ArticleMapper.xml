@@ -5,7 +5,7 @@
 <mapper namespace="com.weisong.backend.mapper.ArticleMapper">
 
     <resultMap id="BaseResultMap" type="com.weisong.backend.entities.Article">
-            <id property="article_uuid" column="article_uuid" jdbcType="VARCHAR"/>
+            <id property="articleUuid" column="article_uuid" jdbcType="VARCHAR"/>
             <result property="title" column="title" jdbcType="VARCHAR"/>
             <result property="article" column="article" jdbcType="VARCHAR"/>
             <result property="read" column="read" jdbcType="INTEGER"/>
@@ -18,26 +18,56 @@
     </resultMap>
 
     <sql id="Article_Column_List">
-        `article_uuid`,`title`,`article`,
-        `read`,`like`,`answer`,
-        `create_date`,`update_date`,`user_uuid`,`name`,
+        `article_uuid`,
+        `title`,
+        `article`,
+        `read`,
+        `like`,
+        `answer`,
+        `create_date`,
+        `update_date`,
+        `user_uuid`,
+        `name`,
         `category_id`
     </sql>
     <sql id="Receive_Article">
-        #{article_uuid},#{title},#{article},#{read},#{answer},#{createDate},#{updateDate},#{user_uuid},#{name},#{categoryId}
+        #{article_uuid},
+         #{title},
+         #{article},
+         #{read},
+         #{like},
+         #{answer},
+         #{create_date},
+         #{update_date},
+         #{user_uuid},
+         #{name},
+         #{categoryId}
     </sql>
     <insert id="addArticle">
         insert into
-        article
-        <include refid="Article_Column_List"/>
+        `article`
+        (<include refid="Article_Column_List"/>)
         values
         (<include refid="Receive_Article"/>)
     </insert>
+    <update id="incView">
+        update article set
+        `read` = `read` + 1
+        where article_uuid=#{article_uuid}
+    </update>
     <delete id="deleteArticleById">
-        delete from article where article_uuid=#{article_uuid}
+        delete * from article where article_uuid=#{article_uuid}
     </delete>
     <select id="getAllArticle" resultType="com.weisong.backend.entities.Article">
-        select * from article
+        select
+        <include refid="Article_Column_List"/>
+         from
+         article
+    </select>
+    <select id="getArticleByUuid" resultType="com.weisong.backend.entities.Article">
+        select
+        <include refid="Article_Column_List"/>
+         from article where article_uuid=#{article_uuid}
     </select>
 
 

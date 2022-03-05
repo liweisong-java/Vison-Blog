@@ -17,15 +17,31 @@ import java.util.List;
 @Repository
 public interface ArticleMapper{
 
-//    查询所有帖子
+//    查询所有文章
     List<Article> getAllArticle();
 
-//
+//    查询单个文章
+    List<Article> getArticleByUuid(@Param("article_uuid")String articleUuid);
+
+//    增加指定uuid浏览量
+    void incView(@Param("article_uuid")String articleUuid);
 
 //    添加文章
-    List<Article> addArticle(String article_uuid, String title, String article, Integer read, Integer like, Integer answer, Date createDate, Date updateDate, String user_uuid ,String name, String categoryId);
+    void addArticle(
+            @Param("article_uuid") String articleUuid,
+            @Param("title") String title,
+            @Param("article") String article,
+            @Param("read") Integer read,
+            @Param("like") Integer like,
+            @Param("answer")Integer answer,
+            @Param("create_date") Date createDate,
+            @Param("update_date") Date updateDate,
+            @Param("user_uuid") String userUuid,
+            @Param("name") String name,
+            @Param("categoryId") String categoryId);
 
 //    删除文章
-    void deleteArticleById(@Param("article_uuid") String article_uuid);
+    void deleteArticleById(@Param("article_uuid") String articleUuid);
+
 
 }

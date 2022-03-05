@@ -68,7 +68,7 @@ public class UserController {
         User userForBase = userService.findUserByNameOrEmail(user);
         if(userForBase==null){
             return Result.error(1, "登录失败，用户名不存在");
-        }else {
+        }else{
             if (!userForBase.getPassword().equals(user.getPassword())){
                 return Result.error(1, "登录失败，密码错误");
             }else {

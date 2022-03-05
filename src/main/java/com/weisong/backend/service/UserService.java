@@ -14,6 +14,9 @@ public interface UserService {
     //    注册/添加User
     void insertUser(User user);
 
+    //    根据name   Email查user
+    User findUserByNameOrEmail(User user);
+
     //    通过UUId 注销/删除User
     void deleteUserById(Map<String,String> map);
 
@@ -23,9 +26,6 @@ public interface UserService {
     //    检查User的name合法
     Boolean checkName(String name);
 
-    //    根据name查user
-    User findUserByNameOrEmail(User user);
-
     //    根据uuid查user
-    User findUserByUuid(String user_uuid);
+    User findUserByUuid(String userUuid);
 }

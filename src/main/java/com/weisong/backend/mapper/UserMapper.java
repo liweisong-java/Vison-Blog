@@ -18,19 +18,21 @@ import java.util.Map;
 public interface UserMapper{
 
     //    注册/添加User
-    void insertUser(@Param("user_uuid")String user_uuid,@Param("name")String name, @Param("password")String password,@Param("email")String email , @Param("gender")Integer gender, @Param("birth")Date birth);
+    void insertUser(@Param("user_uuid")String userUuid,@Param("name")String name, @Param("password")String password,@Param("email")String email , @Param("gender")Integer gender, @Param("birth")Date birth);
 
     //    通过UUId 注销/删除User
-    void deleteUserById(@Param("user_uuid") String user_uuid);
+    void deleteUserById(@Param("user_uuid") String userUuid);
 
-    //     上传头像
-    void uploadHeadPortrait(@Param("user_uuid")String user_uuid,@Param("head_portrait")String headPortrait);
+    //    上传头像
+    void uploadHeadPortrait(@Param("user_uuid")String userUuid,@Param("head_portrait")String headPortrait);
 
-    //      检查User的name是否有重名
+    //    检查User的name是否有重名
     int checkName(String name);
 
-    User findUserByNameOrEmail(String name,String email);
+    //    根据name Email查询user
+    User findUserByNameOrEmail(@Param("name")String name,@Param("email")String email);
 
-    User findUserByUuid(String user_uuid);
+
+    User findUserByUuid(String userUuid);
 
 }
