@@ -30,7 +30,7 @@ public class ArticleServiceImpl implements ArticleService {
 
 //    通过id查询文章
     @Override
-    public List<Article> getArticleByUuid(String articleUuid) {
+    public Article getArticleByUuid(String articleUuid) {
         return articleMapper.getArticleByUuid(articleUuid);
     }
 

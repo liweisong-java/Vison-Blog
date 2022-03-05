@@ -14,6 +14,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
 
+import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
@@ -62,7 +63,8 @@ public class ArticleController{
         article.setRead(0);
         article.setLike(0);
         article.setAnswer(0);
-        article.setCreateDate(new Date());
+        SimpleDateFormat a=new SimpleDateFormat("yyyy-MM-dd HH:mm");
+        article.setCreateDate(a.format(new Date()));
         articleService.addArticle(article);
         return Result.success(article.getArticleUuid());
     }

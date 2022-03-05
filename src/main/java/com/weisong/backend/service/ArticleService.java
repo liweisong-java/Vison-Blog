@@ -16,7 +16,7 @@ public interface ArticleService {
     List<Article> getAllArticle();
 
 //    查询单个文章
-    List<Article> getArticleByUuid(String articleUuid);
+    Article getArticleByUuid(String articleUuid);
 
 //    浏览量+1
     void incView(String articleUuid);

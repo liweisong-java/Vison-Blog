@@ -53,10 +53,10 @@ public class Article {
     private Integer answer;
 
     @TableField(value = "create_date")
-    private Date createDate;
+    private String createDate;
 
     @TableField(value = "update_date")
-    private Date updateDate;
+    private String updateDate;
 
     @TableField(value = "userUuid")
     private String userUuid;

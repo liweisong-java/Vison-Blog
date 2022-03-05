@@ -11,8 +11,8 @@
             <result property="read" column="read" jdbcType="INTEGER"/>
             <result property="like" column="like" jdbcType="INTEGER"/>
             <result property="answer" column="answer" jdbcType="INTEGER"/>
-            <result property="createDate" column="create_date" jdbcType="TIMESTAMP"/>
-            <result property="updateDate" column="update_date" jdbcType="TIMESTAMP"/>
+            <result property="createDate" column="create_date" jdbcType="VARCHAR"/>
+            <result property="updateDate" column="update_date" jdbcType="VARCHAR"/>
             <result property="name" column="name" jdbcType="VARCHAR"/>
             <result property="categoryId" column="category_id" jdbcType="INTEGER"/>
     </resultMap>

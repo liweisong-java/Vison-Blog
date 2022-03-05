@@ -30,7 +30,6 @@ public class AuthenticationInterceptor implements HandlerInterceptor {
     @Autowired
     UserService userService;
 
-    public static final String LOGIN_USER_KEY = "LOGIN_USER_KEY";
     @Override
     public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object object) throws Exception {
         System.out.println("拦截器开始工作");
