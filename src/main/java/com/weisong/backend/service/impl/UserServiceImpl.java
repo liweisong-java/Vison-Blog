@@ -1,8 +1,10 @@
 package com.weisong.backend.service.impl;
 
+import com.weisong.backend.entities.LoginUser;
 import com.weisong.backend.entities.User;
 import com.weisong.backend.mapper.UserMapper;
 import com.weisong.backend.service.UserService;
+import org.hibernate.sql.Delete;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -23,8 +25,8 @@ public class UserServiceImpl implements UserService {
     UserMapper userMapper;
 
     @Override
-    public void insertUser(User user) {
-        userMapper.insertUser(user.createUserUuid(),user.getName(), user.getPassword(),user.getEmail(), user.getGender(), user.getBirth());
+    public void insertUser(LoginUser loginUser) {
+        userMapper.insertUser(loginUser.createUserUuid(), loginUser.getName(), loginUser.getPassword(), loginUser.getEmail(),loginUser.getHeadPortrait());
     }
 
     @Override
@@ -43,8 +45,8 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public User findUserByNameOrEmail(User user) {
-        User userByName = userMapper.findUserByNameOrEmail(user.getName(),user.getEmail());
+    public User findUserByNameOrEmail(LoginUser loginUser) {
+        User userByName = userMapper.findUserByNameOrEmail(loginUser.getName(),loginUser.getEmail());
         return userByName;
     }
 

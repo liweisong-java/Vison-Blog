@@ -24,7 +24,7 @@
         `head_portrait`
     </sql>
     <insert id="insertUser">
-        insert into user(`user_uuid`,`name`,`password`,`email`) values(#{user_uuid},#{name},#{password},#{email})
+        insert into user(`user_uuid`,`name`,`password`,`email`,`head_portrait`) values(#{user_uuid},#{name},#{password},#{email},#{head_portrait})
     </insert>
     <update id="uploadHeadPortrait">
         UPDATE user SET head_portrait =#{headPortrait} WHERE user_uuid = #{user_uuid}

@@ -31,7 +31,8 @@ public class ArticleServiceImpl implements ArticleService {
 //    通过id查询文章
     @Override
     public Article getArticleByUuid(String articleUuid) {
-        return articleMapper.getArticleByUuid(articleUuid);
+        Article articleByUuid = articleMapper.getArticleByUuid(articleUuid);
+        return articleByUuid;
     }
 
     //    阅读量+1

@@ -55,6 +55,7 @@
         `read` = `read` + 1
         where article_uuid=#{article_uuid}
     </update>
+
     <delete id="deleteArticleById">
         delete * from article where article_uuid=#{article_uuid}
     </delete>
@@ -65,9 +66,8 @@
          article
     </select>
     <select id="getArticleByUuid" resultType="com.weisong.backend.entities.Article">
-        select
-        <include refid="Article_Column_List"/>
-         from article where article_uuid=#{article_uuid}
+        select `article_uuid`,`title`,`article`,`read`,`like`,`answer`,`create_date`,`update_date`,a.user_uuid,a.`name`,`category_id`,u.head_portrait
+        from article a inner join `user` u on a.user_uuid = u.user_uuid where article_uuid=#{article_uuid}
     </select>
 
 

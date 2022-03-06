@@ -1,6 +1,5 @@
 package com.weisong.backend.entities;
-import com.auth0.jwt.JWT;
-import com.auth0.jwt.algorithms.Algorithm;
+
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
 import com.fasterxml.jackson.annotation.JsonIgnore;
@@ -10,55 +9,37 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import javax.persistence.Column;
-import javax.persistence.Table;
-import javax.validation.constraints.*;
-import java.util.Date;
+import javax.validation.constraints.NotEmpty;
 
 /**
  * @author 李伟松
- * @create 2022-02-16-19:36
+ * @create 2022-03-06-14:11
  */
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
 @TableName("user")
-public class User  {
+public class LoginUser {
 
-    @TableId
-    @Column(name="user_uuid")
-    private String userUuid;
-
-    @Column(name="head_portrait")
-    private String headPortrait;
 
     @NotEmpty(message = "名字不能为空")
     @Column(name="name")
     private String name;
 
-    @JsonIgnore
+    @Column(name="head_portrait")
+    private String headPortrait;
+
     @NotEmpty(message = "密码不能为空")
     @Column(name="password")
     private String password;
 
-//    @NotEmpty(message = "邮箱不能为空")
+    //    @NotEmpty(message = "邮箱不能为空")
 //    @Email(message = "邮箱格式不正确")
     @Column(name="email")
     private String email;
 
-//    @NotNull(message = "性别不能为空")
-    @Column(name="gender")
-    private Integer gender;
-
-//    @Past(message = "只能用过去的时间")
-    @Column(name="birth")
-    private Date birth;
-
-    public String getHeadPortrait() {
-        return "default.jpg";
-    }
 
     public String createUserUuid() {
         return UuidBuilderUtils.createUUID();
     }
-
 }

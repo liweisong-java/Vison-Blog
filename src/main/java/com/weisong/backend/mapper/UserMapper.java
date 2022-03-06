@@ -18,7 +18,7 @@ import java.util.Map;
 public interface UserMapper{
 
     //    注册/添加User
-    void insertUser(@Param("user_uuid")String userUuid,@Param("name")String name, @Param("password")String password,@Param("email")String email , @Param("gender")Integer gender, @Param("birth")Date birth);
+    void insertUser(@Param("user_uuid")String userUuid,@Param("name")String name, @Param("password")String password,@Param("email")String email , @Param("head_portrait")String headPortrait);
 
     //    通过UUId 注销/删除User
     void deleteUserById(@Param("user_uuid") String userUuid);
