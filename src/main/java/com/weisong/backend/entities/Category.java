@@ -24,8 +24,8 @@ public class Category {
     @Column(name="category_id")
     private Integer categoryId;
 
-    @Column(name="java")
-    private String java;
+    @Column(name="name")
+    private String category;
 
 //    @Column(name="前端")
 //    private String ;

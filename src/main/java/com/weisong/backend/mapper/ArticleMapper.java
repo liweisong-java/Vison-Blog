@@ -1,12 +1,9 @@
 package com.weisong.backend.mapper;
 
-import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import com.weisong.backend.entities.Article;
-import com.weisong.backend.entities.User;
 import org.apache.ibatis.annotations.*;
 import org.springframework.stereotype.Repository;
 
-import java.util.Date;
 import java.util.List;
 
 /**

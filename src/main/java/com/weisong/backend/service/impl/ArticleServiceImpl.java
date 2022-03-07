@@ -50,7 +50,7 @@ public class ArticleServiceImpl implements ArticleService {
                 article.getArticle(),
                 article.getRead(),
                 article.getLike(),
-                article.getAnswer(),
+                article.getCommentNumber(),
                 article.getCreateDate(),
                 article.getUpdateDate(),
                 BaseUserInfo.get("userUuid"),

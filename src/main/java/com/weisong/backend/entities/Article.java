@@ -50,8 +50,8 @@ public class Article extends User{
     @TableField(value = "like")
     private Integer like;
 
-    @TableField(value = "answer")
-    private Integer answer;
+    @TableField(value = "comment_number")
+    private Integer commentNumber;
 
     @TableField(value = "create_date")
     private String createDate;

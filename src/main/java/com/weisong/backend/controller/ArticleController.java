@@ -62,7 +62,7 @@ public class ArticleController{
         article.setArticleUuid(article.createArticleUuid());
         article.setRead(0);
         article.setLike(0);
-        article.setAnswer(0);
+        article.setCommentNumber(0);
         SimpleDateFormat a=new SimpleDateFormat("yyyy-MM-dd HH:mm");
         article.setCreateDate(a.format(new Date()));
         articleService.addArticle(article);

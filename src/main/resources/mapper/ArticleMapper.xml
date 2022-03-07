@@ -10,7 +10,7 @@
             <result property="article" column="article" jdbcType="VARCHAR"/>
             <result property="read" column="read" jdbcType="INTEGER"/>
             <result property="like" column="like" jdbcType="INTEGER"/>
-            <result property="answer" column="answer" jdbcType="INTEGER"/>
+            <result property="commentNumber" column="comment_number" jdbcType="INTEGER"/>
             <result property="createDate" column="create_date" jdbcType="VARCHAR"/>
             <result property="updateDate" column="update_date" jdbcType="VARCHAR"/>
             <result property="name" column="name" jdbcType="VARCHAR"/>
@@ -23,7 +23,7 @@
         `article`,
         `read`,
         `like`,
-        `answer`,
+        `comment_number`,
         `create_date`,
         `update_date`,
         `user_uuid`,
@@ -36,7 +36,7 @@
          #{article},
          #{read},
          #{like},
-         #{answer},
+         #{comment_number},
          #{create_date},
          #{update_date},
          #{user_uuid},
@@ -66,7 +66,7 @@
          article
     </select>
     <select id="getArticleByUuid" resultType="com.weisong.backend.entities.Article">
-        select `article_uuid`,`title`,`article`,`read`,`like`,`answer`,`create_date`,`update_date`,a.user_uuid,a.`name`,`category_id`,u.head_portrait
+        select `article_uuid`,`title`,`article`,`read`,`like`,`comment_number`,`create_date`,`update_date`,a.user_uuid,a.`name`,`category_id`,u.head_portrait
         from article a inner join `user` u on a.user_uuid = u.user_uuid where article_uuid=#{article_uuid}
     </select>
 
