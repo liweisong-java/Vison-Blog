@@ -12,4 +12,7 @@ import java.util.List;
 public interface CommentService {
 
     List<Comment> getCommentByArticleUuid(String articleUuid);
+
+    void writeComment(Comment comment);
+
 }

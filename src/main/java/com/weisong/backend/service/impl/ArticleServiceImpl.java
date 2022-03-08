@@ -63,6 +63,10 @@ public class ArticleServiceImpl implements ArticleService {
     public void deleteArticleById(String articleUuid) {
         articleMapper.deleteArticleById(articleUuid);
     }
-
+//      喜欢文章
+    @Override
+    public void likeByArticleUuid(String articleUuid) {
+        articleMapper.likeByArticleUuid(articleUuid);
+    }
 
 }

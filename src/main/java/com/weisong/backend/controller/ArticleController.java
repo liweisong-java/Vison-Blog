@@ -4,6 +4,7 @@ import com.github.pagehelper.PageHelper;
 import com.github.pagehelper.PageInfo;
 import com.weisong.backend.Token.UserLoginToken;
 import com.weisong.backend.entities.Article;
+import com.weisong.backend.entities.Comment;
 import com.weisong.backend.service.ArticleService;
 import com.weisong.backend.util.BaseUserInfo;
 import com.weisong.backend.util.Result.Result;
@@ -77,7 +78,11 @@ public class ArticleController{
         return Result.success();
     }
 
-
+    @PostMapping(value = "/like/{articleUuid}")
+    public Result likeByArticleUuid(@PathVariable("articleUuid") String articleUuid){
+        articleService.likeByArticleUuid(articleUuid);
+        return Result.success();
+    }
 
 //    @ResponseBody
 //    @RequestMapping(value = "/changeEnable",method = RequestMethod.POST)

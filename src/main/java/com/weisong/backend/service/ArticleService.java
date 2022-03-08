@@ -27,5 +27,6 @@ public interface ArticleService {
 //    删除文章
     void deleteArticleById(String articleUuid);
 
-
+//    喜欢文章
+    void likeByArticleUuid(String articleUuid);
 }

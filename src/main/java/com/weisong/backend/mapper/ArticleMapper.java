@@ -40,5 +40,8 @@ public interface ArticleMapper {
 //    删除文章
     void deleteArticleById(@Param("article_uuid") String articleUuid);
 
+//      喜欢文章
+    void likeByArticleUuid(@Param("article_uuid")String articleUuid);
+
 
 }

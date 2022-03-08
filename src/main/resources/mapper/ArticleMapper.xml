@@ -55,6 +55,11 @@
         `read` = `read` + 1
         where article_uuid=#{article_uuid}
     </update>
+    <update id="likeByArticleUuid">
+        update article set
+        `like` = `like` + 1
+        where article_uuid=#{article_uuid}
+    </update>
 
     <delete id="deleteArticleById">
         delete * from article where article_uuid=#{article_uuid}

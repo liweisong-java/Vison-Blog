@@ -20,7 +20,7 @@ public class Comment{
     @Column(name="user_uuid")
     private String userUuid;
 
-    @Column(name = "articleUuid")
+    @Column(name = "article_uuid")
     private String articleUuid;
 
     @Column(name="comment")
