@@ -9,6 +9,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import javax.persistence.Column;
+import javax.validation.constraints.Email;
 import javax.validation.constraints.NotEmpty;
 
 /**
@@ -20,26 +21,25 @@ import javax.validation.constraints.NotEmpty;
 @AllArgsConstructor
 @TableName("user")
 public class LoginUser {
-
-
+    /**
+     * 用户名
+     */
     @NotEmpty(message = "名字不能为空")
     @Column(name="name")
     private String name;
 
-    @Column(name="head_portrait")
-    private String headPortrait;
-
+    /**
+     * 密码
+     */
+    @JsonIgnore
     @NotEmpty(message = "密码不能为空")
     @Column(name="password")
     private String password;
 
-    //    @NotEmpty(message = "邮箱不能为空")
-//    @Email(message = "邮箱格式不正确")
+    /**
+     * 邮箱
+     */
+    @Email(message = "邮箱格式不正确")
     @Column(name="email")
     private String email;
-
-
-    public String createUserUuid() {
-        return UuidBuilderUtils.createUUID();
-    }
 }

@@ -4,15 +4,11 @@ import com.weisong.backend.entities.LoginUser;
 import com.weisong.backend.entities.User;
 import com.weisong.backend.mapper.UserMapper;
 import com.weisong.backend.service.UserService;
-import org.hibernate.sql.Delete;
+import com.weisong.backend.util.UuidBuilderUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.security.Key;
-import java.util.Collection;
-import java.util.List;
 import java.util.Map;
-import java.util.UUID;
 
 /**
  * @author 李伟松
@@ -25,18 +21,27 @@ public class UserServiceImpl implements UserService {
     UserMapper userMapper;
 
     @Override
-    public void insertUser(LoginUser loginUser) {
-        userMapper.insertUser(loginUser.createUserUuid(), loginUser.getName(), loginUser.getPassword(), loginUser.getEmail(),loginUser.getHeadPortrait());
+    public void insertUser(User user) {
+        userMapper.insertUser(
+                UuidBuilderUtils.createUUID(),
+                user.getRealName(),
+                user.getName(),
+                user.getPassword(),
+                user.getPhone(),
+                user.getQq(),
+                user.getBirth(),
+                user.getEmail(),
+                user.getGender(),
+                user.getAvatar(),
+                user.getLastTime(),
+                user.getRoleId()
+        );
+
     }
 
     @Override
     public void deleteUserById(Map<String,String> map) {
         userMapper.deleteUserById(map.get("userUuid"));
-    }
-
-    @Override
-    public void uploadHeadPortrait(User user) {
-        userMapper.uploadHeadPortrait(user.getUserUuid(),user.getHeadPortrait());
     }
 
     @Override
@@ -52,7 +57,8 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public User findUserByUuid(String userUuid) {
-        return userMapper.findUserByUuid(userUuid);
+        User userByUuid = userMapper.findUserByUuid(userUuid);
+        return userByUuid;
     }
 
 }

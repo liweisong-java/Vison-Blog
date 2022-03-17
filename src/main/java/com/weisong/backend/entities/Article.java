@@ -68,9 +68,4 @@ public class Article extends User{
     @TableField(value = "categoryId")
     private String categoryId;
 
-
-    public String createArticleUuid() {
-        return UuidBuilderUtils.createUUID();
-    }
-
 }

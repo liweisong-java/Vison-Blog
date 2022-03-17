@@ -4,7 +4,7 @@ package com.weisong.backend.controller;
 import com.weisong.backend.Token.UserLoginToken;
 import com.weisong.backend.entities.Comment;
 import com.weisong.backend.service.CommentService;
-import com.weisong.backend.util.Result.Result;
+import com.weisong.backend.util.Result.BlogJSONResult;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
@@ -22,19 +22,16 @@ public class CommentController {
     CommentService commentService;
 
     @GetMapping(value = "/{articleUuid}")
-    public Result getCommentByArticleUuid(@PathVariable("articleUuid")String articleUuid){
-        return Result.success(commentService.getCommentByArticleUuid(articleUuid));
+    public BlogJSONResult getCommentByArticleUuid(@PathVariable("articleUuid")String articleUuid){
+        return BlogJSONResult.ok(commentService.getCommentByArticleUuid(articleUuid));
     }
 
     @UserLoginToken
     @PostMapping(value = "/addComment")
-    public Result writeComment(@RequestBody Map<String ,String> map){
-        Comment comment = new Comment();
-        comment.setArticleUuid(map.get("articleUuid"));
-        comment.setComment(map.get("comment"));
+    public BlogJSONResult writeComment(@RequestBody Comment comment){
         SimpleDateFormat a=new SimpleDateFormat("yyyy-MM-dd HH:mm");
         comment.setCommentTime(a.format(new Date()));
         commentService.writeComment(comment);
-        return Result.success();
+        return BlogJSONResult.ok();
     }
 }

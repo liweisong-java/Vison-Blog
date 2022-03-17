@@ -11,7 +11,7 @@ import com.weisong.backend.Token.UserLoginToken;
 import com.weisong.backend.entities.User;
 import com.weisong.backend.service.UserService;
 import com.weisong.backend.util.BaseUserInfo;
-import com.weisong.backend.util.Result.Result;
+import com.weisong.backend.util.Result.BlogJSONResult;
 import lombok.SneakyThrows;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -33,7 +33,8 @@ public class AuthenticationInterceptor implements HandlerInterceptor {
     @Override
     public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object object) throws Exception {
         System.out.println("拦截器开始工作");
-
+        response.setCharacterEncoding("UTF-8");
+        response.setContentType("application/json");
         String token = request.getHeader("token");// 从 http 请求头中取出 token
         // 如果不是映射到方法直接通过
         if (!(object instanceof HandlerMethod)) {
@@ -54,7 +55,7 @@ public class AuthenticationInterceptor implements HandlerInterceptor {
             if (userLoginToken.required()) {
                 // 执行认证
                 if (token == null) {
-                    new AuthenticationInterceptor().tokenFalse(response,1,"无token，请重新登录");
+                    BlogJSONResult.errorTokenMsg("无token，请重新登录");
                     return false;
                 }
                 // 获取 token 中的 user id
@@ -62,7 +63,7 @@ public class AuthenticationInterceptor implements HandlerInterceptor {
                 try {
                     userId = JWT.decode(token).getAudience().get(0);
                 } catch (JWTDecodeException j) {
-                    new AuthenticationInterceptor().tokenFalse(response,1,"401");
+                    BlogJSONResult.errorException("token中获取id失败");
                     return false;
                 }
                 User user = userService.findUserByUuid(userId);
@@ -70,7 +71,7 @@ public class AuthenticationInterceptor implements HandlerInterceptor {
                 BaseUserInfo.set("name",user.getName());
 
                 if (user == null) {
-                    new AuthenticationInterceptor().tokenFalse(response,1,"用户不存在，请重新登录");
+                    BlogJSONResult.errorMsg("用户不存在，请重新登录");
                     return false;
                 }
                 // 验证 token
@@ -78,24 +79,12 @@ public class AuthenticationInterceptor implements HandlerInterceptor {
                 try {
                     jwtVerifier.verify(token);
                 } catch (JWTVerificationException e) {
-                    new AuthenticationInterceptor().tokenFalse(response,1,"401");
+                    BlogJSONResult.errorTokenMsg("token错误");
                     return false;
                 }
                 return true;
             }
         }
         return true;
-
-
-    }
-
-    @SneakyThrows
-    public void tokenFalse(HttpServletResponse response, int status, String msg){
-        String ResultString = JSON.toJSONString(Result.error(status, msg));
-        response.setCharacterEncoding("UTF-8");
-        response.setContentType("application/json");
-        response.setStatus(200);
-        PrintWriter out = response.getWriter();
-        out.append(ResultString);
     }
 }

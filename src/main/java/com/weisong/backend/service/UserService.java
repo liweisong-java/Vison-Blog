@@ -14,7 +14,7 @@ import java.util.Map;
 public interface UserService {
 
     //    注册/添加User
-    void insertUser(LoginUser loginUser);
+    void insertUser(User user);
 
     //    根据name   Email查user
     User findUserByNameOrEmail(LoginUser loginUser);
@@ -22,14 +22,9 @@ public interface UserService {
     //    通过UUId 注销/删除User
     void deleteUserById(Map<String,String> map);
 
-    //    更新用户头像
-    void uploadHeadPortrait(User user);
-
     //    检查User的name合法
     Boolean checkName(String name);
 
     //    根据uuid查user
     User findUserByUuid(String userUuid);
-
-
 }

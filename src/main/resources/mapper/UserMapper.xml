@@ -5,26 +5,49 @@
 <mapper namespace="com.weisong.backend.mapper.UserMapper">
 
     <resultMap id="BaseResultMap" type="com.weisong.backend.entities.User">
-            <id property="userUuid" column="user_uuid" jdbcType="VARCHAR"/>
-            <result property="name" column="name" jdbcType="VARCHAR"/>
-            <result property="password" column="password" jdbcType="VARCHAR"/>
-            <result property="email" column="email" jdbcType="VARCHAR"/>
-            <result property="gender" column="gender" jdbcType="CHAR"/>
-            <result property="birth" column="birth" jdbcType="TIMESTAMP"/>
-            <result property="headPortrait" column="head_portrait" jdbcType="VARCHAR"/>
+        <id property="userUuid" column="user_uuid" jdbcType="VARCHAR"/>
+        <result property="realName" column="real_name" jdbcType="VARCHAR"/>
+        <result property="name" column="name" jdbcType="VARCHAR"/>
+        <result property="password" column="password" jdbcType="VARCHAR"/>
+        <result property="phone" column="phone" jdbcType="VARCHAR"/>
+        <result property="qq" column="qq" jdbcType="INTEGER"/>
+        <result property="email" column="email" jdbcType="VARCHAR"/>
+        <result property="gender" column="gender" jdbcType="CHAR"/>
+        <result property="birth" column="birth" jdbcType="VARCHAR"/>
+        <result property="lastTime" column="last_time" jdbcType="VARCHAR"/>
+        <result property="roleId" column="role_id" jdbcType="INTEGER"/>
+<!--        头像-->
     </resultMap>
 
     <sql id="User_Column_List">
         `user_uuid`,
+        `real_name`,
         `name`,
         `password`,
+        `phone`,
+        `qq`,
+        `birth`,
         `email`,
         `gender`,
-        `birth`,
-        `head_portrait`
+        `last_time`,
+        `role_id`
     </sql>
+
     <insert id="insertUser">
-        insert into user(`user_uuid`,`name`,`password`,`email`,`head_portrait`) values(#{user_uuid},#{name},#{password},#{email},#{head_portrait})
+        insert into user
+        (<include refid="User_Column_List"/> )
+         values
+        (#{user_uuid},
+        #{real_name},
+        #{name},
+        #{password},
+        #{phone},
+        #{qq},
+        #{birth},
+        #{email},
+        #{gender},
+        #{last_time},
+        #{role_id})
     </insert>
     <update id="uploadHeadPortrait">
         UPDATE user SET head_portrait =#{headPortrait} WHERE user_uuid = #{user_uuid}
