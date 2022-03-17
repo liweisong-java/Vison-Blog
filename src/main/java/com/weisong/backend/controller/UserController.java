@@ -60,9 +60,9 @@ public class UserController {
 
 
     //登录
-    @ResponseBody
+//    @ResponseBody
     @PostMapping("/login")
-    public Object login(@RequestBody LoginUser loginUser){
+    public BlogJSONResult login(@RequestBody LoginUser loginUser){
 
 //        IOC思想？
 //        Map<String,Object> map=new HashMap<>();
@@ -78,7 +78,6 @@ public class UserController {
                 map.put("token",token);
                 return BlogJSONResult.ok(map);
             }
-
         }
     }
     @UserLoginToken
@@ -93,8 +92,7 @@ public class UserController {
     @ResponseBody
     @RequestMapping(value = "/delete",method = RequestMethod.POST)
     public BlogJSONResult deleteUserById(@RequestBody Map<String,String> map){
-        logger.info("begin deleteUserById");
-        userService.deleteUserById(map);
+        userService.deleteUserById(map.get("userUuid"));
         if(userService.findUserByUuid(map.get("userUuid")) != null){
             return BlogJSONResult.errorException("删除失败");
         }else{
@@ -104,18 +102,17 @@ public class UserController {
 
     /**
      * 获取个人信息
-     * @param userUuid
+     * @param map
      * @return
      */
+    @ResponseBody
     @PostMapping("/getUserMess")
-    public BlogJSONResult getUserMess(@RequestBody String userUuid){
-        User userByUuid = userService.findUserByUuid(userUuid);
-        if (userByUuid != null){
-            return BlogJSONResult.ok(userByUuid);
+    public BlogJSONResult getUserMess(@RequestBody Map<String,String> map){
+        if (userService.findUserByUuid(map.get("userUuid")) != null){
+            return BlogJSONResult.ok(userService.findUserByUuid(map.get("userUuid")));
         }else {
             return BlogJSONResult.errorMsg("获取失败");
         }
-
     }
 
 }

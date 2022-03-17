@@ -20,7 +20,7 @@ public interface UserService {
     User findUserByNameOrEmail(LoginUser loginUser);
 
     //    通过UUId 注销/删除User
-    void deleteUserById(Map<String,String> map);
+    void deleteUserById(String userUuid);
 
     //    检查User的name合法
     Boolean checkName(String name);

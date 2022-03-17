@@ -40,10 +40,11 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public void deleteUserById(Map<String,String> map) {
-        userMapper.deleteUserById(map.get("userUuid"));
+    public void deleteUserById(String userUuid) {
+        userMapper.deleteUserById(userUuid);
     }
 
+    //是否有重复用户名
     @Override
     public Boolean checkName(String name) {
         return userMapper.checkName(name) > 0 ? true : false;
@@ -51,8 +52,7 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public User findUserByNameOrEmail(LoginUser loginUser) {
-        User userByName = userMapper.findUserByNameOrEmail(loginUser.getName(),loginUser.getEmail());
-        return userByName;
+        return userMapper.findUserByNameOrEmail(loginUser.getName(),loginUser.getEmail());
     }
 
     @Override

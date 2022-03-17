@@ -15,7 +15,7 @@ import java.util.Map;
  */
 @Mapper
 @Repository
-public interface UserMapper extends BaseMapper{
+public interface UserMapper{
 
     //    注册/添加User
     void insertUser(@Param("user_uuid")String userUuid,

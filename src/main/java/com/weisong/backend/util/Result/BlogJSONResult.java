@@ -32,6 +32,10 @@ public class BlogJSONResult {
         return new BlogJSONResult(data);
     }
 
+    public static BlogJSONResult ok(String msg) {
+        return new BlogJSONResult(msg);
+    }
+
     public static BlogJSONResult ok() {
         return new BlogJSONResult(null);
     }

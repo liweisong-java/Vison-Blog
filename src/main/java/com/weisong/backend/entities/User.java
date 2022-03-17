@@ -54,26 +54,31 @@ public class User  {
     /**
      * 电话
      */
+    @Column(name="phone")
     private String phone;
 
     /**
      * 最近一次登录时间
      */
+    @Column(name="last_time")
     private String lastTime;
 
     /**
      * 角色(1-超级管理员 2-普通用户 3-会员)
      */
+    @Column(name="role_id")
     private Integer roleId;
 
     /**
      * 真实姓名
      */
+    @Column(name="real_name")
     private String realName = "";
 
     /**
      * QQ
      */
+    @Column(name="qq")
     private String qq = "";
 
     /**
@@ -97,6 +102,7 @@ public class User  {
     /**
      * 简历
      */
+    @Column(name="intro")
     private String intro = "";
 
 }
