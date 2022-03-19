@@ -30,7 +30,7 @@ public interface ArticleMapper {
             @Param("article") String article,
             @Param("read") Integer read,
             @Param("like") Integer like,
-            @Param("answer")Integer answer,
+            @Param("comment_number") Integer commentNumber,
             @Param("create_date") String createDate,
             @Param("update_date") String updateDate,
             @Param("user_uuid") String userUuid,

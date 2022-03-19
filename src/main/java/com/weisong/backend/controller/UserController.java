@@ -29,17 +29,15 @@ public class UserController {
     @Autowired
     UserService userService;
 
-//    IOC思想？
-    HashMap<String,Object> map;
 
     static String field="";
 
 //    注册用户
     @ResponseBody
     @RequestMapping(value = "/register",method = RequestMethod.POST)
-    public BlogJSONResult registerUser(@RequestBody @Validated  User user, BindingResult result){
+    public BlogJSONResult registerUser(@RequestBody @Validated  LoginUser loginUser, BindingResult result){
         String regx = "(^[a-zA-Z0-9_-]{6,16}$)|(^[\u2E80-\u9FFF]{2,5})";
-        if(!user.getName().matches(regx)){
+        if(!loginUser.getName().matches(regx)){
             //前端需要的
             return BlogJSONResult.errorMsg("用户名必须是6-16位数字和字母的组合或者2-5位中文");
         }
@@ -51,31 +49,34 @@ public class UserController {
             return BlogJSONResult.errorMsg( field + "格式不正确");
         }
 
-        if (userService.checkName(user.getName())){
+        if (userService.checkName(loginUser.getName())){
             return BlogJSONResult.errorMsg( "用户名重复");
         }
-        userService.insertUser(user);
+        userService.insertUser(loginUser);
         return BlogJSONResult.ok();
     }
 
 
     //登录
-//    @ResponseBody
+    @ResponseBody
     @PostMapping("/login")
     public BlogJSONResult login(@RequestBody LoginUser loginUser){
-
-//        IOC思想？
-//        Map<String,Object> map=new HashMap<>();
-        User userForBase = userService.findUserByNameOrEmail(loginUser);
-        if(userForBase==null){
+        Map<String,Object> map=new HashMap<>();
+        User userForBase;
+        if (loginUser.getName() == null){
+            userForBase = userService.findUserByEmail(loginUser.getEmail());
+        }else{
+            userForBase = userService.findUserByName(loginUser.getName());
+        }
+        if(userForBase == null){
             return BlogJSONResult.errorMsg("登录失败，用户名不存在");
         }else{
             if (!userForBase.getPassword().equals(loginUser.getPassword())){
                 return BlogJSONResult.errorMsg("登录失败，密码错误");
             }else {
                 String token = CreateTokenUtils.getToken(userForBase);
-//                userForBase.setPassword(null);
                 map.put("token",token);
+                map.put("user", userForBase);
                 return BlogJSONResult.ok(map);
             }
         }

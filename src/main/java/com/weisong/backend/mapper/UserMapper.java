@@ -1,5 +1,6 @@
 package com.weisong.backend.mapper;
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
+import com.weisong.backend.entities.LoginUser;
 import org.apache.ibatis.annotations.*;
 import com.weisong.backend.entities.User;
 import org.springframework.stereotype.Repository;
@@ -27,7 +28,7 @@ public interface UserMapper{
                     @Param("birth")String birth,
                     @Param("email")String email,
                     @Param("gender")Integer gender,
-                    @Param("head_portrait")String avatar,
+                    @Param("avatar")String avatar,
                     @Param("last_time")String lastTime,
                     @Param("role_id")Integer roleId
                     );
@@ -38,10 +39,17 @@ public interface UserMapper{
     //    检查User的name是否有重名
     int checkName(String name);
 
-    //    根据name Email查询user
-    User findUserByNameOrEmail(@Param("name")String name,@Param("email")String email);
+    //    根据name查询user
+    User findUserByName(@Param("name")String name);
+
+    //    根据Email查询user
+    User findUserByEmail(@Param("email")String email);
 
     //根据userUuid查User信息
     User findUserByUuid(@Param("user_uuid") String userUuid);
+
+
+    void avatarPathName(@Param("avatar") String avatar,@Param("user_uuid") String userUuid);
+
 
 }

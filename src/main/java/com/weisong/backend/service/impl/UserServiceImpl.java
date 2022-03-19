@@ -21,20 +21,20 @@ public class UserServiceImpl implements UserService {
     UserMapper userMapper;
 
     @Override
-    public void insertUser(User user) {
+    public void insertUser(LoginUser loginUser) {
         userMapper.insertUser(
                 UuidBuilderUtils.createUUID(),
-                user.getRealName(),
-                user.getName(),
-                user.getPassword(),
-                user.getPhone(),
-                user.getQq(),
-                user.getBirth(),
-                user.getEmail(),
-                user.getGender(),
-                user.getAvatar(),
-                user.getLastTime(),
-                user.getRoleId()
+                loginUser.getRealName(),
+                loginUser.getName(),
+                loginUser.getPassword(),
+                loginUser.getPhone(),
+                loginUser.getQq(),
+                loginUser.getBirth(),
+                loginUser.getEmail(),
+                loginUser.getGender(),
+                loginUser.getAvatar(),
+                loginUser.getLastTime(),
+                loginUser.getRoleId()
         );
 
     }
@@ -51,8 +51,14 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public User findUserByNameOrEmail(LoginUser loginUser) {
-        return userMapper.findUserByNameOrEmail(loginUser.getName(),loginUser.getEmail());
+    public User findUserByName(String name) {
+        User userByName = userMapper.findUserByName(name);
+        return userByName;
+    }
+
+    @Override
+    public User findUserByEmail(String email) {
+        return userMapper.findUserByEmail(email);
     }
 
     @Override

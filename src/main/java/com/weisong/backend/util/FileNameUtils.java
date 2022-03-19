@@ -10,7 +10,6 @@ public class FileNameUtils {
     public static String getSuffix(String fileName){
         return fileName.substring(fileName.lastIndexOf("."));
     }
-
     /**
      * 生成新的文件名
      * @param fileOriginName 源文件名

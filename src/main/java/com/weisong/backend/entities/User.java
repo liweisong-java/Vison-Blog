@@ -22,7 +22,7 @@ import java.util.Date;
 @NoArgsConstructor
 @AllArgsConstructor
 @TableName("user")
-public class User  {
+public class User{
 
     /**
      * uuid
@@ -47,6 +47,7 @@ public class User  {
     /**
      * 密码
      */
+    @JsonIgnore
     @NotEmpty(message = "密码不能为空")
     @Column(name="password")
     private String password;
@@ -73,13 +74,13 @@ public class User  {
      * 真实姓名
      */
     @Column(name="real_name")
-    private String realName = "";
+    private String realName;
 
     /**
      * QQ
      */
     @Column(name="qq")
-    private String qq = "";
+    private String qq;
 
     /**
      * 邮箱
@@ -103,6 +104,6 @@ public class User  {
      * 简历
      */
     @Column(name="intro")
-    private String intro = "";
+    private String intro;
 
 }

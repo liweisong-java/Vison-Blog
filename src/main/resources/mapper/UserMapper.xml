@@ -14,9 +14,9 @@
         <result property="email" column="email" jdbcType="VARCHAR"/>
         <result property="gender" column="gender" jdbcType="CHAR"/>
         <result property="birth" column="birth" jdbcType="VARCHAR"/>
+        <result property="avatar" column="avatar" jdbcType="VARCHAR"/>
         <result property="lastTime" column="last_time" jdbcType="VARCHAR"/>
         <result property="roleId" column="role_id" jdbcType="INTEGER"/>
-<!--        头像-->
     </resultMap>
 
     <sql id="User_Column_List">
@@ -29,6 +29,7 @@
         `birth`,
         `email`,
         `gender`,
+        `avatar`,
         `last_time`,
         `role_id`
     </sql>
@@ -36,7 +37,7 @@
     <insert id="insertUser">
         insert into user
         (<include refid="User_Column_List"/> )
-         values
+        values
         (#{user_uuid},
         #{real_name},
         #{name},
@@ -46,11 +47,12 @@
         #{birth},
         #{email},
         #{gender},
+        #{avatar},
         #{last_time},
         #{role_id})
     </insert>
-    <update id="uploadHeadPortrait">
-        UPDATE user SET head_portrait =#{headPortrait} WHERE user_uuid = #{user_uuid}
+    <update id="avatarPathName">
+        UPDATE user SET `avatar` = #{avatar} WHERE user_uuid = #{user_uuid}
     </update>
     <delete id="deleteUserById">
         delete from user where user_uuid=#{user_uuid}
@@ -58,12 +60,12 @@
     <select id="checkName" resultType="java.lang.Integer">
         SELECT COUNT(`name`) from user where `name`= #{name}
     </select>
-    <select id="findUserByNameOrEmail" resultType="com.weisong.backend.entities.User">
+    <select id="findUserByName" resultType="com.weisong.backend.entities.User">
         SELECT
         <include refid="User_Column_List"/>
         from
         user
-        where `name`=#{name} or `email`=#{email}
+        where `name`=#{name}
     </select>
     <select id="findUserByUuid" resultType="com.weisong.backend.entities.User">
         SELECT
@@ -71,5 +73,12 @@
         from
         user
         where user_uuid=#{user_uuid}
+    </select>
+    <select id="findUserByEmail" resultType="com.weisong.backend.entities.User">
+        SELECT
+        <include refid="User_Column_List"/>
+        from
+        user
+        where `email`=#{email}
     </select>
 </mapper>
