@@ -34,8 +34,10 @@ public class UserServiceImpl implements UserService {
                 loginUser.getGender(),
                 loginUser.getAvatar(),
                 loginUser.getLastTime(),
-                loginUser.getRoleId()
-        );
+                loginUser.getRoleId(),
+                loginUser.getOneSentence(),
+                loginUser.getIntro()
+                );
 
     }
 

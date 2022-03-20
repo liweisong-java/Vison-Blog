@@ -30,7 +30,9 @@ public interface UserMapper{
                     @Param("gender")Integer gender,
                     @Param("avatar")String avatar,
                     @Param("last_time")String lastTime,
-                    @Param("role_id")Integer roleId
+                    @Param("role_id")Integer roleId,
+                    @Param("one_sentence") String oneSentence,
+                    @Param("intro") String intro
                     );
 
     //    通过UUId 注销/删除User

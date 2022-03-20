@@ -101,4 +101,11 @@ public class LoginUser{
      */
     @Column(name="intro")
     private String intro;
+
+    /**
+     * 一句话介绍
+     */
+    @Column(name="one_sentence")
+    private String oneSentence;
+
 }

@@ -2,7 +2,7 @@
 <!DOCTYPE mapper
         PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
-<mapper namespace="com.weisong.backend.mapper.UserMapper">
+<mapper namespace="com.weisong.backend.mapper.UserUpdateMessMapper">
 
     <resultMap id="BaseResultMap" type="com.weisong.backend.entities.User">
         <id property="userUuid" column="user_uuid" jdbcType="VARCHAR"/>
@@ -37,57 +37,19 @@
         `one_sentence`,
         `intro`
     </sql>
-
-    <insert id="insertUser">
-        insert into user
-        (<include refid="User_Column_List"/> )
-        values
-        (#{user_uuid},
-        #{real_name},
-        #{name},
-        #{password},
-        #{phone},
-        #{qq},
-        #{birth},
-        #{email},
-        #{gender},
-        #{avatar},
-        #{last_time},
-        #{role_id},
-        #{one_sentence},
-        #{intro})
-    </insert>
-    <update id="avatarPathName">
-        UPDATE user SET `avatar` = #{avatar} WHERE user_uuid = #{user_uuid}
-    </update>
     <update id="updateNameByUserUuid">
         UPDATE user SET `name` = #{name} WHERE user_uuid = #{user_uuid}
     </update>
-    <delete id="deleteUserById">
-        delete from user where user_uuid=#{user_uuid}
-    </delete>
-    <select id="checkName" resultType="java.lang.Integer">
-        SELECT COUNT(`name`) from user where `name`= #{name}
-    </select>
-    <select id="findUserByName" resultType="com.weisong.backend.entities.User">
-        SELECT
-        <include refid="User_Column_List"/>
-        from
-        user
-        where `name`=#{name}
-    </select>
-    <select id="findUserByUuid" resultType="com.weisong.backend.entities.User">
-        SELECT
-        <include refid="User_Column_List"/>
-        from
-        user
-        where user_uuid=#{user_uuid}
-    </select>
-    <select id="findUserByEmail" resultType="com.weisong.backend.entities.User">
-        SELECT
-        <include refid="User_Column_List"/>
-        from
-        user
-        where `email`=#{email}
-    </select>
+    <update id="updatePhoneByUserUuid">
+        UPDATE user SET `phone` = #{phone} WHERE user_uuid = #{user_uuid}
+    </update>
+    <update id="updateEmailByUserUuid">
+        UPDATE user SET `email` = #{email} WHERE user_uuid = #{user_uuid}
+    </update>
+    <update id="updateOneSentenceByUserUuid">
+        UPDATE user SET `one_sentence` = #{one_sentence} WHERE user_uuid = #{user_uuid}
+    </update>
+    <update id="updateIntroByUserUuid">
+        UPDATE user SET `intro` = #{intro} WHERE user_uuid = #{user_uuid}
+    </update>
 </mapper>

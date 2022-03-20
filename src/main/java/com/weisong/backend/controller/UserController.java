@@ -5,6 +5,8 @@ import com.weisong.backend.Token.UserLoginToken;
 import com.weisong.backend.entities.User;
 import com.weisong.backend.entities.LoginUser;
 import com.weisong.backend.service.UserService;
+import com.weisong.backend.service.UserUpdateMessService;
+import com.weisong.backend.util.BaseUserInfo;
 import com.weisong.backend.util.CreateTokenUtils;
 import com.weisong.backend.util.Result.BlogJSONResult;
 import org.slf4j.Logger;
@@ -14,6 +16,7 @@ import org.springframework.validation.BindingResult;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
+import java.security.Key;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -28,6 +31,8 @@ public class UserController {
     Logger logger = LoggerFactory.getLogger(UserController.class);
     @Autowired
     UserService userService;
+    @Autowired
+    UserUpdateMessService userUpdateMessService;
 
 
     static String field="";
@@ -102,7 +107,7 @@ public class UserController {
     }
 
     /**
-     * 获取个人信息
+     * 获取用户所有信息
      * @param map
      * @return
      */
@@ -116,4 +121,10 @@ public class UserController {
         }
     }
 
+    @UserLoginToken
+    @ResponseBody
+    @PostMapping("/getUserOneMess")
+    public void getUserOneMess(@RequestBody Map<String,String> map){
+        userUpdateMessService.updateOneByUserUuid(map);
+    }
 }
