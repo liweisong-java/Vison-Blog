@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.weisong.backend.mapper.ArticleMapper">
+
+    <resultMap id="BaseResultMap" type="com.weisong.backend.entities.Article">
+            <id property="articleUuid" column="article_uuid" jdbcType="VARCHAR"/>
+            <result property="title" column="title" jdbcType="VARCHAR"/>
+            <result property="article" column="article" jdbcType="VARCHAR"/>
+            <result property="read" column="read" jdbcType="INTEGER"/>
+            <result property="like" column="like" jdbcType="INTEGER"/>
+            <result property="commentNumber" column="comment_number" jdbcType="INTEGER"/>
+            <result property="createDate" column="create_date" jdbcType="VARCHAR"/>
+            <result property="updateDate" column="update_date" jdbcType="VARCHAR"/>
+            <result property="name" column="name" jdbcType="VARCHAR"/>
+            <result property="categoryId" column="category_id" jdbcType="INTEGER"/>
+    </resultMap>
+
+    <sql id="Article_Column_List">
+        `article_uuid`,
+        `title`,
+        `article`,
+        `read`,
+        `like`,
+        `comment_number`,
+        `create_date`,
+        `update_date`,
+        `user_uuid`,
+        `name`,
+        `category_id`
+    </sql>
+    <sql id="Receive_Article">
+        #{article_uuid},
+         #{title},
+         #{article},
+         #{read},
+         #{like},
+         #{comment_number},
+         #{create_date},
+         #{update_date},
+         #{user_uuid},
+         #{name},
+         #{categoryId}
+    </sql>
+    <insert id="addArticle">
+        insert into
+        `article`
+        (<include refid="Article_Column_List"/>)
+        values
+        (<include refid="Receive_Article"/>)
+    </insert>
+    <update id="incView">
+        update article set
+        `read` = `read` + 1
+        where article_uuid=#{article_uuid}
+    </update>
+    <update id="likeByArticleUuid">
+        update article set
+        `like` = `like` + 1
+        where article_uuid=#{article_uuid}
+    </update>
+
+    <delete id="deleteArticleById">
+        delete * from article where article_uuid=#{article_uuid}
+    </delete>
+    <select id="getAllArticle" resultType="com.weisong.backend.entities.Article">
+        select
+        <include refid="Article_Column_List"/>
+         from
+         article
+    </select>
+    <select id="getArticleByUuid" resultType="com.weisong.backend.entities.Article">
+        select `article_uuid`,`title`,`article`,`read`,`like`,`comment_number`,`create_date`,`update_date`,a.user_uuid,a.`name`,`category_id`,u.avatar
+        from article a inner join `user` u on a.user_uuid = u.user_uuid where article_uuid=#{article_uuid}
+    </select>
+
+
+</mapper>
