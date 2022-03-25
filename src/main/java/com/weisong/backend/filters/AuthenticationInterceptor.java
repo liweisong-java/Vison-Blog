@@ -1,6 +1,5 @@
 package com.weisong.backend.filters;
 
-import com.alibaba.fastjson.JSON;
 import com.auth0.jwt.JWT;
 import com.auth0.jwt.JWTVerifier;
 import com.auth0.jwt.algorithms.Algorithm;
@@ -8,20 +7,17 @@ import com.auth0.jwt.exceptions.JWTDecodeException;
 import com.auth0.jwt.exceptions.JWTVerificationException;
 import com.weisong.backend.Token.PassToken;
 import com.weisong.backend.Token.UserLoginToken;
-import com.weisong.backend.entities.User;
-import com.weisong.backend.service.UserService;
-import com.weisong.backend.util.BaseUserInfo;
+import com.weisong.backend.entities.User.User;
+import com.weisong.backend.service.User.UserService;
+import com.weisong.backend.Token.BaseUserInfo;
 import com.weisong.backend.util.Result.BlogJSONResult;
-import lombok.SneakyThrows;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.method.HandlerMethod;
 import org.springframework.web.servlet.HandlerInterceptor;
-import org.springframework.web.servlet.ModelAndView;
+
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import java.io.PrintWriter;
 import java.lang.reflect.Method;
 
 @Component

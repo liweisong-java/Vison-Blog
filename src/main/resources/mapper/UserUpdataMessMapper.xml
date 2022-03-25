@@ -4,7 +4,7 @@
         "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.weisong.backend.mapper.UserUpdateMessMapper">
 
-    <resultMap id="BaseResultMap" type="com.weisong.backend.entities.User">
+    <resultMap id="BaseResultMap" type="com.weisong.backend.entities.User.User">
         <id property="userUuid" column="user_uuid" jdbcType="VARCHAR"/>
         <result property="realName" column="real_name" jdbcType="VARCHAR"/>
         <result property="name" column="name" jdbcType="VARCHAR"/>

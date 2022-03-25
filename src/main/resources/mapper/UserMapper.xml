@@ -4,7 +4,7 @@
         "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.weisong.backend.mapper.UserMapper">
 
-    <resultMap id="BaseResultMap" type="com.weisong.backend.entities.User">
+    <resultMap id="BaseResultMap" type="com.weisong.backend.entities.User.User">
         <id property="userUuid" column="user_uuid" jdbcType="VARCHAR"/>
         <result property="realName" column="real_name" jdbcType="VARCHAR"/>
         <result property="name" column="name" jdbcType="VARCHAR"/>
@@ -69,21 +69,21 @@
     <select id="checkName" resultType="java.lang.Integer">
         SELECT COUNT(`name`) from user where `name`= #{name}
     </select>
-    <select id="findUserByName" resultType="com.weisong.backend.entities.User">
+    <select id="findUserByName" resultType="com.weisong.backend.entities.User.User">
         SELECT
         <include refid="User_Column_List"/>
         from
         user
         where `name`=#{name}
     </select>
-    <select id="findUserByUuid" resultType="com.weisong.backend.entities.User">
+    <select id="findUserByUuid" resultType="com.weisong.backend.entities.User.User">
         SELECT
         <include refid="User_Column_List"/>
         from
         user
         where user_uuid=#{user_uuid}
     </select>
-    <select id="findUserByEmail" resultType="com.weisong.backend.entities.User">
+    <select id="findUserByEmail" resultType="com.weisong.backend.entities.User.User">
         SELECT
         <include refid="User_Column_List"/>
         from
