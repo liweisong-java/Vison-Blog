@@ -1,8 +1,9 @@
 import { defineConfig } from "astro/config";
 import mdx from "@astrojs/mdx";
 import sitemap from "@astrojs/sitemap";
+import { siteUrl } from "./site.config.mjs";
 
 export default defineConfig({
-  site: process.env.SITE_URL ?? "https://example.com",
+  site: siteUrl,
   integrations: [mdx(), sitemap()]
 });
