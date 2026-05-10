@@ -9,3 +9,4 @@ coverage/
 .superpowers/
 target/
 apps/blog/test-results/
+tools/publisher/publisher.config.json

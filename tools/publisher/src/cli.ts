@@ -1,4 +1,7 @@
 import { execFile } from "node:child_process";
+import { existsSync } from "node:fs";
+import { pathToFileURL } from "node:url";
+import { resolve } from "node:path";
 import { cwd, env } from "node:process";
 import { promisify } from "node:util";
 import { config as loadEnv } from "dotenv";
@@ -20,7 +23,16 @@ async function runBlogChecks() {
 async function main() {
   loadEnv();
 
-  const config = await loadPublisherConfig(new URL("../publisher.config.example.json", import.meta.url), cwd());
+  const repoRoot = cwd();
+  const configPath = resolve(
+    repoRoot,
+    env.PUBLISHER_CONFIG ?? "tools/publisher/publisher.config.json"
+  );
+  const configUrl = existsSync(configPath)
+    ? pathToFileURL(configPath)
+    : new URL("../publisher.config.example.json", import.meta.url);
+
+  const config = await loadPublisherConfig(configUrl, repoRoot);
   const client = createSiYuanClient({
     baseUrl: env.SIYUAN_BASE_URL ?? "http://127.0.0.1:6806",
     token: env.SIYUAN_TOKEN
@@ -44,7 +56,7 @@ async function main() {
       runBlogChecks,
       commitAndPush: () =>
         commitAndPushGit({
-          repoRoot: cwd(),
+          repoRoot,
           branch: env.PUBLISH_BRANCH ?? "master",
           remote: env.PUBLISH_REMOTE ?? "origin",
           message: "chore(content): sync siyuan posts"
