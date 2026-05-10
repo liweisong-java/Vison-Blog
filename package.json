@@ -1,0 +1,19 @@
+{
+  "name": "vision-blog",
+  "private": true,
+  "packageManager": "pnpm@10.11.0",
+  "scripts": {
+    "build": "pnpm --filter blog build && pnpm --filter publisher build",
+    "test": "pnpm --filter blog test && pnpm --filter publisher test",
+    "check": "pnpm --filter blog check && pnpm --filter publisher build",
+    "e2e": "pnpm --filter blog e2e"
+  },
+  "devDependencies": {
+    "@types/node": "^25.6.2",
+    "eslint": "^10.3.0",
+    "playwright": "^1.59.1",
+    "prettier": "^3.8.3",
+    "typescript": "^6.0.3",
+    "vitest": "^4.1.5"
+  }
+}
