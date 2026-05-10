@@ -1,0 +1,12 @@
+:root {
+  --bg: #f1ece5;
+  --surface: #fffaf4;
+  --surface-strong: #ede2d5;
+  --ink: #1b2127;
+  --muted: #63707c;
+  --line: rgba(27, 33, 39, 0.12);
+  --accent: #bc6c25;
+  --max-width: 1100px;
+  --font-display: "Iowan Old Style", "Palatino Linotype", serif;
+  --font-body: "Source Serif 4", "Noto Serif SC", serif;
+}

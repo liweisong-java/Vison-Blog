@@ -4,7 +4,7 @@ export default defineConfig({
   testDir: "./e2e",
   webServer: {
     command: "pnpm dev --host 127.0.0.1 --port 4321",
-    cwd: "./apps/blog",
+    cwd: ".",
     port: 4321,
     reuseExistingServer: !process.env.CI
   },

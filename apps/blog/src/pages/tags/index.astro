@@ -1,0 +1,20 @@
+---
+import { getCollection } from "astro:content";
+import BaseLayout from "../../layouts/BaseLayout.astro";
+import { getAllTags } from "../../lib/content";
+
+const posts = await getCollection("posts", ({ data }) => data.publish);
+const tags = getAllTags(posts);
+---
+
+<BaseLayout title="Tags | Vision Blog" description="Browse articles by tag.">
+  <section class="hero">
+    <p>Browse</p>
+    <h1>Tags</h1>
+  </section>
+  <ul class="tag-list">
+    {tags.map((tag) => (
+      <li><a href={`/tags/${tag}/`}>#{tag}</a></li>
+    ))}
+  </ul>
+</BaseLayout>

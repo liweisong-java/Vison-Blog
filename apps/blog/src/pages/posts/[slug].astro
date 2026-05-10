@@ -1,0 +1,49 @@
+---
+import { getCollection, render } from "astro:content";
+import ArticleToc from "../../components/ArticleToc.astro";
+import Comments from "../../components/Comments.astro";
+import PostCard from "../../components/PostCard.astro";
+import { siteConfig } from "../../data/site";
+import BaseLayout from "../../layouts/BaseLayout.astro";
+import { getRelatedPosts, sortPublishedPosts } from "../../lib/content";
+
+export async function getStaticPaths() {
+  const posts = await getCollection("posts", ({ data }) => data.publish);
+  return posts.map((post) => ({
+    params: { slug: post.data.slug },
+    props: { post }
+  }));
+}
+
+const { post } = Astro.props;
+const allPosts = sortPublishedPosts(await getCollection("posts", ({ data }) => data.publish));
+const { Content, headings } = await render(post);
+const relatedPosts = getRelatedPosts(post, allPosts);
+---
+
+<BaseLayout
+  title={`${post.data.title} | ${siteConfig.title}`}
+  description={post.data.excerpt}
+  ogType="article"
+>
+  <article class="article-shell">
+    <p>
+      {post.data.category} / {post.data.publishedAt.toISOString().slice(0, 10)}
+    </p>
+    <h1>{post.data.title}</h1>
+    <p>{post.data.excerpt}</p>
+    <div class="article-grid">
+      <div class="prose">
+        <Content />
+      </div>
+      <ArticleToc headings={headings} />
+    </div>
+    <section>
+      <h2>Related Reading</h2>
+      <div class="post-grid">
+        {relatedPosts.map((relatedPost) => <PostCard post={relatedPost} />)}
+      </div>
+    </section>
+    <Comments />
+  </article>
+</BaseLayout>

@@ -1,0 +1,24 @@
+<div class="category-filter" data-category-filter>
+  <button type="button" data-filter="all" class="is-active">All</button>
+  <button type="button" data-filter="tech">Tech</button>
+  <button type="button" data-filter="life">Life</button>
+</div>
+
+<script>
+  const root = document.querySelector("[data-category-filter]");
+  const cards = [...document.querySelectorAll("[data-category]")];
+
+  root?.addEventListener("click", (event) => {
+    const target = event.target;
+    if (!(target instanceof HTMLButtonElement)) return;
+
+    const filter = target.dataset.filter ?? "all";
+    root.querySelectorAll("button").forEach((button) => button.classList.remove("is-active"));
+    target.classList.add("is-active");
+
+    for (const card of cards) {
+      const category = card.getAttribute("data-category");
+      card.toggleAttribute("hidden", filter !== "all" && category !== filter);
+    }
+  });
+</script>

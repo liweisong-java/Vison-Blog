@@ -1,0 +1,26 @@
+---
+import { getCollection } from "astro:content";
+import BaseLayout from "../layouts/BaseLayout.astro";
+import { getArchiveGroups, sortPublishedPosts } from "../lib/content";
+
+const groups = getArchiveGroups(
+  sortPublishedPosts(await getCollection("posts", ({ data }) => data.publish))
+);
+---
+
+<BaseLayout title="Archive | Vision Blog" description="Chronological archive of all published posts.">
+  <section class="hero">
+    <p>Timeline</p>
+    <h1>Archive</h1>
+  </section>
+  {groups.map(([year, posts]) => (
+    <section class="panel">
+      <h2>{year}</h2>
+      <ul>
+        {posts.map((post) => (
+          <li><a href={`/posts/${post.data.slug}/`}>{post.data.title}</a></li>
+        ))}
+      </ul>
+    </section>
+  ))}
+</BaseLayout>

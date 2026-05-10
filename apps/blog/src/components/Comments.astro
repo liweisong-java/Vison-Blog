@@ -1,0 +1,20 @@
+---
+import { siteConfig } from "../data/site";
+
+const { giscus } = siteConfig;
+---
+
+<section class="comments-shell" data-comments-root>
+  <script
+    src="https://giscus.app/client.js"
+    data-repo={giscus.repo}
+    data-repo-id={giscus.repoId}
+    data-category={giscus.category}
+    data-category-id={giscus.categoryId}
+    data-mapping={giscus.mapping}
+    data-theme={giscus.theme}
+    data-lang="zh-CN"
+    crossorigin="anonymous"
+    async
+  ></script>
+</section>

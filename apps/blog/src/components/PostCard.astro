@@ -1,0 +1,16 @@
+---
+const { post } = Astro.props;
+---
+
+<article class="post-card panel" data-category={post.data.category}>
+  <p class="post-meta">
+    {post.data.category} / {post.data.publishedAt.toISOString().slice(0, 10)}
+  </p>
+  <h3><a href={`/posts/${post.data.slug}/`}>{post.data.title}</a></h3>
+  <p>{post.data.excerpt}</p>
+  <ul class="tag-list">
+    {post.data.tags.map((tag: string) => (
+      <li><a href={`/tags/${tag}/`}>#{tag}</a></li>
+    ))}
+  </ul>
+</article>

@@ -1,0 +1,40 @@
+---
+import { getCollection } from "astro:content";
+import CategoryFilter from "../components/CategoryFilter.astro";
+import PostCard from "../components/PostCard.astro";
+import { siteConfig } from "../data/site";
+import BaseLayout from "../layouts/BaseLayout.astro";
+import { sortPublishedPosts, splitFeaturedPosts } from "../lib/content";
+
+const posts = sortPublishedPosts(await getCollection("posts", ({ data }) => data.publish));
+const [featuredPosts, regularPosts] = splitFeaturedPosts(posts);
+---
+
+<BaseLayout title={siteConfig.title} description={siteConfig.description}>
+  <section class="hero">
+    <p>Independent Journal</p>
+    <h1>Writing across code and life.</h1>
+    <p>{siteConfig.description}</p>
+  </section>
+
+  <section aria-labelledby="featured-heading">
+    <h2 id="featured-heading">Featured Stories</h2>
+    <div class="featured-grid">
+      {featuredPosts.map((post) => (
+        <article class="feature-card">
+          <p>{post.data.category}</p>
+          <h3><a href={`/posts/${post.data.slug}/`}>{post.data.title}</a></h3>
+          <p>{post.data.excerpt}</p>
+        </article>
+      ))}
+    </div>
+  </section>
+
+  <section aria-labelledby="latest-heading">
+    <h2 id="latest-heading">Latest Dispatches</h2>
+    <CategoryFilter />
+    <div class="post-grid">
+      {regularPosts.map((post) => <PostCard post={post} />)}
+    </div>
+  </section>
+</BaseLayout>

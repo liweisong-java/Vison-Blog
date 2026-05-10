@@ -1,0 +1,26 @@
+---
+import { getCollection } from "astro:content";
+import PostCard from "../../components/PostCard.astro";
+import BaseLayout from "../../layouts/BaseLayout.astro";
+import { filterPostsByCategory, sortPublishedPosts } from "../../lib/content";
+
+export async function getStaticPaths() {
+  return ["tech", "life"].map((category) => ({ params: { category } }));
+}
+
+const { category } = Astro.params as { category: "tech" | "life" };
+const posts = filterPostsByCategory(
+  sortPublishedPosts(await getCollection("posts", ({ data }) => data.publish)),
+  category
+);
+---
+
+<BaseLayout title={`${category} | Vision Blog`} description={`Posts in ${category}.`}>
+  <section class="hero">
+    <p>Category</p>
+    <h1>{category}</h1>
+  </section>
+  <div class="post-grid">
+    {posts.map((post) => <PostCard post={post} />)}
+  </div>
+</BaseLayout>
