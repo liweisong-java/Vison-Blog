@@ -1,7 +1,7 @@
 <div class="category-filter" data-category-filter>
-  <button type="button" data-filter="all" class="is-active">All</button>
-  <button type="button" data-filter="tech">Tech</button>
-  <button type="button" data-filter="life">Life</button>
+  <button type="button" data-filter="all" class="is-active">全部</button>
+  <button type="button" data-filter="tech">技术</button>
+  <button type="button" data-filter="life">生活</button>
 </div>
 
 <script>
@@ -18,7 +18,9 @@
 
     for (const card of cards) {
       const category = card.getAttribute("data-category");
-      card.toggleAttribute("hidden", filter !== "all" && category !== filter);
+      const shouldHideForCategory = filter !== "all" && category !== filter;
+      card.toggleAttribute("hidden", shouldHideForCategory);
+      card.setAttribute("data-filter-hidden", shouldHideForCategory ? "true" : "false");
     }
   });
 </script>

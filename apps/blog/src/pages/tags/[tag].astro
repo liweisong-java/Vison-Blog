@@ -16,12 +16,13 @@ const posts = sortPublishedPosts(await getCollection("posts", ({ data }) => data
 );
 ---
 
-<BaseLayout title={`#${tag} | Vision Blog`} description={`Posts tagged ${tag}.`}>
-  <section class="hero">
-    <p>Tag</p>
+<BaseLayout title={`#${tag} | 伟松的博客`} description={`浏览与 ${tag} 相关的文章。`}>
+  <section class="page-intro page-intro--compact">
+    <p class="eyebrow">标签</p>
     <h1>#{tag}</h1>
+    <p class="page-intro__summary">共 {posts.length} 篇</p>
   </section>
-  <div class="post-grid">
+  <div class="post-list category-posts">
     {posts.map((post) => <PostCard post={post} />)}
   </div>
 </BaseLayout>

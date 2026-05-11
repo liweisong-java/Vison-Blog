@@ -4,9 +4,12 @@ dist/
 .vercel/
 coverage/
 .DS_Store
+.idea/
 .env
 .env.local
 .superpowers/
+docs/superpowers/plans/
 target/
 apps/blog/test-results/
+playwright-report/
 tools/publisher/publisher.config.json

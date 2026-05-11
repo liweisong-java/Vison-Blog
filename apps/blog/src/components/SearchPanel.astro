@@ -1,0 +1,74 @@
+---
+const { posts } = Astro.props as {
+  posts: Array<{
+    data: {
+      title: string;
+      excerpt: string;
+      tags: string[];
+      slug: string;
+      publishedAt: Date;
+      category: "tech" | "life";
+    };
+  }>;
+};
+---
+
+<div class="search-panel panel" data-search-root>
+  <label class="search-label" for="site-search">搜索</label>
+  <input
+    id="site-search"
+    class="search-input"
+    type="search"
+    placeholder="搜索文章、标签或主题"
+    autocomplete="off"
+    data-search-input
+  />
+</div>
+
+<script is:inline type="application/json" data-search-data set:html={JSON.stringify(
+  posts.map((post) => ({
+    slug: post.data.slug,
+    title: post.data.title,
+    excerpt: post.data.excerpt,
+    tags: post.data.tags,
+    category: post.data.category
+  }))
+)} />
+
+<script>
+  const searchRoot = document.querySelector("[data-search-root]");
+  const searchInput = searchRoot?.querySelector<HTMLInputElement>("[data-search-input]");
+  const cards = [...document.querySelectorAll<HTMLElement>("[data-search-card]")];
+
+  function matches(card: HTMLElement, query: string) {
+    if (!query) return true;
+    const haystack = [
+      card.getAttribute("data-search-title") ?? "",
+      card.getAttribute("data-search-excerpt") ?? "",
+      card.getAttribute("data-search-tags") ?? ""
+    ]
+      .join(" ")
+      .toLowerCase();
+
+    return haystack.includes(query);
+  }
+
+  searchInput?.addEventListener("input", (event) => {
+    const target = event.target;
+    if (!(target instanceof HTMLInputElement)) return;
+
+    const query = target.value.trim().toLowerCase();
+
+    for (const card of cards) {
+      const categoryHidden = card.hasAttribute("hidden") && card.getAttribute("data-filter-hidden") === "true";
+      const searchMatch = matches(card, query);
+
+      card.toggleAttribute("data-search-hidden", !searchMatch);
+      if (searchMatch && !categoryHidden) {
+        card.removeAttribute("hidden");
+      } else if (!searchMatch) {
+        card.setAttribute("hidden", "");
+      }
+    }
+  });
+</script>

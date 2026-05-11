@@ -1,21 +1,27 @@
 ---
 import { siteConfig } from "../data/site";
+import { isGiscusConfigured } from "../../site.config.mjs";
 
 const { giscus } = siteConfig;
+const configured = isGiscusConfigured(giscus);
 ---
 
 <section class="comments-shell" data-comments-root>
-  <script
-    is:inline
-    src="https://giscus.app/client.js"
-    data-repo={giscus.repo}
-    data-repo-id={giscus.repoId}
-    data-category={giscus.category}
-    data-category-id={giscus.categoryId}
-    data-mapping={giscus.mapping}
-    data-theme={giscus.theme}
-    data-lang="zh-CN"
-    crossorigin="anonymous"
-    async
-  ></script>
+  {configured ? (
+    <script
+      is:inline
+      src="https://giscus.app/client.js"
+      data-repo={giscus.repo}
+      data-repo-id={giscus.repoId}
+      data-category={giscus.category}
+      data-category-id={giscus.categoryId}
+      data-mapping={giscus.mapping}
+      data-theme={giscus.theme}
+      data-lang="zh-CN"
+      crossorigin="anonymous"
+      async
+    ></script>
+  ) : (
+    <p class="post-meta">评论区会在站点完成 giscus 配置后显示。</p>
+  )}
 </section>

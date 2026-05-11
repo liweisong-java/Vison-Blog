@@ -1,14 +1,19 @@
 {
   "notebookId": "20200812220555-lj3enxa",
-  "siyuanWorkspaceDir": "/Users/your-name/SiYuan",
+  "siyuanWorkspaceDir": "/path/to/SiYuan",
   "contentRoot": "apps/blog/src/content/posts",
+  "wechatExportDir": "exports/wechat",
+  "deployHookUrl": "https://your-vercel-deploy-hook",
   "attrs": {
-    "publish": "custom-blog-publish",
-    "category": "custom-blog-category",
-    "excerpt": "custom-blog-excerpt",
-    "featured": "custom-blog-featured",
-    "slug": "custom-blog-slug",
-    "tags": "custom-blog-tags",
-    "publishedAt": "custom-blog-date"
+    "publish": "blog-pub",
+    "category": "blog-cat",
+    "excerpt": "blog-excerpt",
+    "featured": "blog-top",
+    "slug": "blog-slug",
+    "tags": "blog-tags",
+    "publishedAt": "blog-date",
+    "cover": "blog-cover",
+    "canonicalUrl": "blog-canonical",
+    "wechatReady": "blog-wechat"
   }
 }

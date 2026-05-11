@@ -6,12 +6,17 @@ export type PublisherAttrs = {
   slug: string;
   tags: string;
   publishedAt: string;
+  cover?: string;
+  canonicalUrl?: string;
+  wechatReady?: string;
 };
 
 export type PublisherConfig = {
   notebookId: string;
   siyuanWorkspaceDir: string;
   contentRoot: string;
+  wechatExportDir?: string;
+  deployHookUrl?: string;
   attrs: PublisherAttrs;
 };
 
@@ -31,4 +36,7 @@ export type PublishedNote = {
   featured: boolean;
   publishedAt: string;
   tags: string[];
+  canonicalUrl?: string;
+  cover?: string;
+  wechatReady?: boolean;
 };

@@ -1,20 +1,24 @@
 ---
 import { getCollection } from "astro:content";
 import BaseLayout from "../../layouts/BaseLayout.astro";
-import { getAllTags } from "../../lib/content";
+import { getTagSummaries } from "../../lib/content";
 
 const posts = await getCollection("posts", ({ data }) => data.publish);
-const tags = getAllTags(posts);
+const tagSummaries = getTagSummaries(posts);
 ---
 
-<BaseLayout title="Tags | Vision Blog" description="Browse articles by tag.">
-  <section class="hero">
-    <p>Browse</p>
-    <h1>Tags</h1>
+<BaseLayout title="标签 | 伟松的博客" description="按标签浏览所有文章。">
+  <section class="page-intro page-intro--compact" data-page-intro="tags">
+    <p class="eyebrow">标签</p>
+    <h1>标签</h1>
   </section>
-  <ul class="tag-list">
-    {tags.map((tag) => (
-      <li><a href={`/tags/${tag}/`}>#{tag}</a></li>
+
+  <div class="tag-summary-grid">
+    {tagSummaries.map((item) => (
+      <a class="panel tag-summary-card" href={`/tags/${item.tag}/`}>
+        <strong>#{item.tag}</strong>
+        <span class="post-meta">{item.count} 篇文章</span>
+      </a>
     ))}
-  </ul>
+  </div>
 </BaseLayout>
