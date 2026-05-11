@@ -9,6 +9,24 @@
 - 回到仓库执行同步命令
 - 自动生成博客文章，并按需导出公众号兼容稿
 
+## 推荐的正式发布链路
+
+这套项目推荐的正式链路是：
+
+```text
+手机或电脑写作
+  -> 思源同步到这台 Mac
+  -> 发布器同步内容并推送 master
+  -> GitHub Actions 构建站点
+  -> 静态产物自动部署到服务器
+```
+
+也就是说：
+
+- 发布器负责“把思源内容整理成博客文章，并推上 Git”
+- GitHub Actions 负责“看到 master 更新后自动上线”
+- `PUBLISH_DEPLOY_HOOK` 只在你还需要额外兼容别的平台时才有必要
+
 ## 一次性初始化
 
 第一次在这台电脑上使用时，先执行：
@@ -42,6 +60,7 @@ pnpm publish:init
 - `SIYUAN_TOKEN` 需要在思源设置里获取
 - `PUBLISH_BRANCH` 现在是可选项；默认会优先推送当前分支绑定的上游远端分支
 - 如果你手动填写了 `PUBLISH_BRANCH`，它必须和当前分支或当前上游分支一致，不然发布器会拒绝推送
+- `PUBLISH_DEPLOY_HOOK` 是可选兼容项。采用 GitHub Actions 自托管部署时，可以留空
 
 ### `publisher.config.json`
 
@@ -54,7 +73,7 @@ pnpm publish:init
 
 - `contentRoot`：博客文章输出目录
 - `wechatExportDir`：公众号兼容稿导出目录
-- `deployHookUrl`：可选，只有产生真实内容更新时才会触发
+- `deployHookUrl`：可选，只有你还需要额外触发外部平台部署时才会使用
 
 示例文件可以参考：
 
@@ -123,7 +142,7 @@ pnpm publish:sync
 - 清理已取消发布或 `slug` 变化后的旧文章
 - 按配置生成公众号兼容稿
 - 仅提交发布器托管的内容目录
-- 真正有内容提交时才触发部署钩子
+- 真正有内容提交时才会触发部署钩子或推送远端分支
 
 仓库自带的示例文章和你手写放进仓库的文章，如果没有 `sourceId`，发布器会把它们视为非托管内容并保留，不会自动删除。
 
@@ -141,6 +160,7 @@ pnpm publish:auto-install
 - 每 5 分钟自动兜底检查一次
 - 只有检测到笔记变化时才会真正执行同步
 - 同步成功后自动提交并推送到当前安全分支目标
+- 如果目标分支是 `master`，并且仓库已配置服务器部署 workflow，就会继续自动上线
 
 ### 查看状态
 
@@ -180,10 +200,11 @@ pnpm publish:auto-uninstall
 
 - `pnpm publish:doctor` 不通过：先检查思源是否已启动、API token 是否正确、工作区路径是否写对
 - `pnpm publish:dry-run` 报字段错误：通常是你手动填写的 `blog-cat`、`blog-date` 或 `blog-slug` 不符合格式
-- 同步后没触发部署：先确认这次是否真的产生了 git 提交，再检查 `PUBLISH_DEPLOY_HOOK`
+- 同步后没触发部署：先确认这次是否真的产生了 git 提交；如果用的是 GitHub Actions 部署，再去看仓库 Actions；如果用的是外部平台，再检查 `PUBLISH_DEPLOY_HOOK`
 - 公众号导出稿没有更新：检查 `blog-wechat` 是否为 `true`，以及 `wechatExportDir` 是否已配置
 
 ## 相关文档
 
 - [项目说明](../../README.md)
-- [Vercel 部署说明](./vercel-setup.md)
+- [服务器静态部署说明](./server-deploy.md)
+- [Vercel 可选部署说明](./vercel-setup.md)

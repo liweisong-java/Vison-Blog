@@ -1,6 +1,6 @@
 # 伟松的博客
 
-一个面向中文写作者的轻量个人博客方案：用 `SiYuan` 写作，用本地发布器同步，用 `Astro` 生成静态站点。没有数据库，没有后台，部署成本低，适合长期个人维护，也适合继续扩展到公众号内容分发。
+一个面向中文写作者的轻量个人博客方案：用 `SiYuan` 写作，用本地发布器同步，用 `Astro` 生成静态站点，再由 GitHub Actions 自动部署到你自己的服务器。没有数据库，没有后台，部署成本低，适合长期个人维护，也适合继续扩展到公众号内容分发。
 
 ## 核心特性
 
@@ -10,7 +10,8 @@
 - 内置 `init / doctor / dry-run / sync` 发布链路
 - 自动生成博客文章，并可按需导出公众号兼容稿
 - 支持本机自动监听思源变化并定时同步发布
-- 支持 `Vercel` 静态部署与 `Giscus` 评论
+- 支持 `master` 分支自动构建并部署到自托管静态服务器
+- 支持 `Giscus` 评论，`Vercel` 可作为可选部署方案
 
 ## 架构概览
 
@@ -19,7 +20,8 @@ SiYuan 笔记
   -> tools/publisher
   -> apps/blog/src/content/posts
   -> Astro 构建
-  -> Vercel 部署
+  -> GitHub Actions
+  -> 服务器 /data/Vison-Blog/current
 ```
 
 第一版的发布模型是“手机或电脑写作 -> 思源同步到主设备 -> 本机执行发布器 -> 静态站部署”。这条链路很轻，也足够稳定。
@@ -132,6 +134,21 @@ pnpm publish:auto-uninstall
 - `publish:auto-once`：手动触发一次“自动模式”巡检
 - `publish:auto-uninstall`：卸载本机自动发布任务
 
+### 6. 自动上线闭环
+
+推荐把正式内容同步到 `master`，这样整条链路会变成：
+
+```text
+手机或电脑写作
+  -> 思源同步回本机
+  -> publish:auto-install 自动巡检
+  -> 发布器提交并推送 master
+  -> GitHub Actions 自动构建
+  -> 静态产物上传到服务器
+```
+
+如果你已经配置好服务器部署 Secrets，那么只要思源内容被发布器推到 `master`，博客就会自动上线。
+
 ## 思源发文规则
 
 现在默认是“少填甚至不填属性也能发”：
@@ -175,25 +192,29 @@ pnpm publish:auto-uninstall
 | `pnpm publish:auto-once` | 手动执行一次自动巡检 |
 | `pnpm publish:auto-uninstall` | 卸载本机自动发布任务 |
 
-## 部署与评论
+## 部署、自动上线与评论
 
-博客前台默认按静态站部署，推荐直接接入 `Vercel`：
+默认推荐部署到你自己的静态服务器：
 
-- Root Directory 设为 `apps/blog`
-- `SITE_URL` 设为线上域名
-- 如果要开启评论，补齐这些环境变量：
+- GitHub Actions 在 `master` 更新后自动构建并上传 `apps/blog/dist`
+- 服务器上的 Web 服务根目录指向 `/data/Vison-Blog/current`
+- 服务器只接收静态产物，不拉源码，不在服务器构建
+- 仓库 Actions Secrets 里需要补 `SITE_URL` 与 `DEPLOY_*` 一组部署密钥
+
+如果要开启评论，补齐这些环境变量：
 - `GISCUS_REPO`
 - `GISCUS_REPO_ID`
 - `GISCUS_CATEGORY`
 - `GISCUS_CATEGORY_ID`
 - `GISCUS_MAPPING`
 - `GISCUS_THEME`
-- 如果要在内容同步后自动触发部署，可以配置 `PUBLISH_DEPLOY_HOOK`
+- 如果你还想兼容 `Vercel`、Netlify 之类的平台，再额外配置 `PUBLISH_DEPLOY_HOOK`
 
 详细说明见：
 
 - [思源发布器使用手册](docs/runbooks/siyuan-publisher.md)
-- [Vercel 部署说明](docs/runbooks/vercel-setup.md)
+- [服务器静态部署说明](docs/runbooks/server-deploy.md)
+- [Vercel 可选部署说明](docs/runbooks/vercel-setup.md)
 
 ## 当前状态
 
@@ -202,6 +223,7 @@ pnpm publish:auto-uninstall
 - 已支持文章导出到博客与公众号兼容稿
 - 已支持本机自动监听思源并定时同步发布
 - 已支持零手填优先的自动发文规则
+- 已支持 `master` 分支自动构建并部署到自托管静态服务器
 - 暂未内置“直接发公众号”的自动集成，当前阶段提供兼容稿导出
 
 ## 说明
