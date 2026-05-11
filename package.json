@@ -6,7 +6,7 @@
     "dev": "pnpm --filter blog dev",
     "dev:blog": "pnpm --filter blog dev",
     "dev:publisher": "pnpm --filter publisher dev",
-    "publish:init": "pnpm --filter publisher dev init",
+    "publish:init": "pnpm --filter publisher dev init ",
     "publish:doctor": "pnpm --filter publisher dev doctor",
     "publish:dry-run": "pnpm --filter publisher dev sync --dry-run",
     "publish:sync": "pnpm --filter publisher dev sync",
