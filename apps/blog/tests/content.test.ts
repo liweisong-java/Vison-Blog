@@ -1,11 +1,13 @@
-import { describe, expect, it } from "vitest";
+import {describe, expect, it} from "vitest";
 import {
-  getAllTags,
-  getSearchResults,
-  getTagSummaries,
-  getReadingTime,
-  postSchema,
-  sortPublishedPosts
+    getAllTags,
+    getArticleLead,
+    getReadingTime,
+    getSearchResults,
+    getTagSummaries,
+    groupArticleHeadings,
+    postSchema,
+    sortPublishedPosts
 } from "../src/lib/content";
 
 describe("post schema", () => {
@@ -142,4 +144,31 @@ describe("content helpers", () => {
     expect(results).toHaveLength(1);
     expect(results[0].data.slug).toBe("from-notes-to-site");
   });
+
+    it("builds a concise article lead from excerpt or body text", () => {
+        expect(getArticleLead("现成摘要", "# 标题\n\n正文")).toBe("现成摘要");
+        expect(getArticleLead(undefined, "# 标题\n\n第一段内容。\n\n第二段内容。")).toBe("第一段内容。");
+    });
+
+    it("groups h2 and h3 headings for article toc rendering", () => {
+        expect(
+            groupArticleHeadings([
+                {depth: 2, slug: "section-a", text: "章节 A"},
+                {depth: 3, slug: "section-a-1", text: "章节 A-1"},
+                {depth: 2, slug: "section-b", text: "章节 B"},
+                {depth: 3, slug: "section-b-1", text: "章节 B-1"}
+            ])
+        ).toEqual([
+            {
+                slug: "section-a",
+                text: "章节 A",
+                children: [{slug: "section-a-1", text: "章节 A-1"}]
+            },
+            {
+                slug: "section-b",
+                text: "章节 B",
+                children: [{slug: "section-b-1", text: "章节 B-1"}]
+            }
+        ]);
+    });
 });

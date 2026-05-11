@@ -210,8 +210,7 @@ aside {
 .article-shell h3,
 .panel h2,
 .about-grid h2,
-.feature-card h3,
-.toc-shell h2 {
+.feature-card h3 {
   margin: 0;
   font-family: var(--font-display);
   line-height: 1.35;
@@ -261,8 +260,7 @@ aside {
 .archive-intro,
 .archive-year,
 .tag-summary-card,
-.about-grid section,
-.toc-shell {
+.about-grid section {
   background: var(--surface);
   border: 1px solid var(--line);
   border-radius: 18px;
@@ -273,8 +271,7 @@ aside {
 .archive-intro,
 .archive-year,
 .tag-summary-card,
-.about-grid section,
-.toc-shell {
+.about-grid section {
   padding: 18px 20px;
 }
 
@@ -572,96 +569,94 @@ aside {
 }
 
 .article-shell {
-  max-width: 980px;
+    max-width: 1100px;
   margin: 0 auto;
-  padding-top: 18px;
+    padding-top: 26px;
 }
 
 .article-header {
+    display: grid;
+    gap: 10px;
   border-bottom: 1px solid var(--line);
-  padding-bottom: 18px;
+    padding-bottom: 24px;
 }
 
 .article-kicker {
-  margin-top: 6px;
+    margin-top: 0;
 }
 
 .article-summary {
-  margin-top: 18px;
-  max-width: 34rem;
-}
-
-.article-badges {
-  margin: 22px 0 24px;
-}
-
-.badge {
-  display: inline-flex;
-  align-items: center;
-  min-height: 34px;
-  padding: 0 12px;
-  border-radius: 999px;
-  background: var(--accent-soft);
-  color: var(--accent);
-  font-size: 13px;
-  font-weight: 600;
-}
-
-.badge-link {
-  border: 1px solid rgba(143, 77, 46, 0.18);
+    margin-top: 0;
+    max-width: 40rem;
+    font-size: 17px;
+    line-height: 1.92;
 }
 
 .article-cover {
   overflow: hidden;
   border-radius: 18px;
-  margin-bottom: 30px;
+    margin: 28px 0 32px;
 }
 
 .article-grid {
   display: grid;
-  grid-template-columns: minmax(0, var(--content-width)) 220px;
+    grid-template-columns: minmax(0, min(100%, 720px)) 220px;
   justify-content: space-between;
-  gap: 36px;
+    gap: 44px;
+    align-items: start;
+}
+
+.article-main {
+    min-width: 0;
+}
+
+.article-source {
+    margin: 26px 0 0;
+    color: var(--muted);
+    font-size: 14px;
+    line-height: 1.8;
 }
 
 .prose {
   min-width: 0;
-  font-size: 18px;
+    font-size: 17px;
   line-break: strict;
 }
 
 .prose p,
 .prose li {
-  line-height: 2.05;
+    line-height: 1.95;
 }
 
 .prose p {
-  margin: 0 0 1.15em;
+    margin: 0 0 1.28em;
   text-wrap: pretty;
 }
 
 .prose h2,
 .prose h3 {
-  margin-top: 42px;
-  margin-bottom: 12px;
-  line-height: 1.58;
+    line-height: 1.5;
   text-wrap: balance;
   word-break: keep-all;
 }
 
 .prose h2 {
-  font-size: 30px;
-  padding-bottom: 8px;
+    margin-top: 54px;
+    margin-bottom: 16px;
+    font-size: 29px;
+    padding-bottom: 10px;
   border-bottom: 1px solid var(--line);
 }
 
 .prose h3 {
-  font-size: 24px;
+    margin-top: 34px;
+    margin-bottom: 12px;
+    font-size: 23px;
 }
 
 .prose ul,
 .prose ol {
-  padding-left: 24px;
+    padding-left: 1.4rem;
 }
 
 .prose ul,
@@ -674,7 +669,11 @@ aside {
 }
 
 .prose li + li {
-  margin-top: 0.55em;
+    margin-top: 0.7em;
+}
+
+.prose li {
+    padding-left: 0.12rem;
 }
 
 .prose a {
@@ -690,10 +689,11 @@ aside {
 
 .prose blockquote {
   margin-left: 0;
-  padding: 14px 18px;
-  border-left: 3px solid var(--accent);
-  background: var(--accent-soft);
+    padding: 18px 20px;
+    border-left: 2px solid var(--accent);
+    background: color-mix(in srgb, var(--accent-soft) 72%, white);
   color: #454b54;
+    border-radius: 0 14px 14px 0;
 }
 
 .prose blockquote p:last-child {
@@ -709,7 +709,7 @@ aside {
 
 .prose pre {
   overflow-x: auto;
-  padding: 18px;
+    padding: 18px 20px;
   border-radius: 16px;
   background: #1d232a;
   color: #f4efe7;
@@ -779,16 +779,84 @@ aside {
 }
 
 .toc-shell {
+    min-width: 0;
+}
+
+.toc-shell--desktop {
   position: sticky;
   top: 24px;
   align-self: start;
+    padding: 0 0 0 18px;
+    border-left: 1px solid var(--line);
+    background: transparent;
+    border-radius: 0;
+    max-height: calc(100vh - 48px);
+    overflow: auto;
 }
 
-.toc-shell ul {
-  margin: 14px 0 0;
-  padding-left: 18px;
+.toc-shell--mobile {
+    display: none;
+    margin-bottom: 22px;
+    padding: 14px 16px;
+}
+
+.toc-shell--mobile summary {
+    cursor: pointer;
+    color: var(--ink);
+    font-family: var(--font-display);
+    font-size: 18px;
+    font-weight: 700;
+    list-style: none;
+}
+
+.toc-shell--mobile summary::-webkit-details-marker {
+    display: none;
+}
+
+.toc-shell--mobile nav {
+    margin-top: 14px;
+}
+
+.toc-shell__label {
+    margin: 0 0 14px;
+    color: var(--muted);
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+}
+
+.toc-list,
+.toc-sublist {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+
+.toc-list {
   display: grid;
-  gap: 10px;
+    gap: 14px;
+}
+
+.toc-list > li > a {
+    display: block;
+    color: var(--ink);
+    font-size: 14px;
+    line-height: 1.72;
+}
+
+.toc-sublist {
+    margin-top: 8px;
+    display: grid;
+    gap: 8px;
+    padding-left: 12px;
+}
+
+.toc-sublist a {
+    display: block;
+    color: var(--muted);
+    font-size: 13px;
+    line-height: 1.7;
 }
 
 .article-related {
@@ -884,6 +952,14 @@ aside {
     gap: 24px;
   }
 
+    .toc-shell--desktop {
+        display: none;
+    }
+
+    .toc-shell--mobile {
+        display: block;
+    }
+
   .about-grid,
   .about-profile {
     grid-template-columns: 1fr;
@@ -946,7 +1022,7 @@ aside {
   }
 
   .prose {
-    font-size: 17px;
+      font-size: 16px;
   }
 
   .article-kicker,
@@ -958,6 +1034,15 @@ aside {
   .prose li {
     line-height: 1.9;
   }
+
+    .prose h2 {
+        margin-top: 42px;
+        font-size: 25px;
+    }
+
+    .prose h3 {
+        font-size: 21px;
+    }
 
   .prose table {
     font-size: 14px;

@@ -1,12 +1,60 @@
 ---
-const { headings = [] } = Astro.props;
+type TocHeading = {
+  slug: string;
+  text: string;
+  children?: Array<{
+    slug: string;
+    text: string;
+  }>;
+};
+
+const { headings = [], variant = "desktop" } = Astro.props as {
+  headings?: TocHeading[];
+  variant?: "desktop" | "mobile";
+};
+
+const shellClass = variant === "mobile" ? "toc-shell toc-shell--mobile" : "toc-shell toc-shell--desktop";
 ---
 
-<aside class="toc-shell">
-  <h2>目录</h2>
-  <ul>
-    {headings.map((heading: { slug: string; text: string }) => (
-      <li><a href={`#${heading.slug}`}>{heading.text}</a></li>
-    ))}
-  </ul>
-</aside>
+{
+  headings.length > 0 &&
+    (variant === "mobile" ? (
+      <details class={shellClass}>
+        <summary>本文目录</summary>
+        <nav aria-label="目录">
+          <ol class="toc-list">
+            {headings.map((heading) => (
+              <li>
+                <a href={`#${heading.slug}`}>{heading.text}</a>
+                {heading.children && heading.children.length > 0 && (
+                  <ol class="toc-sublist">
+                    {heading.children.map((child) => (
+                      <li><a href={`#${child.slug}`}>{child.text}</a></li>
+                    ))}
+                  </ol>
+                )}
+              </li>
+            ))}
+          </ol>
+        </nav>
+      </details>
+    ) : (
+      <aside class={shellClass} aria-label="目录">
+        <p class="toc-shell__label">目录</p>
+        <ol class="toc-list">
+          {headings.map((heading) => (
+            <li>
+              <a href={`#${heading.slug}`}>{heading.text}</a>
+              {heading.children && heading.children.length > 0 && (
+                <ol class="toc-sublist">
+                  {heading.children.map((child) => (
+                    <li><a href={`#${child.slug}`}>{child.text}</a></li>
+                  ))}
+                </ol>
+              )}
+            </li>
+          ))}
+        </ol>
+      </aside>
+    ))
+}
