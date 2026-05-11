@@ -9,6 +9,7 @@
 - 无数据库、无业务后端、无传统 CMS
 - 内置 `init / doctor / dry-run / sync` 发布链路
 - 自动生成博客文章，并可按需导出公众号兼容稿
+- 支持本机自动监听思源变化并定时同步发布
 - 支持 `Vercel` 静态部署与 `Giscus` 评论
 
 ## 架构概览
@@ -78,9 +79,10 @@ pnpm publish:init
 实际使用时需要编辑初始化生成的本地文件。最少需要补齐：
 
 - `.env` 中的 `SIYUAN_TOKEN`
-- `.env` 中的 `PUBLISH_BRANCH`
 - `publisher.config.json` 中的 `notebookId`
 - `publisher.config.json` 中的 `siyuanWorkspaceDir`
+
+`PUBLISH_BRANCH` 现在是可选项。默认会优先推送当前分支绑定的上游远端分支；只有你明确想改到别的发布分支时才需要填写，而且会做安全校验，防止误推。
 
 ### 3. 检查环境
 
@@ -103,22 +105,57 @@ pnpm publish:sync
 
 `dry-run` 只做预检查，不写入文件；`sync` 会正式生成或更新文章、清理失效内容、按需导出公众号兼容稿，并只提交受发布器托管的内容路径。
 
-## 思源文档属性约定
+### 5. 安装本机自动发布
 
-为了方便在手机上录入，这个项目默认使用一组较短的自定义属性：
+如果你希望写完思源笔记后，由本机自动检查并发布：
 
-- `blog-pub`：是否发布，填 `true`
-- `blog-cat`：分类，填 `tech` 或 `life`
-- `blog-slug`：文章路径标识
-- `blog-excerpt`：摘要
-- `blog-date`：发布日期，格式 `YYYY-MM-DD`
-- `blog-tags`：标签，多个标签用英文逗号分隔
-- `blog-top`：是否置顶，填 `true` 或 `false`
+```bash
+pnpm publish:auto-install
+```
+
+安装后会发生这些事：
+
+- 监听思源当前博客笔记本的数据目录变化
+- 每 5 分钟做一次兜底检查，避免错过手机同步
+- 只有检测到笔记本内容变化时才会触发真正同步
+- 同步成功后自动提交并推送到配置好的 Git 分支
+
+常用自动发布命令：
+
+```bash
+pnpm publish:auto-status
+pnpm publish:auto-once
+pnpm publish:auto-uninstall
+```
+
+- `publish:auto-status`：查看当前自动发布状态、状态文件和日志路径
+- `publish:auto-once`：手动触发一次“自动模式”巡检
+- `publish:auto-uninstall`：卸载本机自动发布任务
+
+## 思源发文规则
+
+现在默认是“少填甚至不填属性也能发”：
+
+- 放在当前博客笔记本里的普通文档，默认都会参与发布
+- 标题或路径里包含 `draft`、`草稿`、`未发布`、`未完成` 的文档会自动跳过
+- `slug`、`excerpt`、`publishedAt` 会自动生成
+- `category` 优先读属性，其次按标题、路径、正文关键词自动判断；判断不出时默认归到 `生活`
+- `wechatReady` 默认开启，也就是会同时导出一份公众号兼容稿
+
+只有在你想手动覆盖默认行为时，才需要补这些可选属性：
+
+- `blog-pub`：填 `false` 可阻止该文发布
+- `blog-cat`：手动指定 `tech` 或 `life`
+- `blog-slug`：手动指定文章路径
+- `blog-excerpt`：手动指定摘要
+- `blog-date`：手动指定发布日期，格式 `YYYY-MM-DD`
+- `blog-tags`：多个标签用英文逗号分隔
+- `blog-top`：填 `true` 可置顶
 - `blog-cover`：封面图
 - `blog-canonical`：原始来源链接
-- `blog-wechat`：是否生成公众号兼容稿
+- `blog-wechat`：填 `false` 可关闭公众号兼容稿导出
 
-如果没有填写 `blog-slug`、`blog-excerpt`、`blog-date`，发布器会生成安全默认值。
+如果你思源里之前已经用了 `custom-blog-*` 这一套命名，发布器也会继续识别，不需要回头批量改属性名。
 
 ## 常用命令
 
@@ -133,6 +170,10 @@ pnpm publish:sync
 | `pnpm publish:doctor` | 检查思源与发布环境 |
 | `pnpm publish:dry-run` | 预演同步，不落文件 |
 | `pnpm publish:sync` | 正式同步内容 |
+| `pnpm publish:auto-install` | 安装本机自动发布任务 |
+| `pnpm publish:auto-status` | 查看自动发布状态 |
+| `pnpm publish:auto-once` | 手动执行一次自动巡检 |
+| `pnpm publish:auto-uninstall` | 卸载本机自动发布任务 |
 
 ## 部署与评论
 
@@ -159,6 +200,8 @@ pnpm publish:sync
 - 已完成轻量博客架构重构
 - 已支持真实思源内容同步
 - 已支持文章导出到博客与公众号兼容稿
+- 已支持本机自动监听思源并定时同步发布
+- 已支持零手填优先的自动发文规则
 - 暂未内置“直接发公众号”的自动集成，当前阶段提供兼容稿导出
 
 ## 说明

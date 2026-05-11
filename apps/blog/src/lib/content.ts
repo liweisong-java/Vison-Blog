@@ -4,7 +4,7 @@ export const postSchema = z.object({
   title: z.string().min(1),
   slug: z.string().regex(/^[a-z0-9-]+$/),
   publishedAt: z.coerce.date(),
-  excerpt: z.string().min(24).max(220),
+  excerpt: z.string().min(12).max(220),
   category: z.enum(["tech", "life"]),
   tags: z.array(z.string().min(1)).default([]),
   featured: z.boolean().default(false),

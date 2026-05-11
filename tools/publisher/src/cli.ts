@@ -8,6 +8,13 @@ import { config as loadEnv } from "dotenv";
 import { commitAndPush as commitAndPushGit } from "./git.js";
 import { loadPublisherConfig } from "./config.js";
 import { formatCliError, printJson } from "./cli-output.js";
+import {
+  autoPublishOnceCommand,
+  createRunCommand,
+  getAutoPublishStatusCommand,
+  installAutoPublishLaunchAgentCommand,
+  uninstallAutoPublishLaunchAgentCommand
+} from "./commands/auto.js";
 import { doctorCommand } from "./commands/doctor.js";
 import { initPublisherFiles } from "./commands/init.js";
 import { removeManagedPost, removeWechatArticle, writeBundle, writeWechatArticle } from "./fs.js";
@@ -89,27 +96,102 @@ async function main() {
     return;
   }
 
+  if (command === "auto-status") {
+    printJson(
+      await getAutoPublishStatusCommand({
+        workspaceRoot: repoRoot,
+        statePath: runtime.statePath
+      })
+    );
+    return;
+  }
+
+  const sync = () =>
+    syncPublishedNotes({
+      dryRun: false,
+      config,
+      client,
+      collectContentEntries,
+      writeBundle,
+      writeWechatArticle,
+      removeWechatArticle,
+      removeManagedPost,
+      runBlogChecks: () => runBlogChecks(repoRoot),
+      commitAndPush: () =>
+        commitAndPushGit({
+          repoRoot,
+          branch: env.PUBLISH_BRANCH || env.GITHUB_REF_NAME || undefined,
+          remote: env.PUBLISH_REMOTE ?? "origin",
+          message: "chore(content): sync siyuan posts",
+          includePaths: [config.contentRoot, ...(config.wechatExportDir ? [config.wechatExportDir] : [])]
+        }),
+      triggerDeploy: (summary) => triggerDeployHook(config.deployHookUrl ?? env.PUBLISH_DEPLOY_HOOK, summary)
+    });
+
+  if (command === "auto-once") {
+    printJson(
+      await autoPublishOnceCommand({
+        notebookId: config.notebookId,
+        queryDocuments: () => client.queryDocuments(config.notebookId),
+        sync,
+        runtime: {
+          workspaceRoot: repoRoot,
+          publisherRoot: runtime.publisherRoot,
+          statePath: runtime.statePath,
+          lockPath: runtime.lockPath
+        }
+      })
+    );
+    return;
+  }
+
+  if (command === "auto-install") {
+    printJson(
+      await installAutoPublishLaunchAgentCommand({
+        workspaceRoot: repoRoot,
+        notebookId: config.notebookId,
+        siyuanWorkspaceDir: config.siyuanWorkspaceDir,
+        envPath: runtime.envPath,
+        runCommand: createRunCommand(execFileAsync)
+      })
+    );
+    return;
+  }
+
+  if (command === "auto-uninstall") {
+    printJson(
+      await uninstallAutoPublishLaunchAgentCommand({
+        workspaceRoot: repoRoot,
+        runCommand: createRunCommand(execFileAsync)
+      })
+    );
+    return;
+  }
+
   const dryRun = process.argv.includes("--dry-run");
-  const result = await syncPublishedNotes({
-    dryRun,
-    config,
-    client,
-    collectContentEntries,
-    writeBundle,
-    writeWechatArticle,
-    removeWechatArticle,
-    removeManagedPost,
-    runBlogChecks: () => runBlogChecks(repoRoot),
-    commitAndPush: () =>
-      commitAndPushGit({
-        repoRoot,
-        branch: env.PUBLISH_BRANCH ?? env.GITHUB_REF_NAME ?? "master",
-        remote: env.PUBLISH_REMOTE ?? "origin",
-        message: "chore(content): sync siyuan posts",
-        includePaths: [config.contentRoot, ...(config.wechatExportDir ? [config.wechatExportDir] : [])]
-      }),
-    triggerDeploy: (summary) => triggerDeployHook(config.deployHookUrl ?? env.PUBLISH_DEPLOY_HOOK, summary)
-  });
+  const result = dryRun
+    ? await syncPublishedNotes({
+        dryRun,
+        config,
+        client,
+        collectContentEntries,
+        writeBundle,
+        writeWechatArticle,
+        removeWechatArticle,
+        removeManagedPost,
+        runBlogChecks: () => runBlogChecks(repoRoot),
+        commitAndPush: () =>
+          commitAndPushGit({
+            repoRoot,
+            branch: env.PUBLISH_BRANCH || env.GITHUB_REF_NAME || undefined,
+            remote: env.PUBLISH_REMOTE ?? "origin",
+            message: "chore(content): sync siyuan posts",
+            includePaths: [config.contentRoot, ...(config.wechatExportDir ? [config.wechatExportDir] : [])]
+          }),
+        triggerDeploy: (summary) =>
+          triggerDeployHook(config.deployHookUrl ?? env.PUBLISH_DEPLOY_HOOK, summary)
+      })
+    : await sync();
 
   printJson(result);
 }

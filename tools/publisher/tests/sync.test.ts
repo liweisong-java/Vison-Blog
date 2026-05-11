@@ -149,6 +149,274 @@ describe("syncPublishedNotes", () => {
     );
   });
 
+  it("falls back to a generated excerpt when an old custom excerpt is too short", async () => {
+    const writeBundle = vi.fn();
+
+    const result = await syncPublishedNotes({
+      dryRun: false,
+      config: baseConfig,
+      client: {
+        queryDocuments: vi.fn().mockResolvedValue([
+          {
+            id: "20260511124027-9cky1bo",
+            content: "天道・五台山论道",
+            hpath: "/天道・五台山论道",
+            updated: "20260511141118"
+          }
+        ]),
+        getBlockAttrs: vi.fn().mockResolvedValue({
+          "custom-blog-pub": "true",
+          "custom-blog-cat": "life",
+          "custom-blog-slug": "on-dao-notes",
+          "custom-blog-excerpt": "天道⚡️五台山论道"
+        }),
+        exportMarkdown: vi.fn().mockResolvedValue({
+          content: "这是一篇关于五台山论道的长文记录，包含完整背景、释义和对话整理，足够生成可靠摘要。"
+        })
+      },
+      collectContentEntries: vi.fn().mockResolvedValue([]),
+      writeBundle,
+      removeManagedPost: vi.fn(),
+      runBlogChecks: vi.fn(),
+      commitAndPush: vi.fn().mockResolvedValue({ committed: false }),
+      triggerDeploy: vi.fn()
+    });
+
+    expect(result.written).toEqual(["on-dao-notes"]);
+    expect(writeBundle).toHaveBeenCalledWith(
+      "/tmp/content",
+      expect.objectContaining({
+        body: expect.stringContaining("这是一篇关于五台山论道的长文记录")
+      })
+    );
+  });
+
+  it("publishes notebook notes by default and falls back to a safe generated slug for Chinese titles", async () => {
+    const writeBundle = vi.fn();
+
+    const result = await syncPublishedNotes({
+      dryRun: false,
+      config: baseConfig,
+      client: {
+        queryDocuments: vi.fn().mockResolvedValue([
+          {
+            id: "20260511124027-9cky1bo",
+            content: "天道・五台山论道",
+            hpath: "/天道・五台山论道",
+            updated: "20260511141118"
+          }
+        ]),
+        getBlockAttrs: vi.fn().mockResolvedValue({}),
+        exportMarkdown: vi.fn().mockResolvedValue({
+          content: "这是一篇关于五台山论道的长文记录，包含完整背景、释义和对话整理，足够生成可靠摘要。"
+        })
+      },
+      collectContentEntries: vi.fn().mockResolvedValue([]),
+      writeBundle,
+      removeManagedPost: vi.fn(),
+      runBlogChecks: vi.fn(),
+      commitAndPush: vi.fn().mockResolvedValue({ committed: false }),
+      triggerDeploy: vi.fn()
+    });
+
+    expect(result.written).toEqual(["post-9cky1bo"]);
+    expect(writeBundle).toHaveBeenCalledWith(
+      "/tmp/content",
+      expect.objectContaining({
+        filePath: "post-9cky1bo/index.mdx",
+        body: expect.stringContaining("category: life")
+      })
+    );
+  });
+
+  it("supports both configured attrs and custom-prefixed attrs from SiYuan", async () => {
+    const writeBundle = vi.fn();
+
+    const result = await syncPublishedNotes({
+      dryRun: false,
+      config: baseConfig,
+      client: {
+        queryDocuments: vi.fn().mockResolvedValue([
+          {
+            id: "20260511124027-9cky1bo",
+            content: "天道・五台山论道",
+            hpath: "/生活/天道・五台山论道",
+            updated: "20260511141118"
+          }
+        ]),
+        getBlockAttrs: vi.fn().mockResolvedValue({
+          "custom-blog-pub": "true",
+          "custom-blog-cat": "life",
+          "custom-blog-slug": "on-dao-notes",
+          "custom-blog-excerpt": "天道与五台山论道的一次完整整理。",
+          "custom-blog-date": "2026-04-11",
+          "custom-blog-tags": "life,notes",
+          "custom-blog-top": "false",
+          "custom-blog-wechat": "true"
+        }),
+        exportMarkdown: vi.fn().mockResolvedValue({
+          content: "这是一篇关于五台山论道的长文记录，包含完整背景、释义和对话整理。"
+        })
+      },
+      collectContentEntries: vi.fn().mockResolvedValue([]),
+      writeBundle,
+      removeManagedPost: vi.fn(),
+      runBlogChecks: vi.fn(),
+      commitAndPush: vi.fn().mockResolvedValue({ committed: false }),
+      triggerDeploy: vi.fn()
+    });
+
+    expect(result.written).toEqual(["on-dao-notes"]);
+    expect(writeBundle).toHaveBeenCalledWith(
+      "/tmp/content",
+      expect.objectContaining({
+        filePath: "on-dao-notes/index.mdx",
+        body: expect.stringContaining("publishedAt: '2026-04-11'")
+      })
+    );
+  });
+
+  it("infers a tech category from the title and body when the category attr is missing", async () => {
+    const writeBundle = vi.fn();
+
+    await syncPublishedNotes({
+      dryRun: false,
+      config: baseConfig,
+      client: {
+        queryDocuments: vi.fn().mockResolvedValue([
+          {
+            id: "doc-tech-auto-1",
+            content: "AI 工作流复盘",
+            hpath: "/AI 工作流复盘",
+            updated: "20260510120000"
+          }
+        ]),
+        getBlockAttrs: vi.fn().mockResolvedValue({}),
+        exportMarkdown: vi.fn().mockResolvedValue({
+          content: "这篇笔记记录了 AI、提示词、代码协作和发布工作流，适合作为技术文章发布。"
+        })
+      },
+      collectContentEntries: vi.fn().mockResolvedValue([]),
+      writeBundle,
+      removeManagedPost: vi.fn(),
+      runBlogChecks: vi.fn(),
+      commitAndPush: vi.fn().mockResolvedValue({ committed: false }),
+      triggerDeploy: vi.fn()
+    });
+
+    expect(writeBundle).toHaveBeenCalledWith(
+      "/tmp/content",
+      expect.objectContaining({
+        body: expect.stringContaining("category: tech")
+      })
+    );
+  });
+
+  it("keeps the existing managed slug when the note is republished without a slug attr", async () => {
+    const writeBundle = vi.fn();
+
+    const result = await syncPublishedNotes({
+      dryRun: false,
+      config: baseConfig,
+      client: {
+        queryDocuments: vi.fn().mockResolvedValue([
+          {
+            id: "doc-tech-1",
+            content: "AI 使用心得：把模型真正接进日常工作",
+            hpath: "/AI 使用心得：把模型真正接进日常工作",
+            updated: "20260511124539"
+          }
+        ]),
+        getBlockAttrs: vi.fn().mockResolvedValue({}),
+        exportMarkdown: vi.fn().mockResolvedValue({
+          content: "这篇文章记录了 AI 在真实代码协作、文档起草和工作流复盘里的长期使用感受。"
+        })
+      },
+      collectContentEntries: vi.fn().mockResolvedValue([
+        {
+          slug: "ai-usage-notes",
+          sourceId: "doc-tech-1",
+          directory: "/tmp/content/ai-usage-notes"
+        }
+      ]),
+      writeBundle,
+      removeManagedPost: vi.fn(),
+      runBlogChecks: vi.fn(),
+      commitAndPush: vi.fn().mockResolvedValue({ committed: false }),
+      triggerDeploy: vi.fn()
+    });
+
+    expect(result.written).toEqual(["ai-usage-notes"]);
+    expect(writeBundle).toHaveBeenCalledWith(
+      "/tmp/content",
+      expect.objectContaining({
+        filePath: "ai-usage-notes/index.mdx"
+      })
+    );
+  });
+
+  it("skips draft-like notes even when no publish attr is present", async () => {
+    const exportMarkdown = vi.fn();
+
+    const result = await syncPublishedNotes({
+      dryRun: true,
+      config: baseConfig,
+      client: {
+        queryDocuments: vi.fn().mockResolvedValue([
+          {
+            id: "doc-draft-1",
+            content: "草稿：还没写完",
+            hpath: "/草稿/还没写完",
+            updated: "20260510120000"
+          }
+        ]),
+        getBlockAttrs: vi.fn().mockResolvedValue({}),
+        exportMarkdown
+      },
+      collectContentEntries: vi.fn().mockResolvedValue([]),
+      writeBundle: vi.fn(),
+      removeManagedPost: vi.fn(),
+      runBlogChecks: vi.fn(),
+      commitAndPush: vi.fn(),
+      triggerDeploy: vi.fn()
+    });
+
+    expect(result.written).toEqual([]);
+    expect(exportMarkdown).not.toHaveBeenCalled();
+  });
+
+  it("lets an explicit false publish attr opt a note out of publishing", async () => {
+    const exportMarkdown = vi.fn();
+
+    const result = await syncPublishedNotes({
+      dryRun: true,
+      config: baseConfig,
+      client: {
+        queryDocuments: vi.fn().mockResolvedValue([
+          {
+            id: "doc-hidden-1",
+            content: "不对外发布的内部记录",
+            hpath: "/不对外发布的内部记录",
+            updated: "20260510120000"
+          }
+        ]),
+        getBlockAttrs: vi.fn().mockResolvedValue({
+          "blog-pub": "false"
+        }),
+        exportMarkdown
+      },
+      collectContentEntries: vi.fn().mockResolvedValue([]),
+      writeBundle: vi.fn(),
+      removeManagedPost: vi.fn(),
+      runBlogChecks: vi.fn(),
+      commitAndPush: vi.fn(),
+      triggerDeploy: vi.fn()
+    });
+
+    expect(result.written).toEqual([]);
+    expect(exportMarkdown).not.toHaveBeenCalled();
+  });
+
   it("maps cover and canonical metadata into the generated post bundle", async () => {
     const writeBundle = vi.fn();
 

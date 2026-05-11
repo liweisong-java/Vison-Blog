@@ -21,6 +21,37 @@ const transliterationMap: Record<string, string> = {
   步: "bu"
 };
 const slugPattern = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
+const draftPattern = /(?:^|\/)(?:draft|drafts|草稿|未发布|未完成)(?:\/|$)|^(?:草稿|draft)[:：-]/iu;
+const techKeywordPattern =
+  /(ai|人工智能|技术|开发|代码|编程|java|javascript|typescript|node|astro|vercel|prompt|workflow|工作流|接口|数据库|前端|后端|算法|部署|调试|性能|系统|工程)/iu;
+
+function readAttrVariants(attrs: Record<string, string>, key: string) {
+  const values = [
+    attrs[key],
+    attrs[`custom-${key}`]
+  ]
+    .map((value) => value?.trim())
+    .filter((value): value is string => Boolean(value));
+
+  return values[0];
+}
+
+function normalizeBooleanAttr(value: string | undefined) {
+  if (!value) {
+    return undefined;
+  }
+
+  const normalized = value.trim().toLowerCase();
+  if (["true", "1", "yes", "y", "on"].includes(normalized)) {
+    return true;
+  }
+
+  if (["false", "0", "no", "n", "off"].includes(normalized)) {
+    return false;
+  }
+
+  return undefined;
+}
 
 function slugify(input: string) {
   const normalizedInput = [...input]
@@ -61,36 +92,102 @@ function uniqueTags(rawTags: string) {
   return [...new Set(rawTags.split(",").map((tag) => tag.trim()).filter(Boolean))];
 }
 
+function shouldSkipByDraftConvention(doc: SiYuanDocument) {
+  return draftPattern.test(doc.hpath) || draftPattern.test(doc.content);
+}
+
+function inferCategory({
+  doc,
+  markdown
+}: {
+  doc: SiYuanDocument;
+  markdown: string;
+}) {
+  const signal = `${doc.hpath}\n${doc.content}\n${markdown}`;
+  return techKeywordPattern.test(signal) ? "tech" : "life";
+}
+
+function deriveSlug({
+  doc,
+  attrs,
+  existingEntries
+}: {
+  doc: SiYuanDocument;
+  attrs: Record<string, string>;
+  existingEntries: ManagedEntry[];
+}) {
+  const explicitSlug = readAttrVariants(attrs, "blog-slug");
+
+  if (explicitSlug && slugPattern.test(explicitSlug)) {
+    return explicitSlug;
+  }
+
+  const managedSlug = existingEntries.find((entry) => entry.sourceId === doc.id)?.slug;
+  if (managedSlug && slugPattern.test(managedSlug)) {
+    return managedSlug;
+  }
+
+  const generatedSlug = slugify(doc.content);
+  if (generatedSlug && slugPattern.test(generatedSlug)) {
+    return generatedSlug;
+  }
+
+  const idTail = doc.id
+    .slice(-7)
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/-+/g, "-")
+    .replace(/^-|-$/g, "");
+
+  return `post-${idTail || "note"}`;
+}
+
 function normalizePublishedNote(
   doc: SiYuanDocument,
   attrs: Record<string, string>,
   markdown: string,
-  config: PublisherConfig
+  config: PublisherConfig,
+  existingEntries: ManagedEntry[]
 ): { note: PublishedNote | null; invalid?: InvalidNote } {
-  if (attrs[config.attrs.publish] !== "true") {
+  const publishFlag = normalizeBooleanAttr(readAttrVariants(attrs, config.attrs.publish));
+  if (publishFlag === false) {
+    return { note: null };
+  }
+
+  if (publishFlag !== true && shouldSkipByDraftConvention(doc)) {
     return { note: null };
   }
 
   const reasons: string[] = [];
-  const category = attrs[config.attrs.category];
-  if (category !== "tech" && category !== "life") {
+  const categoryAttr = readAttrVariants(attrs, config.attrs.category);
+  let category: "tech" | "life";
+  if (!categoryAttr) {
+    category = inferCategory({ doc, markdown });
+  } else if (categoryAttr === "tech" || categoryAttr === "life") {
+    category = categoryAttr;
+  } else {
     reasons.push("category must be tech or life");
+    category = "life";
   }
 
-  const generatedSlug = slugify(doc.content);
-  const slug = attrs[config.attrs.slug]?.trim() || generatedSlug || `note-${doc.id.slice(0, 8)}`;
+  const slug = deriveSlug({ doc, attrs, existingEntries });
   if (!slug) {
     reasons.push("slug is missing and could not be generated from the title");
   } else if (!slugPattern.test(slug)) {
     reasons.push(`slug "${slug}" contains unsupported characters`);
   }
 
-  const excerpt = attrs[config.attrs.excerpt]?.trim() || excerptFromMarkdown(markdown);
-  if (!excerpt || excerpt.length < 24) {
-    reasons.push("excerpt must be at least 24 characters");
+  const configuredExcerpt = readAttrVariants(attrs, config.attrs.excerpt);
+  const generatedExcerpt = excerptFromMarkdown(markdown);
+  const excerpt =
+    configuredExcerpt && configuredExcerpt.length >= 12
+      ? configuredExcerpt
+      : generatedExcerpt;
+  if (!excerpt || excerpt.length < 12) {
+    reasons.push("excerpt must be at least 12 characters");
   }
 
-  const publishedAt = attrs[config.attrs.publishedAt]?.trim() || publishedDateFromUpdated(doc.updated);
+  const publishedAt = readAttrVariants(attrs, config.attrs.publishedAt) || publishedDateFromUpdated(doc.updated);
   if (!/^\d{4}-\d{2}-\d{2}$/.test(publishedAt)) {
     reasons.push("publishedAt must use YYYY-MM-DD");
   }
@@ -106,23 +203,26 @@ function normalizePublishedNote(
     };
   }
 
-  const wechatReadyAttr = config.attrs.wechatReady ? attrs[config.attrs.wechatReady]?.trim() : undefined;
+  const featuredAttr = normalizeBooleanAttr(readAttrVariants(attrs, config.attrs.featured));
+  const wechatReadyAttr = config.attrs.wechatReady
+    ? normalizeBooleanAttr(readAttrVariants(attrs, config.attrs.wechatReady))
+    : undefined;
 
   return {
     note: {
       id: doc.id,
       title: doc.content,
       slug,
-      category: category as "tech" | "life",
+      category,
       excerpt,
-      featured: attrs[config.attrs.featured] === "true",
+      featured: featuredAttr ?? false,
       publishedAt,
-      tags: uniqueTags(attrs[config.attrs.tags] ?? ""),
-      cover: config.attrs.cover ? attrs[config.attrs.cover]?.trim() || undefined : undefined,
+      tags: uniqueTags(readAttrVariants(attrs, config.attrs.tags) ?? ""),
+      cover: config.attrs.cover ? readAttrVariants(attrs, config.attrs.cover) || undefined : undefined,
       canonicalUrl: config.attrs.canonicalUrl
-        ? attrs[config.attrs.canonicalUrl]?.trim() || undefined
+        ? readAttrVariants(attrs, config.attrs.canonicalUrl) || undefined
         : undefined,
-      wechatReady: wechatReadyAttr ? wechatReadyAttr === "true" : true
+      wechatReady: wechatReadyAttr ?? true
     }
   };
 }
@@ -229,14 +329,16 @@ export async function syncPublishedNotes({
   }) => Promise<unknown>;
 }) {
   const docs = await client.queryDocuments(config.notebookId);
+  const existingEntries = await collectContentEntries(config.contentRoot);
   const publishedNotes: PublishedNote[] = [];
   const invalidNotes: InvalidNote[] = [];
 
   for (const doc of docs) {
     const attrs = await client.getBlockAttrs(doc.id);
-    const shouldPublish = attrs[config.attrs.publish] === "true";
-    const markdown = shouldPublish ? (await client.exportMarkdown(doc.id)).content : "";
-    const result = normalizePublishedNote(doc, attrs, markdown, config);
+    const publishFlag = normalizeBooleanAttr(readAttrVariants(attrs, config.attrs.publish));
+    const needsMarkdown = publishFlag !== false && !shouldSkipByDraftConvention(doc);
+    const markdown = needsMarkdown ? (await client.exportMarkdown(doc.id)).content : "";
+    const result = normalizePublishedNote(doc, attrs, markdown, config, existingEntries);
 
     if (result.invalid) {
       invalidNotes.push(result.invalid);
@@ -252,7 +354,6 @@ export async function syncPublishedNotes({
     throw new Error(`Unable to publish some notes:\n${formatInvalidNotes(invalidNotes)}`);
   }
 
-  const existingEntries = await collectContentEntries(config.contentRoot);
   ensureUniqueSlugs({ existingEntries, publishedNotes });
 
   const bundles = [];

@@ -47,7 +47,23 @@ describe("commitAndPush", () => {
   });
 
   it("commits and pushes when managed files are staged", async () => {
-    raw.mockResolvedValue("apps/blog/src/content/posts/from-notes-to-site/index.mdx\n");
+    raw.mockImplementation(async (args: string[]) => {
+      const command = args.join(" ");
+
+      if (command === "diff --cached --name-only") {
+        return "apps/blog/src/content/posts/from-notes-to-site/index.mdx\n";
+      }
+
+      if (command === "branch --show-current") {
+        return "main\n";
+      }
+
+      if (command === "rev-parse --abbrev-ref --symbolic-full-name @{u}") {
+        return "origin/main\n";
+      }
+
+      throw new Error(`Unexpected git raw command: ${command}`);
+    });
 
     const { commitAndPush } = await import("../src/git");
     const result = await commitAndPush({
@@ -59,10 +75,75 @@ describe("commitAndPush", () => {
     });
 
     expect(commit).toHaveBeenCalledWith("chore(content): sync siyuan posts");
-    expect(push).toHaveBeenCalledWith("origin", "main");
+    expect(push).toHaveBeenCalledWith("origin", "HEAD:main");
     expect(result).toEqual({
       committed: true,
       stagedFiles: ["apps/blog/src/content/posts/from-notes-to-site/index.mdx"]
     });
+  });
+
+  it("pushes to the current upstream branch when no branch override is configured", async () => {
+    raw.mockImplementation(async (args: string[]) => {
+      const command = args.join(" ");
+
+      if (command === "diff --cached --name-only") {
+        return "exports/wechat/from-notes-to-site.md\n";
+      }
+
+      if (command === "branch --show-current") {
+        return "codex/auto-publish\n";
+      }
+
+      if (command === "rev-parse --abbrev-ref --symbolic-full-name @{u}") {
+        return "origin/codex/lightweight-siyuan-blog-rebuild\n";
+      }
+
+      throw new Error(`Unexpected git raw command: ${command}`);
+    });
+
+    const { commitAndPush } = await import("../src/git");
+    await commitAndPush({
+      repoRoot: "/tmp/vision-blog",
+      remote: "origin",
+      message: "chore(content): sync siyuan posts",
+      includePaths: ["/tmp/vision-blog/exports/wechat"]
+    });
+
+    expect(push).toHaveBeenCalledWith("origin", "HEAD:codex/lightweight-siyuan-blog-rebuild");
+  });
+
+  it("rejects an unsafe branch override that does not match the current branch or upstream", async () => {
+    raw.mockImplementation(async (args: string[]) => {
+      const command = args.join(" ");
+
+      if (command === "diff --cached --name-only") {
+        return "apps/blog/src/content/posts/from-notes-to-site/index.mdx\n";
+      }
+
+      if (command === "branch --show-current") {
+        return "codex/auto-publish\n";
+      }
+
+      if (command === "rev-parse --abbrev-ref --symbolic-full-name @{u}") {
+        return "origin/codex/lightweight-siyuan-blog-rebuild\n";
+      }
+
+      throw new Error(`Unexpected git raw command: ${command}`);
+    });
+
+    const { commitAndPush } = await import("../src/git");
+
+    await expect(
+      commitAndPush({
+        repoRoot: "/tmp/vision-blog",
+        branch: "master",
+        remote: "origin",
+        message: "chore(content): sync siyuan posts",
+        includePaths: ["/tmp/vision-blog/apps/blog/src/content/posts"]
+      })
+    ).rejects.toThrow(/master/);
+
+    expect(commit).not.toHaveBeenCalled();
+    expect(push).not.toHaveBeenCalled();
   });
 });
