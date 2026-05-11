@@ -1,0 +1,93 @@
+---
+import { getCollection } from "astro:content";
+import CategoryFilter from "../components/CategoryFilter.astro";
+import PostCard from "../components/PostCard.astro";
+import SearchPanel from "../components/SearchPanel.astro";
+import { siteConfig } from "../data/site";
+import BaseLayout from "../layouts/BaseLayout.astro";
+import { getAllTags, sortPublishedPosts, splitFeaturedPosts } from "../lib/content";
+import { formatDisplayDate, getCategoryLabel } from "../lib/presenters";
+
+const posts = sortPublishedPosts(await getCollection("posts", ({ data }) => data.publish));
+const [featuredPosts] = splitFeaturedPosts(posts);
+const leadPost = featuredPosts[0] ?? posts[0];
+const recentPosts = leadPost
+  ? posts.filter((post) => post.id !== leadPost.id)
+  : posts;
+const spotlightTags = getAllTags(posts).slice(0, 10);
+---
+
+<BaseLayout title={siteConfig.title} description={siteConfig.description}>
+  <section class="home-intro">
+    <div class="home-intro__main">
+      <h1>{siteConfig.title}</h1>
+    </div>
+    <div class="home-intro__meta">
+      <p>最近更新：{posts[0] ? formatDisplayDate(posts[0].data.publishedAt) : "暂无文章"}</p>
+      <p>累计文章：{posts.length} 篇</p>
+    </div>
+  </section>
+
+  {leadPost && (
+    <section class="home-lead">
+      <div class="home-lead__header">
+        <p class="eyebrow">置顶文章</p>
+        <a href="/archive/">查看全部归档</a>
+      </div>
+      <article class="lead-entry">
+        <div class="lead-entry__meta">
+          <span>{getCategoryLabel(leadPost.data.category)}</span>
+          <span>{formatDisplayDate(leadPost.data.publishedAt)}</span>
+        </div>
+        <h2><a href={`/posts/${leadPost.data.slug}/`}>{leadPost.data.title}</a></h2>
+        <p>{leadPost.data.excerpt}</p>
+        <ul class="tag-list">
+          {leadPost.data.tags.map((tag) => (
+            <li><a href={`/tags/${tag}/`}>#{tag}</a></li>
+          ))}
+        </ul>
+      </article>
+    </section>
+  )}
+
+  <section class="reading-layout">
+    <div class="reading-layout__main">
+      <div class="section-heading section-heading--compact">
+        <div>
+          <p class="eyebrow">文章流</p>
+          <h2>最新文章</h2>
+        </div>
+      </div>
+      <SearchPanel posts={recentPosts} />
+      <CategoryFilter />
+      <div class="post-list">
+        {recentPosts.map((post) => <PostCard post={post} />)}
+      </div>
+    </div>
+
+    <aside class="reading-layout__side">
+      <section class="side-section">
+        <p class="eyebrow">分类</p>
+        <h2>技术 / 生活</h2>
+      </section>
+
+      <section class="side-section">
+        <p class="eyebrow">快速入口</p>
+        <ul class="side-links">
+          <li><a href="/archive/">进入归档</a></li>
+          <li><a href="/tags/">查看标签</a></li>
+          <li><a href="/about/">关于我</a></li>
+        </ul>
+      </section>
+
+      <section class="side-section">
+        <p class="eyebrow">常见标签</p>
+        <ul class="tag-list">
+          {spotlightTags.map((tag) => (
+            <li><a href={`/tags/${tag}/`}>#{tag}</a></li>
+          ))}
+        </ul>
+      </section>
+    </aside>
+  </section>
+</BaseLayout>

@@ -1,0 +1,70 @@
+---
+import { getCollection, render } from "astro:content";
+import ArticleToc from "../../components/ArticleToc.astro";
+import Comments from "../../components/Comments.astro";
+import PostCard from "../../components/PostCard.astro";
+import { siteConfig } from "../../data/site";
+import BaseLayout from "../../layouts/BaseLayout.astro";
+import { getReadingTime, getRelatedPosts, sortPublishedPosts } from "../../lib/content";
+import { formatDisplayDate, formatReadingTime, getCategoryLabel } from "../../lib/presenters";
+
+export async function getStaticPaths() {
+  const posts = await getCollection("posts", ({ data }) => data.publish);
+  return posts.map((post) => ({
+    params: { slug: post.data.slug },
+    props: { post }
+  }));
+}
+
+const { post } = Astro.props;
+const allPosts = sortPublishedPosts(await getCollection("posts", ({ data }) => data.publish));
+const { Content, headings } = await render(post);
+const relatedPosts = getRelatedPosts(post, allPosts);
+const readingTime = getReadingTime(post.body ?? post.data.excerpt);
+const categoryLabel = getCategoryLabel(post.data.category);
+---
+
+<BaseLayout
+  title={`${post.data.title} | ${siteConfig.title}`}
+  description={post.data.excerpt}
+  ogType="article"
+>
+  <article class="article-shell">
+    <header class="article-header">
+      <p class="eyebrow">正文</p>
+      <div class="article-kicker">
+        <span>{categoryLabel}</span>
+        <span>{formatDisplayDate(post.data.publishedAt)}</span>
+        <span>{formatReadingTime(readingTime)}</span>
+      </div>
+    </header>
+    <h1>{post.data.title}</h1>
+    <p class="article-summary">{post.data.excerpt}</p>
+    <div class="article-badges">
+      {post.data.wechatReady && <span class="badge">可同步到公众号</span>}
+      {post.data.canonicalUrl && (
+        <a class="badge badge-link" href={post.data.canonicalUrl} rel="noreferrer">
+          原始来源
+        </a>
+      )}
+    </div>
+    {post.data.cover && (
+      <div class="article-cover">
+        <img src={post.data.cover} alt={post.data.title} loading="eager" />
+      </div>
+    )}
+    <div class="article-grid">
+      <div class="prose">
+        <Content />
+      </div>
+      <ArticleToc headings={headings} />
+    </div>
+    <section class="article-related">
+      <h2>相关文章</h2>
+      <div class="post-grid">
+        {relatedPosts.map((relatedPost) => <PostCard post={relatedPost} />)}
+      </div>
+    </section>
+    <Comments />
+  </article>
+</BaseLayout>

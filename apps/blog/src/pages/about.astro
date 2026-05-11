@@ -1,0 +1,41 @@
+---
+import BaseLayout from "../layouts/BaseLayout.astro";
+---
+
+<BaseLayout title="关于我 | 伟松的博客" description="伟松的个人信息与联系方式。">
+  <div class="about-page">
+    <section class="page-intro" data-page-intro="about">
+      <p class="eyebrow">个人信息</p>
+      <h1>关于我</h1>
+      <p class="page-intro__summary">写代码，也写一些生活里的记录。</p>
+    </section>
+
+    <section class="about-profile">
+      <div class="about-profile__intro">
+        <p class="eyebrow">伟松</p>
+        <p>
+          这里没有太多自我包装。平时会写技术、工具、工作里的思考，也会留下日常里值得记一下的片段。合作上更偏向一种直接的方式：你出想法，我出技术，一起把事情落地。
+        </p>
+      </div>
+
+      <dl class="about-profile__list" data-about-contact>
+        <div>
+          <dt>GitHub</dt>
+          <dd><a href="https://github.com/liweisong-java" target="_blank" rel="noreferrer">github.com/liweisong-java</a></dd>
+        </div>
+        <div>
+          <dt>微信号</dt>
+          <dd>Vison_2000</dd>
+        </div>
+        <div>
+          <dt>QQ</dt>
+          <dd>1139575852</dd>
+        </div>
+        <div>
+          <dt>邮箱</dt>
+          <dd><a href="mailto:liweisong0628@gmail.com">liweisong0628@gmail.com</a></dd>
+        </div>
+      </dl>
+    </section>
+  </div>
+</BaseLayout>

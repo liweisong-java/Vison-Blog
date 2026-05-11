@@ -1,0 +1,43 @@
+---
+import { getCollection } from "astro:content";
+import BaseLayout from "../layouts/BaseLayout.astro";
+import { getArchiveGroups, sortPublishedPosts } from "../lib/content";
+import { formatDisplayDate, getCategoryLabel } from "../lib/presenters";
+
+const posts = sortPublishedPosts(await getCollection("posts", ({ data }) => data.publish));
+const groups = getArchiveGroups(posts);
+const totalPosts = posts.length;
+---
+
+<BaseLayout title="归档 | 伟松的博客" description="按时间顺序浏览所有已发布文章。">
+  <div class="archive-page">
+    <section class="page-intro page-intro--compact" data-page-intro="archive">
+      <p class="eyebrow">时间线</p>
+      <h1>归档</h1>
+      <p class="page-intro__summary">共 {totalPosts} 篇</p>
+    </section>
+
+    <div class="archive-stack">
+      {groups.map(([year, yearPosts]) => (
+        <section class="panel archive-year">
+          <div class="archive-year__header">
+            <h2>{year}</h2>
+            <p>{yearPosts.length} 篇</p>
+          </div>
+          <ul class="archive-list">
+            {yearPosts.map((post) => (
+              <li>
+                <a href={`/posts/${post.data.slug}/`}>
+                  <span>{post.data.title}</span>
+                  <span class="post-meta">
+                    {getCategoryLabel(post.data.category)} / {formatDisplayDate(post.data.publishedAt)}
+                  </span>
+                </a>
+              </li>
+            ))}
+          </ul>
+        </section>
+      ))}
+    </div>
+  </div>
+</BaseLayout>

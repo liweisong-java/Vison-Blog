@@ -1,0 +1,26 @@
+{
+  "name": "vision-blog",
+  "private": true,
+  "packageManager": "pnpm@10.11.0",
+  "scripts": {
+    "dev": "pnpm --filter blog dev",
+    "dev:blog": "pnpm --filter blog dev",
+    "dev:publisher": "pnpm --filter publisher dev",
+    "publish:init": "pnpm --filter publisher dev init",
+    "publish:doctor": "pnpm --filter publisher dev doctor",
+    "publish:dry-run": "pnpm --filter publisher dev sync --dry-run",
+    "publish:sync": "pnpm --filter publisher dev sync",
+    "build": "pnpm --filter blog build && pnpm --filter publisher build",
+    "test": "pnpm --filter blog test && pnpm --filter publisher test",
+    "check": "pnpm --filter blog check && pnpm --filter publisher build",
+    "e2e": "pnpm --filter blog e2e"
+  },
+  "devDependencies": {
+    "@types/node": "^25.6.2",
+    "eslint": "^10.3.0",
+    "playwright": "^1.59.1",
+    "prettier": "^3.8.3",
+    "typescript": "^6.0.3",
+    "vitest": "^4.1.5"
+  }
+}

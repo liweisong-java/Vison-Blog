@@ -1,0 +1,53 @@
+---
+title: 从笔记到博客
+slug: from-notes-to-site
+publishedAt: 2026-05-10
+excerpt: 一篇思源笔记，如何在没有传统后台的前提下，被发布成一篇真正可部署的中文博客文章。
+category: tech
+tags:
+  - astro
+  - siyuan
+  - workflow
+featured: true
+publish: true
+canonicalUrl: https://example.com/original/from-notes-to-site
+wechatReady: true
+cover: https://images.unsplash.com/photo-1516321318423-f06f85e504b3?auto=format&fit=crop&w=1200&q=80
+---
+
+## 为什么采用这套方案
+
+这个博客的起点不是网页表单，而是一篇本地笔记。
+
+> 对中文个人博客来说，最重要的不是“后台有多强”，而是写作和发布之间的距离足够短。
+
+## 最终发布了什么
+
+发布器会把笔记元数据整理成 frontmatter，再生成结构干净的 MDX 内容。
+
+- 标题、摘要、分类和标签会进入文章 frontmatter
+- 正文会被转换成可渲染的 MDX
+- 如果需要，还可以额外导出适合公众号继续整理的版本
+
+```ts
+const article = {
+  title: "从笔记到博客",
+  source: "SiYuan",
+  publishTarget: "Astro"
+};
+```
+
+| 环节 | 输入 | 输出 |
+| --- | --- | --- |
+| 写作 | 思源笔记 | 原始内容 |
+| 同步 | 自定义属性 + Markdown | MDX 文章 |
+| 发布 | Git 提交 / 静态构建 | 博客页面 |
+
+## 为什么要支持手机写作
+
+整条发布链路优先考虑“先快速记录”。一篇内容可以起于手机、经过思源整理，最后落成一篇正式文章，而不需要沉重的后台管理系统。
+
+<figure>
+  <img src="https://images.unsplash.com/photo-1516321497487-e288fb19713f?auto=format&fit=crop&w=1200&q=80" alt="桌面上的笔记本电脑与记事设备" />
+  <figcaption>写作、整理、发布可以拆成不同场景，但最后仍然汇合到同一篇文章里。</figcaption>
+</figure>

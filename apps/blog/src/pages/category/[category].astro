@@ -1,0 +1,36 @@
+---
+import { getCollection } from "astro:content";
+import PostCard from "../../components/PostCard.astro";
+import BaseLayout from "../../layouts/BaseLayout.astro";
+import { filterPostsByCategory, sortPublishedPosts } from "../../lib/content";
+
+export async function getStaticPaths() {
+  return ["tech", "life"].map((category) => ({ params: { category } }));
+}
+
+const categoryCopy = {
+  tech: { label: "技术" },
+  life: { label: "生活" }
+} as const;
+
+const { category } = Astro.params as { category: "tech" | "life" };
+const posts = filterPostsByCategory(
+  sortPublishedPosts(await getCollection("posts", ({ data }) => data.publish)),
+  category
+);
+const copy = categoryCopy[category];
+---
+
+<BaseLayout title={`${copy.label} | 伟松的博客`} description={`${copy.label}分类文章列表。`}>
+  <div class="category-page">
+    <section class="category-hero">
+      <p class="eyebrow">分类</p>
+      <h1>{copy.label}</h1>
+      <p class="post-meta">共 {posts.length} 篇</p>
+    </section>
+
+    <div class="post-list category-posts">
+      {posts.map((post) => <PostCard post={post} />)}
+    </div>
+  </div>
+</BaseLayout>

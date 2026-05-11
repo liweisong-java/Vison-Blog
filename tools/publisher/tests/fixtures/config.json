@@ -1,0 +1,19 @@
+{
+  "notebookId": "demo-notebook",
+  "siyuanWorkspaceDir": "SiYuan",
+  "contentRoot": "apps/blog/src/content/posts",
+  "wechatExportDir": "exports/wechat",
+  "deployHookUrl": "https://example.com/deploy-hook",
+  "attrs": {
+    "publish": "blog-pub",
+    "category": "blog-cat",
+    "excerpt": "blog-excerpt",
+    "featured": "blog-top",
+    "slug": "blog-slug",
+    "tags": "blog-tags",
+    "publishedAt": "blog-date",
+    "cover": "blog-cover",
+    "canonicalUrl": "blog-canonical",
+    "wechatReady": "blog-wechat"
+  }
+}

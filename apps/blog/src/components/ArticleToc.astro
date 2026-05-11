@@ -1,0 +1,12 @@
+---
+const { headings = [] } = Astro.props;
+---
+
+<aside class="toc-shell">
+  <h2>目录</h2>
+  <ul>
+    {headings.map((heading: { slug: string; text: string }) => (
+      <li><a href={`#${heading.slug}`}>{heading.text}</a></li>
+    ))}
+  </ul>
+</aside>

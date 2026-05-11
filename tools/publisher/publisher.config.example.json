@@ -1,0 +1,19 @@
+{
+  "notebookId": "20200812220555-lj3enxa",
+  "siyuanWorkspaceDir": "/path/to/SiYuan",
+  "contentRoot": "apps/blog/src/content/posts",
+  "wechatExportDir": "exports/wechat",
+  "deployHookUrl": "https://your-vercel-deploy-hook",
+  "attrs": {
+    "publish": "blog-pub",
+    "category": "blog-cat",
+    "excerpt": "blog-excerpt",
+    "featured": "blog-top",
+    "slug": "blog-slug",
+    "tags": "blog-tags",
+    "publishedAt": "blog-date",
+    "cover": "blog-cover",
+    "canonicalUrl": "blog-canonical",
+    "wechatReady": "blog-wechat"
+  }
+}

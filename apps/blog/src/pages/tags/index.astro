@@ -1,0 +1,24 @@
+---
+import { getCollection } from "astro:content";
+import BaseLayout from "../../layouts/BaseLayout.astro";
+import { getTagSummaries } from "../../lib/content";
+
+const posts = await getCollection("posts", ({ data }) => data.publish);
+const tagSummaries = getTagSummaries(posts);
+---
+
+<BaseLayout title="标签 | 伟松的博客" description="按标签浏览所有文章。">
+  <section class="page-intro page-intro--compact" data-page-intro="tags">
+    <p class="eyebrow">标签</p>
+    <h1>标签</h1>
+  </section>
+
+  <div class="tag-summary-grid">
+    {tagSummaries.map((item) => (
+      <a class="panel tag-summary-card" href={`/tags/${item.tag}/`}>
+        <strong>#{item.tag}</strong>
+        <span class="post-meta">{item.count} 篇文章</span>
+      </a>
+    ))}
+  </div>
+</BaseLayout>
