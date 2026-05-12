@@ -44,6 +44,7 @@ describe("operations docs", () => {
     expect(rootPackageJson.scripts?.["publish:doctor"]).toBe("pnpm --filter publisher dev doctor");
     expect(rootPackageJson.scripts?.["publish:dry-run"]).toBe("pnpm --filter publisher dev sync --dry-run");
     expect(rootPackageJson.scripts?.["publish:sync"]).toBe("pnpm --filter publisher dev sync");
+    expect(rootPackageJson.scripts?.["publish:server-run"]).toBe("node scripts/server-publish-cycle.mjs");
   });
 
   it("keeps a Chinese Siyuan publishing runbook aligned with the root commands", async () => {
@@ -57,6 +58,8 @@ describe("operations docs", () => {
     expect(runbook).toContain("pnpm publish:doctor");
     expect(runbook).toContain("pnpm publish:dry-run");
     expect(runbook).toContain("pnpm publish:sync");
+    expect(runbook).toContain("pnpm publish:server-run");
+    expect(runbook).toContain("服务器");
   });
 
   it("documents the private dashboard workflow and protected route setup", async () => {
@@ -81,5 +84,23 @@ describe("operations docs", () => {
     expect(workflow).toContain("schedule:");
     expect(workflow).toContain("pnpm private:dashboard");
     expect(deployWorkflow).toContain("pnpm private:dashboard");
+  });
+
+  it("documents the server-led publishing workflow", async () => {
+    const readme = await readFile(resolve(process.cwd(), "../../README.md"), "utf8");
+    const deployRunbook = await readFile(
+      resolve(process.cwd(), "../../docs/runbooks/server-deploy.md"),
+      "utf8"
+    );
+    const publishRunbook = await readFile(
+      resolve(process.cwd(), "../../docs/runbooks/siyuan-publisher.md"),
+      "utf8"
+    );
+
+    expect(readme).toContain("服务器主导");
+    expect(readme).toContain("pnpm publish:server-run");
+    expect(deployRunbook).toContain("systemd");
+    expect(deployRunbook).toContain("publish:server-run");
+    expect(publishRunbook).toContain("浏览器");
   });
 });

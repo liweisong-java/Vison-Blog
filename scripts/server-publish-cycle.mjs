@@ -1,0 +1,129 @@
+import { cpSync, existsSync, mkdirSync, rmSync } from "node:fs";
+import { execFile } from "node:child_process";
+import { promisify } from "node:util";
+import { dirname, join, resolve } from "node:path";
+import { fileURLToPath } from "node:url";
+
+const execFileAsync = promisify(execFile);
+const root = resolve(dirname(fileURLToPath(import.meta.url)), "..");
+const runtimeRoot = process.env.SERVER_PUBLISH_RUNTIME_ROOT ?? resolve(root, ".server-runtime");
+
+function envFlag(name, fallback = false) {
+  const value = process.env[name];
+  if (!value) {
+    return fallback;
+  }
+
+  return ["1", "true", "yes", "on"].includes(value.toLowerCase());
+}
+
+async function run(command, args, options = {}) {
+  await execFileAsync(command, args, {
+    cwd: root,
+    env: {
+      ...process.env,
+      ...(options.env ?? {})
+    },
+    maxBuffer: 10 * 1024 * 1024,
+    ...options
+  });
+}
+
+async function ensureFile(path, message) {
+  if (!existsSync(path)) {
+    throw new Error(message);
+  }
+}
+
+function copyIfExists(source, target) {
+  if (!existsSync(source)) {
+    return;
+  }
+
+  mkdirSync(dirname(target), { recursive: true });
+  cpSync(source, target, { recursive: true });
+}
+
+async function main() {
+  const branch = process.env.SERVER_PUBLISH_BRANCH ?? "master";
+  const remote = process.env.SERVER_PUBLISH_REMOTE ?? "origin";
+  const releaseId = process.env.SERVER_PUBLISH_RELEASE_ID ?? new Date().toISOString().replace(/[:.]/g, "-");
+  const runtimeDir = join(runtimeRoot, releaseId);
+
+  await ensureFile(
+    resolve(root, "tools/publisher/.env"),
+    "未找到 tools/publisher/.env，请先运行 pnpm publish:init 并补齐服务器配置。"
+  );
+  await ensureFile(
+    resolve(root, "tools/publisher/publisher.config.json"),
+    "未找到 tools/publisher/publisher.config.json，请先运行 pnpm publish:init 并补齐服务器配置。"
+  );
+
+  if (!envFlag("SERVER_PUBLISH_SKIP_GIT", false)) {
+    await run("git", ["fetch", remote, branch], { cwd: root });
+  }
+
+  rmSync(runtimeDir, { recursive: true, force: true });
+  mkdirSync(runtimeRoot, { recursive: true });
+  await run(
+    "git",
+    ["worktree", "add", "--force", "--detach", runtimeDir, envFlag("SERVER_PUBLISH_SKIP_GIT", false) ? "HEAD" : `${remote}/${branch}`],
+    { cwd: root }
+  );
+
+  try {
+    copyIfExists(resolve(root, "tools/publisher/.env"), resolve(runtimeDir, "tools/publisher/.env"));
+    copyIfExists(
+      resolve(root, "tools/publisher/publisher.config.json"),
+      resolve(runtimeDir, "tools/publisher/publisher.config.json")
+    );
+    copyIfExists(resolve(root, ".superpowers"), resolve(runtimeDir, ".superpowers"));
+
+    await run("pnpm", ["install", "--frozen-lockfile"], { cwd: runtimeDir });
+    await run("pnpm", ["--filter", "publisher", "dev", "sync"], {
+      cwd: runtimeDir,
+      env: {
+        PUBLISH_PUSH: "false"
+      }
+    });
+    await run("pnpm", ["private:dashboard"], { cwd: runtimeDir });
+
+    if (envFlag("SERVER_PUBLISH_SKIP_BUILD", false)) {
+      copyIfExists(resolve(runtimeDir, ".superpowers"), resolve(root, ".superpowers"));
+      return;
+    }
+
+    await run("pnpm", ["--filter", "blog", "check"], { cwd: runtimeDir });
+    await run("pnpm", ["--filter", "blog", "build"], { cwd: runtimeDir });
+
+    const distDir = process.env.SERVER_PUBLISH_DIST_DIR ?? resolve(runtimeDir, "apps/blog/dist");
+    const deployRoot = process.env.SERVER_PUBLISH_DEPLOY_ROOT ?? "/data/Vison-Blog";
+
+    await run(
+      "pnpm",
+      [
+        "--filter",
+        "publisher",
+        "dev",
+        "deploy-local",
+        "--dist-dir",
+        distDir,
+        "--deploy-root",
+        deployRoot,
+        "--release-id",
+        releaseId
+      ],
+      { cwd: runtimeDir }
+    );
+
+    copyIfExists(resolve(runtimeDir, ".superpowers"), resolve(root, ".superpowers"));
+  } finally {
+    await run("git", ["worktree", "remove", "--force", runtimeDir], { cwd: root }).catch(() => undefined);
+    await run("git", ["worktree", "prune"], { cwd: root }).catch(() => undefined);
+  }
+}
+
+await main().catch((error) => {
+  console.error(error instanceof Error ? error.message : String(error));
+  process.exitCode = 1;
+});

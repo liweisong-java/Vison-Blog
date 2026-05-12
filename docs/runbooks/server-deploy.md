@@ -1,6 +1,15 @@
 # 服务器静态部署说明
 
-这套博客推荐的正式上线方式是：
+这份文档现在分两部分：
+
+- A. 继续使用 GitHub Actions 作为正式部署入口
+- B. 改成服务器主导，由服务器本地完成同步、构建和上线
+
+如果你希望“服务器才是主导”，优先看下面的 B 方案。
+
+## A. GitHub Actions 静态部署
+
+这套博客兼容的云端静态部署方式是：
 
 - `master` 分支接收内容和代码更新
 - GitHub Actions 在云端构建静态产物
@@ -14,7 +23,7 @@
 - 公开仓库里不会出现主机地址、密码、私钥
 - 部署失败时不会污染当前线上版本
 
-## 目录结构
+### 目录结构
 
 服务器目标目录固定为：
 
@@ -27,7 +36,7 @@
 
 GitHub Actions 每次部署都会把新版本传到 `releases/<sha>`，再切换 `current` 软链。
 
-## 1. 准备服务器目录
+### 1. 准备服务器目录
 
 推荐使用单独的部署用户；如果暂时只能用现有用户，也至少让它只负责这个目录。
 
@@ -38,7 +47,7 @@ sudo chown -R <deploy-user>:<deploy-group> /data/Vison-Blog
 
 如果你已经有 Web 服务用户，也可以把目录权限交给现有用户组。
 
-## 2. 生成专用 deploy key
+### 2. 生成专用 deploy key
 
 在本机生成一把只给这个项目用的 SSH key：
 
@@ -64,7 +73,7 @@ cat ~/.ssh/vision-blog-deploy.pub | ssh <deploy-user>@<deploy-host> "cat >> ~/.s
 ssh -i ~/.ssh/vision-blog-deploy -p <deploy-port> <deploy-user>@<deploy-host> "whoami"
 ```
 
-## 3. 生成 known_hosts
+### 3. 生成 known_hosts
 
 为了避免在 CI 里关闭主机校验，先收集服务器指纹：
 
@@ -74,7 +83,7 @@ ssh-keyscan -p <deploy-port> <deploy-host>
 
 把输出完整保存下来，后面放进 GitHub Secret：`DEPLOY_KNOWN_HOSTS`。
 
-## 4. 配置 GitHub Secrets
+### 4. 配置 GitHub Secrets
 
 到仓库的 `Settings -> Secrets and variables -> Actions` 中新增这些密钥：
 
@@ -100,7 +109,7 @@ ssh-keyscan -p <deploy-port> <deploy-host>
 - 不要把密码写进 workflow
 - 就算暂时使用 `root`，也请通过 Secret 注入，而不是硬编码
 
-## 5. 让 Web 服务指向 current
+### 5. 让 Web 服务指向 current
 
 ### Nginx
 
@@ -164,7 +173,7 @@ sudo htpasswd -c /etc/nginx/.htpasswd-vision-blog <your-user>
 - 不要把 `.htpasswd` 放到站点静态目录里
 - 修改配置后记得 `sudo nginx -t && sudo systemctl reload nginx`
 
-## 6. 首次上线
+### 6. 首次上线
 
 完成 Secrets 配置后，有两种触发方式：
 
@@ -180,7 +189,7 @@ sudo htpasswd -c /etc/nginx/.htpasswd-vision-blog <your-user>
 
 全部通过后才会上传静态产物。
 
-## 7. 回滚
+### 7. 回滚
 
 如果某个版本需要回滚，不用重新构建，只要把 `current` 指回旧版本：
 
@@ -191,7 +200,136 @@ mv -Tf /data/Vison-Blog/.next-current /data/Vison-Blog/current
 
 回滚完成后刷新页面即可生效。
 
-## 8. 常见问题
+### 8. 常见问题
+
+## B. 服务器主导部署
+
+如果你要让服务器成为唯一主导，推荐使用下面这套结构：
+
+```text
+/data/Vison-Blog
+  current -> /data/Vison-Blog/releases/<release-id>
+  releases/
+  repo/                # Git 工作目录
+  siyuan/
+    workspace/         # 思源工作区
+```
+
+### 1. 服务器准备
+
+至少准备这些环境：
+
+- Ubuntu 24.04+
+- Docker
+- Node.js 22.12+
+- pnpm 10
+- Git
+- Nginx
+
+### 2. 部署 SiYuan 服务端
+
+推荐单独建目录：
+
+```bash
+mkdir -p /data/Vison-Blog/siyuan/workspace
+```
+
+官方 Docker 方案可以参考：
+
+```bash
+docker run -d \
+  --name siyuan \
+  -p 6806:6806 \
+  -v /data/Vison-Blog/siyuan/workspace:/siyuan/workspace \
+  b3log/siyuan \
+  --workspace=/siyuan/workspace \
+  --accessAuthCode=<你的访问码>
+```
+
+请注意：
+
+- 这套模式更适合浏览器访问
+- 不建议直接暴露到公网裸奔，最好放到 Nginx 和 HTTPS 后面
+- 思源 API token 仍需在服务端界面里确认并填入 `tools/publisher/.env`
+
+### 3. 准备仓库工作目录
+
+```bash
+mkdir -p /data/Vison-Blog/repo
+cd /data/Vison-Blog/repo
+git clone <your-repo-url> .
+pnpm install
+pnpm publish:init
+```
+
+然后补齐：
+
+- `tools/publisher/.env`
+- `tools/publisher/publisher.config.json`
+
+推荐的服务器配置要点：
+
+- `SIYUAN_BASE_URL=http://127.0.0.1:6806`
+- `PUBLISH_PUSH=false`
+- `localDeployRoot=/data/Vison-Blog`
+- `siyuanWorkspaceDir=/data/Vison-Blog/siyuan/workspace`
+
+### 4. 手动跑通一次
+
+```bash
+pnpm publish:server-run
+```
+
+这一步通过后，说明整条链路已经能独立完成：
+
+- 拉代码
+- 同步思源内容
+- 构建博客
+- 切换 `/data/Vison-Blog/current`
+
+### 5. 安装 systemd 定时任务
+
+```bash
+pnpm --filter publisher dev server-install --user deploy --group deploy --interval-minutes 5
+```
+
+安装后会生成：
+
+- `/etc/systemd/system/vision-blog-publisher.service`
+- `/etc/systemd/system/vision-blog-publisher.timer`
+
+查看状态：
+
+```bash
+systemctl status vision-blog-publisher.timer
+systemctl list-timers vision-blog-publisher.timer
+```
+
+手动触发一次：
+
+```bash
+systemctl start vision-blog-publisher.service
+```
+
+### 6. Nginx 指向 current
+
+正式站点根目录仍然保持：
+
+```nginx
+root /data/Vison-Blog/current;
+```
+
+也就是说，不管你是云端部署还是服务器主导，Nginx 这一层都不用改思路。
+
+### 7. 关于 GitHub 的角色
+
+服务器主导模式下，GitHub 更适合作为：
+
+- 代码仓库
+- 可公开文章备份
+- CI 校验通道
+
+不应该再把 GitHub Actions 视为唯一生产发布器，因为云端构建拿不到服务器上的私有思源工作区。
 
 ### Actions 构建成功但没有部署
 

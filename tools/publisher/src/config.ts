@@ -9,6 +9,7 @@ const rawConfigSchema = z.object({
   contentRoot: z.string().min(1),
   wechatExportDir: z.string().min(1).optional(),
   deployHookUrl: z.url().optional(),
+  localDeployRoot: z.string().min(1).optional(),
   publisherStatePath: z.string().min(1).optional(),
   attrs: z.object({
     publish: z.string().min(1),
@@ -34,6 +35,9 @@ export async function loadPublisherConfig(fileUrl: URL, repoRoot: string): Promi
     contentRoot: resolve(repoRoot, parsed.contentRoot),
     wechatExportDir: parsed.wechatExportDir
       ? resolve(repoRoot, parsed.wechatExportDir)
+      : undefined,
+    localDeployRoot: parsed.localDeployRoot
+      ? resolve(repoRoot, parsed.localDeployRoot)
       : undefined,
     publisherStatePath: parsed.publisherStatePath
       ? resolve(repoRoot, parsed.publisherStatePath)

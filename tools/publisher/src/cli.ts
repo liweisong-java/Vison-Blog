@@ -1,5 +1,6 @@
 import { execFile } from "node:child_process";
 import { existsSync } from "node:fs";
+import { stat, writeFile } from "node:fs/promises";
 import { pathToFileURL } from "node:url";
 import { resolve } from "node:path";
 import { cwd, env } from "node:process";
@@ -23,6 +24,8 @@ import { createSiYuanClient } from "./siyuan-client.js";
 import { syncPublishedNotes } from "./commands/sync.js";
 import { readPublisherState, writePublisherState } from "./publisher-state.js";
 import { resolvePublisherRuntime } from "./runtime.js";
+import { deployLocalStaticSite } from "./local-deploy.js";
+import { buildSystemdService, buildSystemdTimer, getSystemdServiceName, getSystemdUnitPaths } from "./systemd.js";
 
 const execFileAsync = promisify(execFile);
 const runtime = resolvePublisherRuntime({
@@ -35,6 +38,19 @@ const command = process.argv[2];
 async function runBlogChecks(workspaceRoot: string) {
   await execFileAsync("pnpm", ["--filter", "blog", "check"], { cwd: workspaceRoot });
   await execFileAsync("pnpm", ["--filter", "blog", "build"], { cwd: workspaceRoot });
+}
+
+function normalizeBooleanEnv(value: string | undefined, fallback: boolean) {
+  if (value == null || value === "") {
+    return fallback;
+  }
+
+  return ["1", "true", "yes", "on"].includes(value.toLowerCase());
+}
+
+function readArg(name: string) {
+  const index = process.argv.indexOf(name);
+  return index >= 0 ? process.argv[index + 1] : undefined;
 }
 
 async function triggerDeployHook(
@@ -97,6 +113,64 @@ async function main() {
     return;
   }
 
+  if (command === "deploy-local") {
+    const distDir = readArg("--dist-dir") ?? resolve(repoRoot, "apps/blog/dist");
+    const deployRoot =
+      readArg("--deploy-root") ?? config.localDeployRoot ?? env.SERVER_PUBLISH_DEPLOY_ROOT;
+    const releaseId = readArg("--release-id") ?? new Date().toISOString().replace(/[:.]/g, "-");
+
+    if (!deployRoot) {
+      throw new Error("Missing deploy root. Please set localDeployRoot or pass --deploy-root.");
+    }
+
+    await stat(distDir);
+    printJson(
+      await deployLocalStaticSite({
+        distDir,
+        deployRoot,
+        releaseId
+      })
+    );
+    return;
+  }
+
+  if (command === "server-install") {
+    const user = readArg("--user") ?? env.SERVER_PUBLISH_USER ?? "deploy";
+    const group = readArg("--group") ?? env.SERVER_PUBLISH_GROUP;
+    const intervalMinutes = Number(readArg("--interval-minutes") ?? env.SERVER_PUBLISH_INTERVAL_MINUTES ?? "5");
+    const unitPaths = getSystemdUnitPaths();
+    const commandLine = `bash -lc 'cd ${repoRoot} && pnpm publish:server-run'`;
+
+    await writeFile(
+      unitPaths.servicePath,
+      buildSystemdService({
+        workspaceRoot: repoRoot,
+        user,
+        group,
+        environmentFile: runtime.envPath,
+        command: commandLine
+      }),
+      "utf8"
+    );
+    await writeFile(
+      unitPaths.timerPath,
+      buildSystemdTimer({
+        onCalendar: `*:0/${intervalMinutes}`
+      }),
+      "utf8"
+    );
+    await execFileAsync("systemctl", ["daemon-reload"]);
+    await execFileAsync("systemctl", ["enable", "--now", `${getSystemdServiceName()}.timer`]);
+
+    printJson({
+      ok: true,
+      servicePath: unitPaths.servicePath,
+      timerPath: unitPaths.timerPath,
+      intervalMinutes
+    });
+    return;
+  }
+
   if (command === "auto-status") {
     printJson(
       await getAutoPublishStatusCommand({
@@ -124,7 +198,8 @@ async function main() {
           branch: env.PUBLISH_BRANCH || env.GITHUB_REF_NAME || undefined,
           remote: env.PUBLISH_REMOTE ?? "origin",
           message: "chore(content): sync siyuan posts",
-          includePaths: [config.contentRoot, ...(config.wechatExportDir ? [config.wechatExportDir] : [])]
+          includePaths: [config.contentRoot, ...(config.wechatExportDir ? [config.wechatExportDir] : [])],
+          push: normalizeBooleanEnv(env.PUBLISH_PUSH, true)
         }),
       triggerDeploy: (summary) => triggerDeployHook(config.deployHookUrl ?? env.PUBLISH_DEPLOY_HOOK, summary),
       publisherState: {
@@ -191,7 +266,8 @@ async function main() {
             branch: env.PUBLISH_BRANCH || env.GITHUB_REF_NAME || undefined,
             remote: env.PUBLISH_REMOTE ?? "origin",
             message: "chore(content): sync siyuan posts",
-            includePaths: [config.contentRoot, ...(config.wechatExportDir ? [config.wechatExportDir] : [])]
+            includePaths: [config.contentRoot, ...(config.wechatExportDir ? [config.wechatExportDir] : [])],
+            push: normalizeBooleanEnv(env.PUBLISH_PUSH, true)
           }),
         triggerDeploy: (summary) =>
           triggerDeployHook(config.deployHookUrl ?? env.PUBLISH_DEPLOY_HOOK, summary),

@@ -49,19 +49,21 @@ export async function commitAndPush({
   branch,
   remote,
   message,
-  includePaths
+  includePaths,
+  push = true
 }: {
   repoRoot: string;
   branch?: string;
   remote: string;
   message: string;
   includePaths: string[];
+  push?: boolean;
 }) {
   const git = simpleGit(repoRoot);
   const relativePaths = includePaths.map((path) => relative(repoRoot, path)).filter(Boolean);
 
   if (!relativePaths.length) {
-    return { committed: false, stagedFiles: [] };
+    return { committed: false, pushed: false, stagedFiles: [] };
   }
 
   await git.add(relativePaths);
@@ -72,11 +74,18 @@ export async function commitAndPush({
     .filter(Boolean);
 
   if (!stagedFiles.length) {
-    return { committed: false, stagedFiles: [] };
+    return { committed: false, pushed: false, stagedFiles: [] };
+  }
+
+  if (!push) {
+    await git.commit(message);
+    const commitHash = (await git.raw(["rev-parse", "HEAD"])).trim();
+    return { committed: true, pushed: false, commitHash, stagedFiles };
   }
 
   const pushBranch = await resolvePushTarget({ git, branch, remote });
   await git.commit(message);
+  const commitHash = (await git.raw(["rev-parse", "HEAD"])).trim();
   await git.push(remote, `HEAD:${pushBranch}`);
-  return { committed: true, stagedFiles };
+  return { committed: true, pushed: true, commitHash, stagedFiles };
 }

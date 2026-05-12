@@ -17,6 +17,7 @@ export type PublisherConfig = {
   contentRoot: string;
   wechatExportDir?: string;
   deployHookUrl?: string;
+  localDeployRoot?: string;
   publisherStatePath?: string;
   attrs: PublisherAttrs;
 };

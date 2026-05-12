@@ -4,6 +4,7 @@
   "contentRoot": "apps/blog/src/content/posts",
   "wechatExportDir": "exports/wechat",
   "deployHookUrl": "https://deploy-hook.example.com",
+  "localDeployRoot": "/data/Vison-Blog",
   "attrs": {
     "publish": "blog-pub",
     "category": "blog-cat",

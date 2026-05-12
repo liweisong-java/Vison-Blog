@@ -20,5 +20,6 @@ describe("loadPublisherConfig", () => {
 
     expect(config.deployHookUrl).toBe("https://example.com/deploy-hook");
     expect(config.wechatExportDir).toBe("/tmp/vision-blog/exports/wechat");
+    expect(config.localDeployRoot).toBe("/data/Vison-Blog");
   });
 });

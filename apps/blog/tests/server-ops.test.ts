@@ -1,0 +1,15 @@
+import { readFile } from "node:fs/promises";
+import { resolve } from "node:path";
+import { describe, expect, it } from "vitest";
+
+describe("server-led publishing script", () => {
+  it("keeps the server publish cycle isolated through git worktree runtime copies", async () => {
+    const script = await readFile(resolve(process.cwd(), "../../scripts/server-publish-cycle.mjs"), "utf8");
+
+    expect(script).toContain("git");
+    expect(script).toContain("worktree");
+    expect(script).toContain("PUBLISH_PUSH: \"false\"");
+    expect(script).toContain("pnpm");
+    expect(script).toContain("deploy-local");
+  });
+});

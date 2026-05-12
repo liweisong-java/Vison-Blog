@@ -4,14 +4,35 @@
 
 适合的使用方式：
 
-- 手机上先记内容，或在电脑上直接写
-- 内容同步回这台 Mac
-- 回到仓库执行同步命令
-- 自动生成博客文章，并按需导出公众号兼容稿
+- 本机思源写作，再同步回本机仓库
+- 或者直接在服务器浏览器里打开思源写作
+- 发布器把思源内容整理成博客文章，并按需导出公众号兼容稿
 
 ## 推荐的正式发布链路
 
-这套项目推荐的正式链路是：
+本仓库现在支持两套链路：
+
+### A. 服务器主导
+
+```text
+浏览器打开服务器上的 SiYuan
+  -> 服务器执行 pnpm publish:server-run
+  -> 同步内容、构建站点、切换 current
+  -> 可选推送 GitHub 做备份
+```
+
+这个模式下：
+
+- 服务器上的思源工作区才是真正内容源
+- 生产站点由服务器本机直接构建
+- GitHub Actions 不能再独立决定生产内容
+
+请注意：
+
+- SiYuan 官方 Docker 服务端模式主要面向浏览器访问
+- 不建议把它理解为“手机思源 App 直连服务器”
+
+### B. 本机主导
 
 ```text
 手机或电脑写作
@@ -52,6 +73,7 @@ pnpm publish:init
 - `SIYUAN_TOKEN`
 - `PUBLISH_REMOTE`
 - `PUBLISH_BRANCH`
+- `PUBLISH_PUSH`
 - `PUBLISH_DEPLOY_HOOK`
 
 常见情况：
@@ -59,6 +81,7 @@ pnpm publish:init
 - 思源本机地址默认是 `http://127.0.0.1:6806`
 - `SIYUAN_TOKEN` 需要在思源设置里获取
 - `PUBLISH_BRANCH` 现在是可选项；默认会优先推送当前分支绑定的上游远端分支
+- `PUBLISH_PUSH=false` 时，发布器会提交本地内容，但不会向 GitHub 推送，适合服务器主导模式
 - 如果你手动填写了 `PUBLISH_BRANCH`，它必须和当前分支或当前上游分支一致，不然发布器会拒绝推送
 - `PUBLISH_DEPLOY_HOOK` 是可选兼容项。采用 GitHub Actions 自托管部署时，可以留空
 
@@ -74,6 +97,7 @@ pnpm publish:init
 - `contentRoot`：博客文章输出目录
 - `wechatExportDir`：公众号兼容稿导出目录
 - `deployHookUrl`：可选，只有你还需要额外触发外部平台部署时才会使用
+- `localDeployRoot`：可选。服务器主导模式下，本地静态站的发布根目录，比如 `/data/Vison-Blog`
 
 示例文件可以参考：
 
@@ -189,6 +213,36 @@ pnpm publish:auto-once
 pnpm publish:auto-uninstall
 ```
 
+## 服务器主导自动发布
+
+如果你已经把思源部署到服务器，并准备让服务器自己负责生产发布，推荐使用：
+
+```bash
+pnpm publish:server-run
+```
+
+它会完成这整套动作：
+
+- 拉取 `master` 最新代码
+- 安装依赖
+- 生成私有统计数据
+- 同步思源内容
+- 构建博客
+- 发布到 `/data/Vison-Blog/current`
+
+为了让它持续巡检，建议再安装 Linux `systemd` 定时任务：
+
+```bash
+pnpm --filter publisher dev server-install --user deploy --group deploy --interval-minutes 5
+```
+
+安装完成后，服务器会创建：
+
+- `/etc/systemd/system/vision-blog-publisher.service`
+- `/etc/systemd/system/vision-blog-publisher.timer`
+
+默认每 5 分钟执行一次完整巡检。
+
 ## 使用建议
 
 - 如果文章只是草稿，直接放到带 `草稿` 或 `draft` 的标题、目录里即可，不必再专门补属性
@@ -202,6 +256,7 @@ pnpm publish:auto-uninstall
 - `pnpm publish:dry-run` 报字段错误：通常是你手动填写的 `blog-cat`、`blog-date` 或 `blog-slug` 不符合格式
 - 同步后没触发部署：先确认这次是否真的产生了 git 提交；如果用的是 GitHub Actions 部署，再去看仓库 Actions；如果用的是外部平台，再检查 `PUBLISH_DEPLOY_HOOK`
 - 公众号导出稿没有更新：检查 `blog-wechat` 是否为 `true`，以及 `wechatExportDir` 是否已配置
+- 服务器主导模式下手机 App 不能直接连服务器：这是思源官方服务端模式的限制，建议用手机浏览器访问服务器上的思源
 
 ## 相关文档
 

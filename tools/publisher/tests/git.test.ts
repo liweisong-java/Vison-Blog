@@ -41,7 +41,7 @@ describe("commitAndPush", () => {
       "apps/blog/src/content/posts",
       "exports/wechat"
     ]);
-    expect(result).toEqual({ committed: false, stagedFiles: [] });
+    expect(result).toEqual({ committed: false, pushed: false, stagedFiles: [] });
     expect(commit).not.toHaveBeenCalled();
     expect(push).not.toHaveBeenCalled();
   });
@@ -62,6 +62,10 @@ describe("commitAndPush", () => {
         return "origin/main\n";
       }
 
+      if (command === "rev-parse HEAD") {
+        return "abc123def456\n";
+      }
+
       throw new Error(`Unexpected git raw command: ${command}`);
     });
 
@@ -78,6 +82,8 @@ describe("commitAndPush", () => {
     expect(push).toHaveBeenCalledWith("origin", "HEAD:main");
     expect(result).toEqual({
       committed: true,
+      pushed: true,
+      commitHash: "abc123def456",
       stagedFiles: ["apps/blog/src/content/posts/from-notes-to-site/index.mdx"]
     });
   });
@@ -96,6 +102,10 @@ describe("commitAndPush", () => {
 
       if (command === "rev-parse --abbrev-ref --symbolic-full-name @{u}") {
         return "origin/codex/lightweight-siyuan-blog-rebuild\n";
+      }
+
+      if (command === "rev-parse HEAD") {
+        return "fedcba654321\n";
       }
 
       throw new Error(`Unexpected git raw command: ${command}`);
@@ -128,6 +138,10 @@ describe("commitAndPush", () => {
         return "origin/codex/lightweight-siyuan-blog-rebuild\n";
       }
 
+      if (command === "rev-parse HEAD") {
+        return "unsafe123\n";
+      }
+
       throw new Error(`Unexpected git raw command: ${command}`);
     });
 
@@ -145,5 +159,39 @@ describe("commitAndPush", () => {
 
     expect(commit).not.toHaveBeenCalled();
     expect(push).not.toHaveBeenCalled();
+  });
+
+  it("commits without pushing when git push is disabled", async () => {
+    raw.mockImplementation(async (args: string[]) => {
+      const command = args.join(" ");
+
+      if (command === "diff --cached --name-only") {
+        return "apps/blog/src/content/posts/post-6voggsk/index.mdx\n";
+      }
+
+      if (command === "rev-parse HEAD") {
+        return "dea1efacafe1234\n";
+      }
+
+      throw new Error(`Unexpected git raw command: ${command}`);
+    });
+
+    const { commitAndPush } = await import("../src/git");
+    const result = await commitAndPush({
+      repoRoot: "/tmp/vision-blog",
+      remote: "origin",
+      message: "chore(content): sync siyuan posts",
+      includePaths: ["/tmp/vision-blog/apps/blog/src/content/posts"],
+      push: false
+    });
+
+    expect(commit).toHaveBeenCalledWith("chore(content): sync siyuan posts");
+    expect(push).not.toHaveBeenCalled();
+    expect(result).toEqual({
+      committed: true,
+      pushed: false,
+      commitHash: "dea1efacafe1234",
+      stagedFiles: ["apps/blog/src/content/posts/post-6voggsk/index.mdx"]
+    });
   });
 });
