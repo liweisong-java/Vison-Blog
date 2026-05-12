@@ -18,3 +18,14 @@ test("article page renders a lighter reading-first layout", async ({page}) => {
     await expect(page.locator(".toc-shell--desktop")).toBeVisible();
     await expect(page.locator(".toc-shell--mobile")).toHaveCount(1);
 });
+
+test("article page switches to a mobile toc and keeps the header compact", async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.goto("/posts/on-dao-notes/");
+
+  await expect(page.locator(".toc-shell--desktop")).toBeHidden();
+  await expect(page.locator(".toc-shell--mobile")).toBeVisible();
+  await expect(page.locator(".toc-shell--mobile summary")).toContainText("本文目录");
+  await expect(page.locator(".article-header")).toBeVisible();
+  await expect(page.locator(".article-header").getByText(/预计阅读/i)).toHaveCount(0);
+});

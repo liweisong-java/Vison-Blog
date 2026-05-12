@@ -400,20 +400,20 @@ aside {
 .category-page,
 .archive-page,
 .about-page {
-  max-width: 980px;
+  max-width: 1000px;
   margin: 0 auto;
 }
 
 .page-intro {
   display: grid;
-  gap: 8px;
+  gap: 10px;
   margin-top: 34px;
-  padding: 8px 0 18px;
+  padding: 10px 0 22px;
   border-bottom: 1px solid var(--line);
 }
 
 .page-intro--compact {
-  gap: 6px;
+  gap: 8px;
 }
 
 .page-intro .eyebrow,
@@ -433,24 +433,29 @@ aside {
 .page-intro__summary {
   color: var(--muted);
   font-size: 17px;
-  line-height: 1.95;
+  line-height: 1.9;
   text-wrap: pretty;
 }
 
 .category-hero {
   display: flex;
-  align-items: baseline;
+  align-items: flex-end;
   justify-content: space-between;
-  gap: 18px;
+  gap: 24px;
   margin-top: 34px;
-  padding: 6px 0 18px;
+  padding: 10px 0 22px;
   border-bottom: 1px solid var(--line);
 }
 
-.category-hero .eyebrow,
 .category-hero h1,
 .category-hero .post-meta {
   margin: 0;
+}
+
+.category-hero__main {
+  display: grid;
+  gap: 10px;
+  min-width: 0;
 }
 
 .category-hero h1 {
@@ -498,20 +503,20 @@ aside {
 .archive-page .archive-stack,
 .about-page .about-grid,
 .about-page .about-profile {
-  margin-top: 22px;
+  margin-top: 26px;
 }
 
 .about-profile {
   display: grid;
-  grid-template-columns: minmax(0, 1.1fr) minmax(280px, 0.9fr);
-  gap: 28px;
-  padding: 0;
-  border-top: 0;
+  grid-template-columns: minmax(0, 1.05fr) minmax(320px, 0.95fr);
+  gap: 34px;
+  align-items: start;
+  padding: 0 0 8px;
 }
 
 .about-profile__intro {
   display: grid;
-  gap: 10px;
+  gap: 12px;
   align-content: start;
 }
 
@@ -521,10 +526,10 @@ aside {
 }
 
 .about-profile__intro p {
-  max-width: 30rem;
+  max-width: 34rem;
   color: #3f454d;
   font-size: 17px;
-  line-height: 1.95;
+  line-height: 1.92;
   text-wrap: pretty;
 }
 
@@ -533,13 +538,17 @@ aside {
   display: grid;
   gap: 0;
   align-content: start;
+  padding: 18px 22px;
+  border: 1px solid var(--line);
+  border-radius: 18px;
+  background: color-mix(in srgb, var(--surface) 78%, white);
 }
 
 .about-profile__list div {
   display: grid;
   grid-template-columns: 92px minmax(0, 1fr);
   gap: 18px;
-  padding: 14px 0;
+  padding: 15px 0;
   border-top: 1px solid var(--line);
 }
 
@@ -560,12 +569,28 @@ aside {
 
 .about-profile__list dd {
   font-size: 17px;
-  line-height: 1.9;
+  line-height: 1.85;
   word-break: break-word;
 }
 
 .about-profile__list a {
   color: var(--ink);
+}
+
+.about-grid--two-up {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 20px;
+}
+
+.about-note {
+  padding: 22px 22px 24px;
+  border: 1px solid var(--line);
+  border-radius: 18px;
+  background: color-mix(in srgb, var(--surface) 74%, white);
+}
+
+.about-note p:last-child {
+  margin-bottom: 0;
 }
 
 .article-shell {
@@ -878,6 +903,20 @@ aside {
   gap: 20px;
 }
 
+.archive-stack {
+  gap: 18px;
+}
+
+.archive-year {
+  padding: 18px 0 0;
+  border-top: 1px solid var(--line);
+}
+
+.archive-year:first-child {
+  padding-top: 0;
+  border-top: 0;
+}
+
 .archive-list {
   list-style: none;
   padding: 0;
@@ -891,13 +930,13 @@ aside {
   align-items: baseline;
   justify-content: space-between;
   gap: 16px;
-  padding-top: 14px;
+  padding-top: 15px;
   border-top: 1px solid var(--line);
 }
 
 .archive-list li span:first-child {
   font-size: 17px;
-  line-height: 1.8;
+  line-height: 1.74;
 }
 
 .archive-list li:first-child a {
@@ -977,11 +1016,97 @@ aside {
   .site-header {
     align-items: flex-start;
     flex-direction: column;
+    gap: 14px;
+    padding-top: 18px;
+    padding-bottom: 18px;
+  }
+
+  .nav-list {
+    gap: 12px;
+    row-gap: 8px;
+    font-size: 14px;
+  }
+
+  .home-intro,
+  .home-lead,
+  .reading-layout,
+  .article-shell,
+  .archive-stack,
+  .about-grid,
+  .tag-summary-grid {
+    margin-top: 26px;
+  }
+
+  .home-intro {
+    gap: 16px;
+    padding: 18px 0 16px;
+  }
+
+  .home-intro__meta {
+    gap: 6px;
+    padding-top: 8px;
+  }
+
+  .home-lead {
+    padding: 14px 0 20px;
+  }
+
+  .home-lead__header,
+  .section-heading,
+  .archive-year__header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+  }
+
+  .lead-entry {
+    margin-top: 10px;
+  }
+
+  .lead-entry p,
+  .page-intro__summary,
+  .about-profile__intro p {
+    font-size: 16px;
+    line-height: 1.86;
+  }
+
+  .search-panel {
+    padding: 14px 16px;
+  }
+
+  .search-label {
+    margin-bottom: 8px;
+  }
+
+  .search-input {
+    min-height: 44px;
+    border-radius: 12px;
+  }
+
+  .category-filter {
+    gap: 10px;
+    margin: 14px 0 20px;
+  }
+
+  .category-filter button {
+    min-height: 40px;
+    padding: 0 14px;
+    font-size: 14px;
+  }
+
+  .reading-layout__side {
+    gap: 16px;
+  }
+
+  .side-section {
+    padding: 16px 18px;
+    border-radius: 16px;
   }
 
   .archive-list li a {
     flex-direction: column;
     align-items: flex-start;
+    gap: 6px;
   }
 
   .category-hero {
@@ -999,10 +1124,15 @@ aside {
 
   .page-intro {
     gap: 8px;
+    padding: 8px 0 18px;
   }
 
   .about-profile {
     gap: 20px;
+  }
+
+  .about-grid--two-up {
+    grid-template-columns: 1fr;
   }
 
   .about-profile__list div {
@@ -1015,6 +1145,38 @@ aside {
     max-width: none;
   }
 
+  .about-profile__list {
+    padding: 16px 18px;
+    border-radius: 16px;
+  }
+
+  .about-profile__list dd {
+    font-size: 16px;
+  }
+
+  .about-note {
+    padding: 18px 18px 20px;
+    border-radius: 16px;
+  }
+
+  .archive-stack {
+    gap: 14px;
+  }
+
+  .archive-year {
+    padding-top: 14px;
+  }
+
+  .archive-list {
+    margin-top: 14px;
+    gap: 12px;
+  }
+
+  .archive-list li span:first-child {
+    font-size: 16px;
+    line-height: 1.68;
+  }
+
   .home-intro h1,
   .article-shell h1,
   .hero h1 {
@@ -1022,7 +1184,7 @@ aside {
   }
 
   .prose {
-      font-size: 16px;
+    font-size: 16px;
   }
 
   .article-kicker,
@@ -1035,14 +1197,40 @@ aside {
     line-height: 1.9;
   }
 
-    .prose h2 {
-        margin-top: 42px;
-        font-size: 25px;
-    }
+  .article-cover {
+    margin: 22px 0 24px;
+  }
 
-    .prose h3 {
-        font-size: 21px;
-    }
+  .article-grid {
+    gap: 18px;
+  }
+
+  .toc-shell--mobile {
+    margin-bottom: 18px;
+    padding: 12px 14px;
+    border-radius: 14px;
+  }
+
+  .toc-shell--mobile summary {
+    font-size: 17px;
+  }
+
+  .toc-list {
+    gap: 12px;
+  }
+
+  .toc-sublist {
+    gap: 6px;
+  }
+
+  .prose h2 {
+    margin-top: 42px;
+    font-size: 25px;
+  }
+
+  .prose h3 {
+    font-size: 21px;
+  }
 
   .prose table {
     font-size: 14px;

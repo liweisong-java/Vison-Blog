@@ -1,9 +1,7 @@
 ---
-import { getReadingTime } from "../lib/content";
-import { formatDisplayDate, formatReadingTime, getCategoryLabel } from "../lib/presenters";
+import { formatDisplayDate, getCategoryLabel } from "../lib/presenters";
 
 const { post } = Astro.props;
-const readingTime = getReadingTime(post.body ?? post.data.excerpt);
 const categoryLabel = getCategoryLabel(post.data.category);
 ---
 
@@ -23,7 +21,6 @@ const categoryLabel = getCategoryLabel(post.data.category);
   <div class="post-card-meta">
     <span class="post-meta">{categoryLabel}</span>
     <span class="post-meta">{formatDisplayDate(post.data.publishedAt)}</span>
-    <span class="post-meta">{formatReadingTime(readingTime)}</span>
   </div>
   <h3 class="post-card-title"><a href={`/posts/${post.data.slug}/`}>{post.data.title}</a></h3>
   <p class="post-card-excerpt">{post.data.excerpt}</p>

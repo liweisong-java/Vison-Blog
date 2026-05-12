@@ -9,8 +9,14 @@ export async function getStaticPaths() {
 }
 
 const categoryCopy = {
-  tech: { label: "技术" },
-  life: { label: "生活" }
+  tech: {
+    label: "技术",
+    summary: "放一些技术实践、工具流、AI 使用心得，以及那些值得反复整理的方法。"
+  },
+  life: {
+    label: "生活",
+    summary: "放一些日常记录、慢一点的观察，以及技术之外还想留下来的部分。"
+  }
 } as const;
 
 const { category } = Astro.params as { category: "tech" | "life" };
@@ -24,8 +30,10 @@ const copy = categoryCopy[category];
 <BaseLayout title={`${copy.label} | 伟松的博客`} description={`${copy.label}分类文章列表。`}>
   <div class="category-page">
     <section class="category-hero">
-      <p class="eyebrow">分类</p>
-      <h1>{copy.label}</h1>
+      <div class="category-hero__main">
+        <h1>{copy.label}</h1>
+        <p class="page-intro__summary">{copy.summary}</p>
+      </div>
       <p class="post-meta">共 {posts.length} 篇</p>
     </section>
 

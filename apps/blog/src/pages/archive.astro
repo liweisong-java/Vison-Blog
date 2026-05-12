@@ -12,14 +12,13 @@ const totalPosts = posts.length;
 <BaseLayout title="归档 | 伟松的博客" description="按时间顺序浏览所有已发布文章。">
   <div class="archive-page">
     <section class="page-intro page-intro--compact" data-page-intro="archive">
-      <p class="eyebrow">时间线</p>
       <h1>归档</h1>
-      <p class="page-intro__summary">共 {totalPosts} 篇</p>
+      <p class="page-intro__summary">共 {totalPosts} 篇，按年份顺着往下看。</p>
     </section>
 
     <div class="archive-stack">
       {groups.map(([year, yearPosts]) => (
-        <section class="panel archive-year">
+        <section class="archive-year">
           <div class="archive-year__header">
             <h2>{year}</h2>
             <p>{yearPosts.length} 篇</p>
