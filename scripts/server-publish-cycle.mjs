@@ -53,6 +53,9 @@ async function main() {
   const remote = process.env.SERVER_PUBLISH_REMOTE ?? "origin";
   const releaseId = process.env.SERVER_PUBLISH_RELEASE_ID ?? new Date().toISOString().replace(/[:.]/g, "-");
   const runtimeDir = join(runtimeRoot, releaseId);
+  const publisherCliEntry = resolve(runtimeDir, "tools/publisher/src/cli.ts");
+  const tsxCliEntry = resolve(runtimeDir, "tools/publisher/node_modules/tsx/dist/cli.mjs");
+  const astroCli = resolve(runtimeDir, "apps/blog/node_modules/.bin/astro");
 
   await ensureFile(
     resolve(root, "tools/publisher/.env"),
@@ -84,7 +87,7 @@ async function main() {
     copyIfExists(resolve(root, ".superpowers"), resolve(runtimeDir, ".superpowers"));
 
     await run("pnpm", ["install", "--frozen-lockfile"], { cwd: runtimeDir });
-    await runNodeScript(resolve(runtimeDir, "node_modules/tsx/dist/cli.mjs"), [resolve(runtimeDir, "tools/publisher/src/cli.ts"), "sync"], {
+    await runNodeScript(tsxCliEntry, [publisherCliEntry, "sync"], {
       cwd: runtimeDir,
       env: {
         PUBLISH_PUSH: "false"
@@ -97,10 +100,10 @@ async function main() {
       return;
     }
 
-    await run(resolve(runtimeDir, "node_modules/.bin/astro"), ["check"], {
+    await run(astroCli, ["check"], {
       cwd: resolve(runtimeDir, "apps/blog")
     });
-    await run(resolve(runtimeDir, "node_modules/.bin/astro"), ["build"], {
+    await run(astroCli, ["build"], {
       cwd: resolve(runtimeDir, "apps/blog")
     });
 
@@ -108,9 +111,9 @@ async function main() {
     const deployRoot = process.env.SERVER_PUBLISH_DEPLOY_ROOT ?? "/data/Vison-Blog";
 
     await runNodeScript(
-      resolve(runtimeDir, "node_modules/tsx/dist/cli.mjs"),
+      tsxCliEntry,
       [
-        resolve(runtimeDir, "tools/publisher/src/cli.ts"),
+        publisherCliEntry,
         "deploy-local",
         "--dist-dir",
         distDir,
