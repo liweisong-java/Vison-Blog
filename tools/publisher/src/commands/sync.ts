@@ -86,6 +86,14 @@ function excerptFromMarkdown(markdown: string) {
   return normalized.slice(0, 140).trim();
 }
 
+function countExcerptUnits(value: string) {
+  return (value.match(/[\p{Script=Han}]|[A-Za-z0-9]+/gu) ?? []).length;
+}
+
+function hasUsableExcerpt(value: string) {
+  return countExcerptUnits(value) >= 4;
+}
+
 function publishedDateFromUpdated(updated: string) {
   const year = updated.slice(0, 4);
   const month = updated.slice(4, 6);
@@ -185,11 +193,11 @@ function normalizePublishedNote(
   const configuredExcerpt = readAttrVariants(attrs, config.attrs.excerpt);
   const generatedExcerpt = excerptFromMarkdown(markdown);
   const excerpt =
-    configuredExcerpt && configuredExcerpt.length >= 12
+    configuredExcerpt && hasUsableExcerpt(configuredExcerpt)
       ? configuredExcerpt
       : generatedExcerpt;
-  if (!excerpt || excerpt.length < 12) {
-    reasons.push("excerpt must be at least 12 characters");
+  if (!excerpt || !hasUsableExcerpt(excerpt)) {
+    reasons.push("excerpt must include enough readable content");
   }
 
   const publishedAt = readAttrVariants(attrs, config.attrs.publishedAt) || publishedDateFromUpdated(doc.updated);

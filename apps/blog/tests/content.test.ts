@@ -75,6 +75,21 @@ describe("post schema", () => {
       }).success
     ).toBe(true);
   });
+
+  it("accepts concise Chinese excerpts for short notes", () => {
+    expect(
+      postSchema.safeParse({
+        title: "这是一个博客",
+        slug: "this-is-a-blog",
+        publishedAt: "2026-05-11",
+        excerpt: "这是一个博客",
+        category: "life",
+        tags: [],
+        featured: false,
+        publish: true
+      }).success
+    ).toBe(true);
+  });
 });
 
 describe("content helpers", () => {

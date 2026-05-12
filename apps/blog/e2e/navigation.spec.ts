@@ -4,7 +4,7 @@ test("route pages exist for categories, tags, archive, and about", async ({ page
   await page.goto("/category/tech/");
   await expect(page.getByRole("heading", { name: "技术" })).toBeVisible();
   await expect(page.getByText(/这里收录技术实践、工具心得/i)).toBeHidden();
-  await expect(page.getByText("从笔记到博客")).toBeVisible();
+  await expect(page.locator(".category-page .post-meta")).toContainText("共 0 篇");
   await expect(page.getByText(/预计阅读/i)).toHaveCount(0);
 
   await page.goto("/tags/");

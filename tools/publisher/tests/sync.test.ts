@@ -79,6 +79,39 @@ describe("syncPublishedNotes", () => {
     expect(triggerDeploy).not.toHaveBeenCalled();
   });
 
+  it("does not block the whole sync when a short Chinese note needs a concise excerpt", async () => {
+    const result = await syncPublishedNotes({
+      dryRun: true,
+      config: baseConfig,
+      client: {
+        queryDocuments: vi.fn().mockResolvedValue([
+          {
+            id: "doc-short-1",
+            content: "这是一个博客",
+            hpath: "/这是一个博客",
+            updated: "20260511170947"
+          }
+        ]),
+        getBlockAttrs: vi.fn().mockResolvedValue({}),
+        exportMarkdown: vi.fn().mockResolvedValue({
+          content: "这是一个博客"
+        })
+      },
+      collectContentEntries: vi.fn().mockResolvedValue([
+        { slug: "ai-usage-notes", sourceId: "20260511124235-6ixd4qy", directory: "/tmp/content/ai-usage-notes" }
+      ]),
+      writeBundle: vi.fn(),
+      removeManagedPost: vi.fn(),
+      runBlogChecks: vi.fn(),
+      commitAndPush: vi.fn(),
+      triggerDeploy: vi.fn()
+    });
+
+    expect(result.invalid).toEqual([]);
+    expect(result.written).toEqual(["post-short-1"]);
+    expect(result.removed).toEqual(["ai-usage-notes"]);
+  });
+
   it("does not remove seed content that is not managed by the publisher yet", async () => {
     const result = await syncPublishedNotes({
       dryRun: true,

@@ -1,10 +1,17 @@
 import {z} from "zod";
 
+function countReadableUnits(value: string) {
+  return (value.match(/[\p{Script=Han}]|[A-Za-z0-9]+/gu) ?? []).length;
+}
+
 export const postSchema = z.object({
   title: z.string().min(1),
   slug: z.string().regex(/^[a-z0-9-]+$/),
   publishedAt: z.coerce.date(),
-  excerpt: z.string().min(12).max(220),
+  excerpt: z
+    .string()
+    .max(220)
+    .refine((value) => countReadableUnits(value) >= 4, "excerpt must contain enough readable content"),
   category: z.enum(["tech", "life"]),
   tags: z.array(z.string().min(1)).default([]),
   featured: z.boolean().default(false),
