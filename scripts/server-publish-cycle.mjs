@@ -29,6 +29,10 @@ async function run(command, args, options = {}) {
   });
 }
 
+async function runNodeScript(entryFile, args = [], options = {}) {
+  await run(process.execPath, [entryFile, ...args], options);
+}
+
 async function ensureFile(path, message) {
   if (!existsSync(path)) {
     throw new Error(message);
@@ -80,31 +84,33 @@ async function main() {
     copyIfExists(resolve(root, ".superpowers"), resolve(runtimeDir, ".superpowers"));
 
     await run("pnpm", ["install", "--frozen-lockfile"], { cwd: runtimeDir });
-    await run("pnpm", ["--filter", "publisher", "dev", "sync"], {
+    await runNodeScript(resolve(runtimeDir, "node_modules/tsx/dist/cli.mjs"), [resolve(runtimeDir, "tools/publisher/src/cli.ts"), "sync"], {
       cwd: runtimeDir,
       env: {
         PUBLISH_PUSH: "false"
       }
     });
-    await run("pnpm", ["private:dashboard"], { cwd: runtimeDir });
+    await runNodeScript(resolve(runtimeDir, "scripts/generate-private-dashboard.mjs"), [], { cwd: runtimeDir });
 
     if (envFlag("SERVER_PUBLISH_SKIP_BUILD", false)) {
       copyIfExists(resolve(runtimeDir, ".superpowers"), resolve(root, ".superpowers"));
       return;
     }
 
-    await run("pnpm", ["--filter", "blog", "check"], { cwd: runtimeDir });
-    await run("pnpm", ["--filter", "blog", "build"], { cwd: runtimeDir });
+    await run(resolve(runtimeDir, "node_modules/.bin/astro"), ["check"], {
+      cwd: resolve(runtimeDir, "apps/blog")
+    });
+    await run(resolve(runtimeDir, "node_modules/.bin/astro"), ["build"], {
+      cwd: resolve(runtimeDir, "apps/blog")
+    });
 
     const distDir = process.env.SERVER_PUBLISH_DIST_DIR ?? resolve(runtimeDir, "apps/blog/dist");
     const deployRoot = process.env.SERVER_PUBLISH_DEPLOY_ROOT ?? "/data/Vison-Blog";
 
-    await run(
-      "pnpm",
+    await runNodeScript(
+      resolve(runtimeDir, "node_modules/tsx/dist/cli.mjs"),
       [
-        "--filter",
-        "publisher",
-        "dev",
+        resolve(runtimeDir, "tools/publisher/src/cli.ts"),
         "deploy-local",
         "--dist-dir",
         distDir,

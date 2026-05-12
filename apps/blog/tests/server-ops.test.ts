@@ -9,7 +9,12 @@ describe("server-led publishing script", () => {
     expect(script).toContain("git");
     expect(script).toContain("worktree");
     expect(script).toContain("PUBLISH_PUSH: \"false\"");
-    expect(script).toContain("pnpm");
     expect(script).toContain("deploy-local");
+    expect(script).toContain("pnpm");
+    expect(script).toContain("exec");
+    expect(script).toContain("tsx");
+    expect(script).toContain("src/cli.ts");
+    expect(script).toContain("astro");
+    expect(script).toContain("generate-private-dashboard.mjs");
   });
 });
