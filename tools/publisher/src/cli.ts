@@ -40,6 +40,10 @@ async function runBlogChecks(workspaceRoot: string) {
   await execFileAsync("pnpm", ["--filter", "blog", "build"], { cwd: workspaceRoot });
 }
 
+function shouldSkipBlogChecks() {
+  return normalizeBooleanEnv(env.PUBLISH_SKIP_BLOG_CHECKS, false);
+}
+
 function normalizeBooleanEnv(value: string | undefined, fallback: boolean) {
   if (value == null || value === "") {
     return fallback;
@@ -191,7 +195,7 @@ async function main() {
       writeWechatArticle,
       removeWechatArticle,
       removeManagedPost,
-      runBlogChecks: () => runBlogChecks(repoRoot),
+      runBlogChecks: () => (shouldSkipBlogChecks() ? Promise.resolve() : runBlogChecks(repoRoot)),
       commitAndPush: () =>
         commitAndPushGit({
           repoRoot,
@@ -259,7 +263,7 @@ async function main() {
         writeWechatArticle,
         removeWechatArticle,
         removeManagedPost,
-        runBlogChecks: () => runBlogChecks(repoRoot),
+        runBlogChecks: () => (shouldSkipBlogChecks() ? Promise.resolve() : runBlogChecks(repoRoot)),
         commitAndPush: () =>
           commitAndPushGit({
             repoRoot,

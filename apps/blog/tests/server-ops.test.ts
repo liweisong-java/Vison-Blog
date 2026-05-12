@@ -16,5 +16,6 @@ describe("server-led publishing script", () => {
     expect(script).toContain("src/cli.ts");
     expect(script).toContain("astro");
     expect(script).toContain("generate-private-dashboard.mjs");
+    expect(script).toContain("PUBLISH_SKIP_BLOG_CHECKS: \"true\"");
   });
 });

@@ -90,6 +90,7 @@ async function main() {
     await runNodeScript(tsxCliEntry, [publisherCliEntry, "sync"], {
       cwd: runtimeDir,
       env: {
+        PUBLISH_SKIP_BLOG_CHECKS: "true",
         PUBLISH_PUSH: "false"
       }
     });
