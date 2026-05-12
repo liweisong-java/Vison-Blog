@@ -5,5 +5,10 @@ import { siteUrl } from "./site.config.mjs";
 
 export default defineConfig({
   site: siteUrl,
-  integrations: [mdx(), sitemap()]
+  integrations: [
+    mdx(),
+    sitemap({
+      filter: (page) => !page.includes("/secret-dashboard/")
+    })
+  ]
 });

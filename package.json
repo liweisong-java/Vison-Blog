@@ -14,6 +14,8 @@
     "publish:auto-install": "pnpm --filter publisher dev auto-install",
     "publish:auto-status": "pnpm --filter publisher dev auto-status",
     "publish:auto-uninstall": "pnpm --filter publisher dev auto-uninstall",
+    "private:dashboard": "node scripts/generate-private-dashboard.mjs",
+    "private:dashboard:traffic": "node scripts/fetch-umami-stats.mjs",
     "build": "pnpm --filter blog build && pnpm --filter publisher build",
     "test": "pnpm --filter blog test && pnpm --filter publisher test",
     "check": "pnpm --filter blog check && pnpm --filter publisher build",

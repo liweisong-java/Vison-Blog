@@ -8,9 +8,10 @@ interface Props {
   title: string;
   description: string;
   ogType?: string;
+  robots?: string;
 }
 
-const { title, description, ogType = "website" } = Astro.props;
+const { title, description, ogType = "website", robots } = Astro.props;
 const canonical = new URL(Astro.url.pathname, siteConfig.siteUrl);
 ---
 
@@ -30,6 +31,7 @@ const canonical = new URL(Astro.url.pathname, siteConfig.siteUrl);
     <meta name="twitter:title" content={title} />
     <meta name="twitter:description" content={description} />
     <link rel="canonical" href={canonical.toString()} />
+    {robots && <meta name="robots" content={robots} />}
   </head>
   <body>
     <Header />

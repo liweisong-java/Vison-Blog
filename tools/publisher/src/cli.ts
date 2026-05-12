@@ -21,6 +21,7 @@ import { removeManagedPost, removeWechatArticle, writeBundle, writeWechatArticle
 import { collectContentEntries } from "./repository.js";
 import { createSiYuanClient } from "./siyuan-client.js";
 import { syncPublishedNotes } from "./commands/sync.js";
+import { readPublisherState, writePublisherState } from "./publisher-state.js";
 import { resolvePublisherRuntime } from "./runtime.js";
 
 const execFileAsync = promisify(execFile);
@@ -125,7 +126,11 @@ async function main() {
           message: "chore(content): sync siyuan posts",
           includePaths: [config.contentRoot, ...(config.wechatExportDir ? [config.wechatExportDir] : [])]
         }),
-      triggerDeploy: (summary) => triggerDeployHook(config.deployHookUrl ?? env.PUBLISH_DEPLOY_HOOK, summary)
+      triggerDeploy: (summary) => triggerDeployHook(config.deployHookUrl ?? env.PUBLISH_DEPLOY_HOOK, summary),
+      publisherState: {
+        readState: () => readPublisherState(config.publisherStatePath ?? runtime.publisherStatePath),
+        writeState: (state) => writePublisherState(config.publisherStatePath ?? runtime.publisherStatePath, state)
+      }
     });
 
   if (command === "auto-once") {
@@ -189,7 +194,11 @@ async function main() {
             includePaths: [config.contentRoot, ...(config.wechatExportDir ? [config.wechatExportDir] : [])]
           }),
         triggerDeploy: (summary) =>
-          triggerDeployHook(config.deployHookUrl ?? env.PUBLISH_DEPLOY_HOOK, summary)
+          triggerDeployHook(config.deployHookUrl ?? env.PUBLISH_DEPLOY_HOOK, summary),
+        publisherState: {
+          readState: () => readPublisherState(config.publisherStatePath ?? runtime.publisherStatePath),
+          writeState: (state) => writePublisherState(config.publisherStatePath ?? runtime.publisherStatePath, state)
+        }
       })
     : await sync();
 

@@ -1,0 +1,255 @@
+---
+import BaseLayout from "../../layouts/BaseLayout.astro";
+import {
+  formatDashboardDate,
+  loadPrivateDashboard,
+  summarizeDashboard,
+  toPercent
+} from "../../lib/private-dashboard";
+
+const data = await loadPrivateDashboard();
+const totalCategoryCount = data.content.categories.tech + data.content.categories.life;
+---
+
+<BaseLayout
+  title="站点统计 | 伟松的博客"
+  description="私有统计页面。"
+  robots="noindex,nofollow,noarchive"
+>
+  <div class="private-dashboard-page">
+    <section class="private-dashboard-hero" data-private-dashboard="hero">
+      <div>
+        <p class="eyebrow">Private Dashboard</p>
+        <h1>站点统计</h1>
+      </div>
+      <p class="private-dashboard-hero__summary">{summarizeDashboard(data)}</p>
+    </section>
+
+    <section class="private-dashboard-section">
+      <div class="section-heading section-heading--compact private-dashboard-section__heading">
+        <div>
+          <p class="eyebrow">Content</p>
+          <h2>内容统计</h2>
+        </div>
+      </div>
+
+      <div class="private-dashboard-grid">
+      <article class="dashboard-panel">
+        <p class="dashboard-panel__label">内容概览</p>
+        <div class="dashboard-metrics dashboard-metrics--three">
+          <div>
+            <span>总文章数</span>
+            <strong>{data.summary.totalPosts}</strong>
+          </div>
+          <div>
+            <span>近 30 天新增</span>
+            <strong>{data.summary.postsLast30Days}</strong>
+          </div>
+          <div>
+            <span>总标签数</span>
+            <strong>{data.content.totalTags}</strong>
+          </div>
+        </div>
+      </article>
+
+      <article class="dashboard-panel">
+        <div class="dashboard-panel__header">
+          <div>
+            <p class="dashboard-panel__label">分类占比</p>
+            <h2>内容结构</h2>
+          </div>
+        </div>
+        <div class="dashboard-stack">
+          <div class="dashboard-row">
+            <span>技术</span>
+            <span>{data.content.categories.tech} 篇 · {toPercent(data.content.categories.tech, totalCategoryCount)}</span>
+          </div>
+          <div class="dashboard-row">
+            <span>生活</span>
+            <span>{data.content.categories.life} 篇 · {toPercent(data.content.categories.life, totalCategoryCount)}</span>
+          </div>
+          <div class="dashboard-row">
+            <span>总字数</span>
+            <span>{data.content.totalWords.toLocaleString("zh-CN")} 字</span>
+          </div>
+          <div class="dashboard-row">
+            <span>平均篇幅</span>
+            <span>{Math.round(data.content.averageWordsPerPost).toLocaleString("zh-CN")} 字 / 篇</span>
+          </div>
+        </div>
+      </article>
+
+      <article class="dashboard-panel">
+        <div class="dashboard-panel__header">
+          <div>
+            <p class="dashboard-panel__label">热门标签</p>
+            <h2>标签活跃度</h2>
+          </div>
+        </div>
+        <ul class="dashboard-list">
+          {data.content.topTags.length ? (
+            data.content.topTags.map((item) => (
+              <li>
+                <span>{item.tag}</span>
+                <strong>{item.count}</strong>
+              </li>
+            ))
+          ) : (
+            <li class="dashboard-list__empty">还没有可展示的标签统计。</li>
+          )}
+        </ul>
+      </article>
+      </div>
+    </section>
+
+    <section class="private-dashboard-section">
+      <div class="section-heading section-heading--compact private-dashboard-section__heading">
+        <div>
+          <p class="eyebrow">Traffic</p>
+          <h2>访问统计</h2>
+        </div>
+      </div>
+
+      <div class="private-dashboard-grid private-dashboard-grid--two">
+        <article class="dashboard-panel">
+          <p class="dashboard-panel__label">访问概览</p>
+          <div class="dashboard-metrics dashboard-metrics--three">
+            <div>
+              <span>今日 PV</span>
+              <strong>{data.summary.todayPageViews}</strong>
+            </div>
+            <div>
+              <span>近 30 天访问</span>
+              <strong>{data.summary.visitsLast30Days}</strong>
+            </div>
+            <div>
+              <span>近 7 天访客</span>
+              <strong>{data.traffic.last7Days.visitors}</strong>
+            </div>
+          </div>
+        </article>
+
+        <article class="dashboard-panel">
+          <div class="dashboard-panel__header">
+            <div>
+              <p class="dashboard-panel__label">访问来源</p>
+              <h3>流量快照</h3>
+            </div>
+          </div>
+          <div class="dashboard-stack">
+            <div class="dashboard-row">
+              <span>今日</span>
+              <span>{data.traffic.today.pageviews} PV / {data.traffic.today.visitors} UV</span>
+            </div>
+            <div class="dashboard-row">
+              <span>近 7 天</span>
+              <span>{data.traffic.last7Days.pageviews} PV / {data.traffic.last7Days.visitors} UV</span>
+            </div>
+            <div class="dashboard-row">
+              <span>近 30 天</span>
+              <span>{data.traffic.last30Days.pageviews} PV / {data.traffic.last30Days.visitors} UV</span>
+            </div>
+          </div>
+        </article>
+
+        <article class="dashboard-panel">
+          <div class="dashboard-panel__header">
+            <div>
+              <p class="dashboard-panel__label">热门页面</p>
+              <h3>页面热度</h3>
+            </div>
+          </div>
+          <ul class="dashboard-list">
+            {data.traffic.topPages.length ? (
+              data.traffic.topPages.map((item) => (
+                <li>
+                  <span>{item.path}</span>
+                  <strong>{item.pageviews}</strong>
+                </li>
+              ))
+            ) : (
+              <li class="dashboard-list__empty">还没有页面热度数据。</li>
+            )}
+          </ul>
+        </article>
+
+        <article class="dashboard-panel">
+          <div class="dashboard-panel__header">
+            <div>
+              <p class="dashboard-panel__label">来源与设备</p>
+              <h3>访客画像</h3>
+            </div>
+          </div>
+          <div class="dashboard-columns">
+            <div>
+              <p class="dashboard-columns__title">来源</p>
+              <ul class="dashboard-list dashboard-list--compact">
+                {data.traffic.topReferrers.length ? (
+                  data.traffic.topReferrers.map((item) => (
+                    <li>
+                      <span>{item.referrer}</span>
+                      <strong>{item.visits}</strong>
+                    </li>
+                  ))
+                ) : (
+                  <li class="dashboard-list__empty">暂无来源统计。</li>
+                )}
+              </ul>
+            </div>
+            <div>
+              <p class="dashboard-columns__title">设备</p>
+              <ul class="dashboard-list dashboard-list--compact">
+                {data.traffic.devices.length ? (
+                  data.traffic.devices.map((item) => (
+                    <li>
+                      <span>{item.device}</span>
+                      <strong>{item.visitors}</strong>
+                    </li>
+                  ))
+                ) : (
+                  <li class="dashboard-list__empty">暂无设备分布。</li>
+                )}
+              </ul>
+            </div>
+          </div>
+        </article>
+      </div>
+    </section>
+
+    <section class="private-dashboard-section">
+      <div class="section-heading section-heading--compact private-dashboard-section__heading">
+        <div>
+          <p class="eyebrow">Publisher</p>
+          <h2>发布链路</h2>
+        </div>
+      </div>
+
+      <article class="dashboard-panel">
+        <div class="dashboard-panel__header">
+          <div>
+            <p class="dashboard-panel__label">同步链路</p>
+            <h3>发布器状态</h3>
+          </div>
+        </div>
+        <div class="dashboard-stack">
+          <div class="dashboard-row">
+            <span>待处理篇数</span>
+            <span>{data.publisher.pendingCount}</span>
+          </div>
+          <div class="dashboard-row">
+            <span>近 7 天同步次数</span>
+            <span>{data.publisher.syncsLast7Days}</span>
+          </div>
+          <div class="dashboard-row">
+            <span>最近失败</span>
+            <span>{formatDashboardDate(data.publisher.lastFailureAt)}</span>
+          </div>
+          <div class="dashboard-row">
+            <span>失败原因</span>
+            <span>{data.publisher.lastFailureReason ?? "没有失败记录"}</span>
+          </div>
+        </div>
+      </article>
+    </section>
+  </div>
+</BaseLayout>

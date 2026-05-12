@@ -1,5 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { syncPublishedNotes } from "../src/commands/sync";
+import { createInitialPublisherState } from "../src/publisher-state.js";
 
 vi.mock("../src/fs", async () => {
   const actual = await vi.importActual<typeof import("../src/fs")>("../src/fs");
@@ -528,6 +529,103 @@ describe("syncPublishedNotes", () => {
         triggerDeploy: vi.fn()
       })
     ).rejects.toThrow(/category must be tech or life/i);
+  });
+
+  it("updates the publisher dashboard state after a successful sync", async () => {
+    const writeState = vi.fn();
+
+    await syncPublishedNotes({
+      dryRun: false,
+      config: baseConfig,
+      client: {
+        queryDocuments: vi.fn().mockResolvedValue([
+          {
+            id: "doc-tech-1",
+            content: "From Notes to Site",
+            hpath: "/Blog/From Notes to Site",
+            updated: "20260510120000"
+          }
+        ]),
+        getBlockAttrs: vi.fn().mockResolvedValue({
+          "blog-pub": "true",
+          "blog-cat": "tech",
+          "blog-excerpt": "How a SiYuan note becomes a deployed editorial article.",
+          "blog-top": "true",
+          "blog-slug": "from-notes-to-site",
+          "blog-tags": "astro,siyuan",
+          "blog-date": "2026-05-10"
+        }),
+        exportMarkdown: vi.fn().mockResolvedValue({
+          content: "## Intro\n\nA practical walkthrough for publishing from notes."
+        })
+      },
+      collectContentEntries: vi.fn().mockResolvedValue([]),
+      writeBundle: vi.fn(),
+      removeManagedPost: vi.fn(),
+      runBlogChecks: vi.fn(),
+      commitAndPush: vi.fn().mockResolvedValue({ committed: true }),
+      triggerDeploy: vi.fn(),
+      publisherState: {
+        readState: vi.fn().mockResolvedValue(createInitialPublisherState()),
+        writeState,
+        now: () => "2026-05-12T12:00:00.000Z"
+      }
+    });
+
+    expect(writeState).toHaveBeenCalledWith(
+      expect.objectContaining({
+        status: "healthy",
+        lastSuccessAt: "2026-05-12T12:00:00.000Z",
+        pendingCount: 0
+      })
+    );
+  });
+
+  it("updates the publisher dashboard state after a failed sync", async () => {
+    const writeState = vi.fn();
+
+    await expect(
+      syncPublishedNotes({
+        dryRun: false,
+        config: baseConfig,
+        client: {
+          queryDocuments: vi.fn().mockResolvedValue([
+            {
+              id: "doc-invalid-1",
+              content: "Broken Note",
+              hpath: "/Blog/Broken Note",
+              updated: "20260510120000"
+            }
+          ]),
+          getBlockAttrs: vi.fn().mockResolvedValue({
+            "blog-pub": "true",
+            "blog-cat": "travel"
+          }),
+          exportMarkdown: vi.fn().mockResolvedValue({
+            content: "too short"
+          })
+        },
+        collectContentEntries: vi.fn().mockResolvedValue([]),
+        writeBundle: vi.fn(),
+        removeManagedPost: vi.fn(),
+        runBlogChecks: vi.fn(),
+        commitAndPush: vi.fn(),
+        triggerDeploy: vi.fn(),
+        publisherState: {
+          readState: vi.fn().mockResolvedValue(createInitialPublisherState()),
+          writeState,
+          now: () => "2026-05-12T12:10:00.000Z"
+        }
+      })
+    ).rejects.toThrow(/Broken Note/);
+
+    expect(writeState).toHaveBeenCalledWith(
+      expect.objectContaining({
+        status: "failed",
+        lastFailureAt: "2026-05-12T12:10:00.000Z",
+        pendingCount: 1
+      })
+    );
   });
 
   it("prevents slug collisions with existing content", async () => {

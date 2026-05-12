@@ -11,6 +11,7 @@
 - 自动生成博客文章，并可按需导出公众号兼容稿
 - 支持本机自动监听思源变化并定时同步发布
 - 支持 `master` 分支自动构建并部署到自托管静态服务器
+- 支持受保护的 `secret-dashboard` 私有统计页
 - 支持 `Giscus` 评论，`Vercel` 可作为可选部署方案
 
 ## 架构概览
@@ -214,7 +215,34 @@ pnpm publish:auto-uninstall
 
 - [思源发布器使用手册](docs/runbooks/siyuan-publisher.md)
 - [服务器静态部署说明](docs/runbooks/server-deploy.md)
+- [私有统计页运维说明](docs/runbooks/private-dashboard.md)
 - [Vercel 可选部署说明](docs/runbooks/vercel-setup.md)
+
+## 私有统计页
+
+仓库现在额外提供一个只给你自己看的私有统计页：
+
+- 页面路径默认是 `/secret-dashboard/`
+- 页面内容不会出现在导航、RSS 或 sitemap 里
+- 页面会优先读取本地 `.superpowers/private-dashboard/dashboard.json`
+- 建议通过 `Nginx Basic Auth` 保护整个私有路径和对应 JSON 目录
+
+常用命令：
+
+```bash
+pnpm private:dashboard
+pnpm private:dashboard:traffic
+```
+
+- `private:dashboard`：汇总文章内容统计、发布器状态和访问快照，生成私有 dashboard 数据
+- `private:dashboard:traffic`：从 Umami 拉取访问统计快照
+
+推荐做法是：
+
+1. 在服务器上用 Basic Auth 保护 `/secret-dashboard/`
+2. 在 GitHub Secrets 中配置 `UMAMI_BASE_URL`、`UMAMI_API_TOKEN`、`UMAMI_WEBSITE_ID`
+3. 通过 `private-dashboard-refresh` workflow 定时刷新流量快照
+4. 让 `deploy` workflow 在构建前执行 `pnpm private:dashboard`
 
 ## 当前状态
 
@@ -224,6 +252,7 @@ pnpm publish:auto-uninstall
 - 已支持本机自动监听思源并定时同步发布
 - 已支持零手填优先的自动发文规则
 - 已支持 `master` 分支自动构建并部署到自托管静态服务器
+- 已支持私有统计页与本地 dashboard 快照生成
 - 暂未内置“直接发公众号”的自动集成，当前阶段提供兼容稿导出
 
 ## 说明

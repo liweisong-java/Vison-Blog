@@ -1,0 +1,32 @@
+name: private-dashboard-refresh
+
+on:
+  schedule:
+    - cron: "15 * * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  refresh:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10.11.0
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: ".nvmrc"
+          cache: "pnpm"
+
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm private:dashboard:traffic
+        env:
+          UMAMI_BASE_URL: ${{ secrets.UMAMI_BASE_URL }}
+          UMAMI_API_TOKEN: ${{ secrets.UMAMI_API_TOKEN }}
+          UMAMI_WEBSITE_ID: ${{ secrets.UMAMI_WEBSITE_ID }}
+      - run: pnpm private:dashboard

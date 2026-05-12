@@ -12,6 +12,7 @@ describe("resolvePublisherRuntime", () => {
     expect(runtime.publisherRoot).toBe("/tmp/vision-blog/tools/publisher");
     expect(runtime.configPath).toBe("/tmp/vision-blog/tools/publisher/publisher.config.json");
     expect(runtime.envPath).toBe("/tmp/vision-blog/tools/publisher/.env");
+    expect(runtime.publisherStatePath).toBe("/tmp/vision-blog/.superpowers/private-dashboard/publisher-state.json");
   });
 
   it("accepts import.meta.url style file URL strings from the real CLI runtime", () => {
@@ -24,6 +25,7 @@ describe("resolvePublisherRuntime", () => {
     expect(runtime.publisherRoot).toBe("/tmp/vision-blog/tools/publisher");
     expect(runtime.configPath).toBe("/tmp/vision-blog/tools/publisher/publisher.config.json");
     expect(runtime.envPath).toBe("/tmp/vision-blog/tools/publisher/.env");
+    expect(runtime.publisherStatePath).toBe("/tmp/vision-blog/.superpowers/private-dashboard/publisher-state.json");
   });
 
   it("resolves an explicit PUBLISHER_CONFIG relative to the invocation directory", () => {

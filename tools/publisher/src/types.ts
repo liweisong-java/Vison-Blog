@@ -17,7 +17,32 @@ export type PublisherConfig = {
   contentRoot: string;
   wechatExportDir?: string;
   deployHookUrl?: string;
+  publisherStatePath?: string;
   attrs: PublisherAttrs;
+};
+
+export type PublisherSyncResultSummary = {
+  written: number;
+  removed: number;
+  committed: boolean;
+  deployed: boolean;
+  invalidCount: number;
+};
+
+export type PublisherSyncHistoryEntry = {
+  finishedAt: string;
+  status: "success" | "failure";
+};
+
+export type PublisherState = {
+  status: "healthy" | "warning" | "failed";
+  lastSyncAt: string | null;
+  lastSuccessAt: string | null;
+  lastFailureAt: string | null;
+  lastFailureReason: string | null;
+  pendingCount: number;
+  syncHistory: PublisherSyncHistoryEntry[];
+  lastResult: PublisherSyncResultSummary | null;
 };
 
 export type SiYuanDocument = {

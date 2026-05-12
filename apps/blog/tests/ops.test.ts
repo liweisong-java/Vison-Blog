@@ -58,4 +58,28 @@ describe("operations docs", () => {
     expect(runbook).toContain("pnpm publish:dry-run");
     expect(runbook).toContain("pnpm publish:sync");
   });
+
+  it("documents the private dashboard workflow and protected route setup", async () => {
+    const readme = await readFile(resolve(process.cwd(), "../../README.md"), "utf8");
+    const runbook = await readFile(
+      resolve(process.cwd(), "../../docs/runbooks/private-dashboard.md"),
+      "utf8"
+    );
+    const workflow = await readFile(
+      resolve(process.cwd(), "../../.github/workflows/private-dashboard-refresh.yml"),
+      "utf8"
+    );
+    const deployWorkflow = await readFile(
+      resolve(process.cwd(), "../../.github/workflows/deploy.yml"),
+      "utf8"
+    );
+
+    expect(readme).toContain("secret-dashboard");
+    expect(readme).toContain("private:dashboard");
+    expect(runbook).toContain("auth_basic");
+    expect(runbook).toContain("UMAMI_BASE_URL");
+    expect(workflow).toContain("schedule:");
+    expect(workflow).toContain("pnpm private:dashboard");
+    expect(deployWorkflow).toContain("pnpm private:dashboard");
+  });
 });

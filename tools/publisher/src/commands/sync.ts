@@ -1,6 +1,11 @@
 import type { PublishedNote, PublisherConfig, SiYuanDocument } from "../types.js";
 import { buildPostBundle, buildWechatArticle } from "../markdown.js";
 import { copyAssetFiles } from "../fs.js";
+import {
+  createInitialPublisherState,
+  recordPublisherFailure,
+  recordPublisherSuccess
+} from "../publisher-state.js";
 
 type ManagedEntry = {
   slug: string;
@@ -302,7 +307,8 @@ export async function syncPublishedNotes({
   commitAndPush,
   triggerDeploy,
   writeWechatArticle,
-  removeWechatArticle
+  removeWechatArticle,
+  publisherState
 }: {
   dryRun: boolean;
   config: PublisherConfig;
@@ -327,96 +333,139 @@ export async function syncPublishedNotes({
     invalid: InvalidNote[];
     committed: boolean;
   }) => Promise<unknown>;
+  publisherState?: {
+    readState: () => Promise<import("../types.js").PublisherState | null>;
+    writeState: (state: import("../types.js").PublisherState) => Promise<void>;
+    now?: () => string;
+  };
 }) {
   const docs = await client.queryDocuments(config.notebookId);
-  const existingEntries = await collectContentEntries(config.contentRoot);
-  const publishedNotes: PublishedNote[] = [];
-  const invalidNotes: InvalidNote[] = [];
+  const stateStore = publisherState;
+  const now = stateStore?.now ?? (() => new Date().toISOString());
 
-  for (const doc of docs) {
-    const attrs = await client.getBlockAttrs(doc.id);
-    const publishFlag = normalizeBooleanAttr(readAttrVariants(attrs, config.attrs.publish));
-    const needsMarkdown = publishFlag !== false && !shouldSkipByDraftConvention(doc);
-    const markdown = needsMarkdown ? (await client.exportMarkdown(doc.id)).content : "";
-    const result = normalizePublishedNote(doc, attrs, markdown, config, existingEntries);
+  try {
+    const existingEntries = await collectContentEntries(config.contentRoot);
+    const publishedNotes: PublishedNote[] = [];
+    const invalidNotes: InvalidNote[] = [];
 
-    if (result.invalid) {
-      invalidNotes.push(result.invalid);
-      continue;
-    }
+    for (const doc of docs) {
+      const attrs = await client.getBlockAttrs(doc.id);
+      const publishFlag = normalizeBooleanAttr(readAttrVariants(attrs, config.attrs.publish));
+      const needsMarkdown = publishFlag !== false && !shouldSkipByDraftConvention(doc);
+      const markdown = needsMarkdown ? (await client.exportMarkdown(doc.id)).content : "";
+      const result = normalizePublishedNote(doc, attrs, markdown, config, existingEntries);
 
-    if (result.note) {
-      publishedNotes.push(result.note);
-    }
-  }
-
-  if (invalidNotes.length) {
-    throw new Error(`Unable to publish some notes:\n${formatInvalidNotes(invalidNotes)}`);
-  }
-
-  ensureUniqueSlugs({ existingEntries, publishedNotes });
-
-  const bundles = [];
-  const wechatArticles = [];
-  for (const note of publishedNotes) {
-    const markdown = await client.exportMarkdown(note.id);
-    bundles.push(await buildPostBundle({ note, markdown: markdown.content }));
-    if (config.wechatExportDir && note.wechatReady !== false) {
-      wechatArticles.push(await buildWechatArticle({ note, markdown: markdown.content }));
-    }
-  }
-
-  const removed = getRemovedSlugs({ existingEntries, publishedNotes });
-  const wechatRemovedSlugs = getWechatRemovedSlugs({ removed, publishedNotes });
-  let committed = false;
-  let deployed = false;
-  const wechatExported: string[] = [];
-  const wechatRemoved: string[] = [];
-
-  if (!dryRun) {
-    for (const bundle of bundles) {
-      await writeBundle(config.contentRoot, bundle);
-      await copyAssetFiles(config.siyuanWorkspaceDir, config.contentRoot, bundle.slug, bundle.assets);
-    }
-
-    if (config.wechatExportDir) {
-      for (const article of wechatArticles) {
-        await writeWechatArticle(config.wechatExportDir, article);
-        wechatExported.push(article.slug);
+      if (result.invalid) {
+        invalidNotes.push(result.invalid);
+        continue;
       }
 
-      for (const slug of wechatRemovedSlugs) {
-        await removeWechatArticle(config.wechatExportDir, slug);
-        wechatRemoved.push(slug);
+      if (result.note) {
+        publishedNotes.push(result.note);
       }
     }
 
-    for (const slug of removed) {
-      await removeManagedPost(config.contentRoot, slug);
+    if (invalidNotes.length) {
+      throw new Error(`Unable to publish some notes:\n${formatInvalidNotes(invalidNotes)}`);
     }
 
-    await runBlogChecks();
-    const commitResult = await commitAndPush();
-    committed = commitResult.committed;
+    ensureUniqueSlugs({ existingEntries, publishedNotes });
 
-    if (committed) {
-      await triggerDeploy({
-        written: bundles.map((bundle) => bundle.slug),
-        removed,
-        invalid: invalidNotes,
-        committed
-      });
-      deployed = true;
+    const bundles = [];
+    const wechatArticles = [];
+    for (const note of publishedNotes) {
+      const markdown = await client.exportMarkdown(note.id);
+      bundles.push(await buildPostBundle({ note, markdown: markdown.content }));
+      if (config.wechatExportDir && note.wechatReady !== false) {
+        wechatArticles.push(await buildWechatArticle({ note, markdown: markdown.content }));
+      }
     }
+
+    const removed = getRemovedSlugs({ existingEntries, publishedNotes });
+    const wechatRemovedSlugs = getWechatRemovedSlugs({ removed, publishedNotes });
+    let committed = false;
+    let deployed = false;
+    const wechatExported: string[] = [];
+    const wechatRemoved: string[] = [];
+
+    if (!dryRun) {
+      for (const bundle of bundles) {
+        await writeBundle(config.contentRoot, bundle);
+        await copyAssetFiles(config.siyuanWorkspaceDir, config.contentRoot, bundle.slug, bundle.assets);
+      }
+
+      if (config.wechatExportDir) {
+        for (const article of wechatArticles) {
+          await writeWechatArticle(config.wechatExportDir, article);
+          wechatExported.push(article.slug);
+        }
+
+        for (const slug of wechatRemovedSlugs) {
+          await removeWechatArticle(config.wechatExportDir, slug);
+          wechatRemoved.push(slug);
+        }
+      }
+
+      for (const slug of removed) {
+        await removeManagedPost(config.contentRoot, slug);
+      }
+
+      await runBlogChecks();
+      const commitResult = await commitAndPush();
+      committed = commitResult.committed;
+
+      if (committed) {
+        await triggerDeploy({
+          written: bundles.map((bundle) => bundle.slug),
+          removed,
+          invalid: invalidNotes,
+          committed
+        });
+        deployed = true;
+      }
+    }
+
+    const result = {
+      written: bundles.map((bundle) => bundle.slug),
+      removed,
+      wechatExported,
+      wechatRemoved: config.wechatExportDir ? wechatRemoved : wechatRemovedSlugs,
+      invalid: invalidNotes,
+      committed,
+      deployed
+    };
+
+    if (stateStore) {
+      const currentState = (await stateStore.readState()) ?? createInitialPublisherState();
+      await stateStore.writeState(
+        recordPublisherSuccess(currentState, {
+          finishedAt: now(),
+          pendingCount: 0,
+          result: {
+            written: result.written.length,
+            removed: result.removed.length,
+            committed: result.committed,
+            deployed: result.deployed,
+            invalidCount: result.invalid.length
+          }
+        })
+      );
+    }
+
+    return result;
+  } catch (error) {
+    if (stateStore) {
+      const currentState = (await stateStore.readState()) ?? createInitialPublisherState();
+      const reason = error instanceof Error ? error.message : String(error);
+      await stateStore.writeState(
+        recordPublisherFailure(currentState, {
+          failedAt: now(),
+          reason,
+          pendingCount: docs.length
+        })
+      );
+    }
+
+    throw error;
   }
-
-  return {
-    written: bundles.map((bundle) => bundle.slug),
-    removed,
-    wechatExported,
-    wechatRemoved: config.wechatExportDir ? wechatRemoved : wechatRemovedSlugs,
-    invalid: invalidNotes,
-    committed,
-    deployed
-  };
 }

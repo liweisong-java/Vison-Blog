@@ -8,6 +8,7 @@ coverage/
 .env
 .env.local
 .superpowers/
+.superpowers/private-dashboard/
 docs/superpowers/plans/
 target/
 apps/blog/test-results/

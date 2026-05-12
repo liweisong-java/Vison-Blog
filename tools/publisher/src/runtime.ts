@@ -24,6 +24,7 @@ export function resolvePublisherRuntime({
     publisherRoot,
     envPath: resolve(publisherRoot, ".env"),
     statePath: resolve(workspaceRoot, ".superpowers", "publisher", "auto-state.json"),
+    publisherStatePath: resolve(workspaceRoot, ".superpowers", "private-dashboard", "publisher-state.json"),
     lockPath: resolve(workspaceRoot, ".superpowers", "publisher", "auto.lock"),
     configPath: configOverride
       ? resolve(cwdPath, configOverride)

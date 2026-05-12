@@ -130,6 +130,40 @@ example.com {
 
 如果你已经有 HTTPS、反向代理或 CDN，只需要把静态根目录换成 `current`。
 
+### 为私有统计页加 Basic Auth
+
+如果你启用了 `/secret-dashboard/`，建议直接在 Nginx 层保护它，而不是依赖“知道地址才看得到”：
+
+```nginx
+location ^~ /secret-dashboard/ {
+  auth_basic "Private Dashboard";
+  auth_basic_user_file /etc/nginx/.htpasswd-vision-blog;
+  try_files $uri $uri/ /secret-dashboard/index.html;
+}
+```
+
+如果你后续把私有 JSON 通过额外路径映射出来，也要一起加上：
+
+```nginx
+location ^~ /private-dashboard-data/ {
+  auth_basic "Private Dashboard";
+  auth_basic_user_file /etc/nginx/.htpasswd-vision-blog;
+}
+```
+
+生成密码文件可以用：
+
+```bash
+sudo apt-get install apache2-utils
+sudo htpasswd -c /etc/nginx/.htpasswd-vision-blog <your-user>
+```
+
+注意：
+
+- 不要把密码写进仓库
+- 不要把 `.htpasswd` 放到站点静态目录里
+- 修改配置后记得 `sudo nginx -t && sudo systemctl reload nginx`
+
 ## 6. 首次上线
 
 完成 Secrets 配置后，有两种触发方式：
