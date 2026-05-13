@@ -1,3 +1,5 @@
+import { access } from "node:fs/promises";
+import { join } from "node:path";
 import type { PublishedNote, PublisherConfig, SiYuanDocument } from "../types.js";
 import { buildPostBundle, buildWechatArticle } from "../markdown.js";
 import { copyAssetFiles } from "../fs.js";
@@ -342,6 +344,32 @@ function getWechatRemovedSlugs({
   return [...new Set([...removed, ...publishedNotes.filter((note) => note.wechatReady === false).map((note) => note.slug)])];
 }
 
+async function filterLiveDocuments({
+  docs,
+  siyuanWorkspaceDir
+}: {
+  docs: SiYuanDocument[];
+  siyuanWorkspaceDir: string;
+}) {
+  const liveDocs: SiYuanDocument[] = [];
+
+  for (const doc of docs) {
+    if (!doc.path) {
+      liveDocs.push(doc);
+      continue;
+    }
+
+    try {
+      await access(join(siyuanWorkspaceDir, "data", doc.path.replace(/^\//, "")));
+      liveDocs.push(doc);
+    } catch {
+      // Deletions can briefly linger in the blocks index. Only publish docs whose source file still exists.
+    }
+  }
+
+  return liveDocs;
+}
+
 export async function syncPublishedNotes({
   dryRun,
   config,
@@ -385,7 +413,11 @@ export async function syncPublishedNotes({
     now?: () => string;
   };
 }) {
-  const docs = await client.queryDocuments(config.notebookId);
+  const queriedDocs = await client.queryDocuments(config.notebookId);
+  const docs = await filterLiveDocuments({
+    docs: queriedDocs,
+    siyuanWorkspaceDir: config.siyuanWorkspaceDir
+  });
   const stateStore = publisherState;
   const now = stateStore?.now ?? (() => new Date().toISOString());
 

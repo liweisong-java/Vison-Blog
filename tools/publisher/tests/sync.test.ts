@@ -136,6 +136,45 @@ describe("syncPublishedNotes", () => {
     expect(result.removed).toEqual([]);
   });
 
+  it("ignores indexed documents whose source .sy file is already gone", async () => {
+    const writeBundle = vi.fn();
+
+    await syncPublishedNotes({
+      dryRun: false,
+      config: {
+        ...baseConfig,
+        siyuanWorkspaceDir: "/tmp/missing-siyuan"
+      },
+      client: {
+        queryDocuments: vi.fn().mockResolvedValue([
+          {
+            id: "doc-deleted-1",
+            content: "已删除但索引残留",
+            hpath: "/已删除但索引残留",
+            path: "/20260513214420-um5dhjx.sy",
+            updated: "20260513215904"
+          }
+        ]),
+        getBlockAttrs: vi.fn(),
+        exportMarkdown: vi.fn()
+      },
+      collectContentEntries: vi.fn().mockResolvedValue([
+        {
+          slug: "20260513-214419",
+          sourceId: "doc-deleted-1",
+          directory: "/tmp/content/20260513-214419"
+        }
+      ]),
+      writeBundle,
+      removeManagedPost: vi.fn(),
+      runBlogChecks: vi.fn(),
+      commitAndPush: vi.fn().mockResolvedValue({ committed: false }),
+      triggerDeploy: vi.fn()
+    });
+
+    expect(writeBundle).not.toHaveBeenCalled();
+  });
+
   it("fills slug, excerpt, and published date from the note when attrs are missing", async () => {
     const writeBundle = vi.fn();
 

@@ -50,6 +50,7 @@ export type SiYuanDocument = {
   id: string;
   content: string;
   hpath: string;
+  path?: string;
   updated: string;
 };
 

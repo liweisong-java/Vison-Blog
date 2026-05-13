@@ -38,7 +38,7 @@ export function createSiYuanClient({
   return {
     queryDocuments(notebookId: string) {
       return request<SiYuanDocument[]>("/api/query/sql", {
-        stmt: `SELECT id, content, hpath, updated FROM blocks WHERE box = '${notebookId}' AND type = 'd' ORDER BY updated DESC`
+        stmt: `SELECT id, content, hpath, path, updated FROM blocks WHERE box = '${notebookId}' AND type = 'd' ORDER BY updated DESC`
       });
     },
     getBlockAttrs(id: string) {
