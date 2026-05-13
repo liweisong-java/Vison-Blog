@@ -232,4 +232,102 @@ describe("runVideoQueue", () => {
     expect(article).toContain("title: B 站 API 兜底测试");
     expect(article).toContain("这是 B 站兜底字幕");
   });
+
+  it("publishes successfully when a manual transcript is provided", async () => {
+    const root = await mkdtemp(join(tmpdir(), "video-to-blog-manual-run-"));
+    const contentRoot = join(root, "apps/blog/src/content/posts");
+    const toolRoot = join(root, "tools/video-to-blog");
+    const runtime = {
+      workspaceRoot: root,
+      toolRoot,
+      envPath: join(toolRoot, ".env"),
+      configPath: join(toolRoot, "video-to-blog.config.json"),
+      stateRoot: join(root, ".superpowers/video-to-blog"),
+      queuePath: join(root, ".superpowers/video-to-blog/queue.json"),
+      jobsRoot: join(root, ".superpowers/video-to-blog/jobs"),
+      manifestPath: join(root, ".superpowers/video-to-blog/manifest.json"),
+      tempRoot: join(root, ".superpowers/video-to-blog/tmp"),
+      repoLockPath: join(root, ".superpowers/locks/repo.lock")
+    };
+
+    await mkdir(contentRoot, { recursive: true });
+    await mkdir(join(root, "scripts"), { recursive: true });
+    await mkdir(join(toolRoot, "python"), { recursive: true });
+    await writeFile(join(root, "scripts/generate-private-dashboard.mjs"), "console.log('ok')\n", "utf8");
+    await writeFile(join(toolRoot, "python/transcribe.py"), "print('{}')\n", "utf8");
+
+    await enqueueVideoJob(runtime.queuePath, {
+      id: "job-manual-1",
+      url: "https://www.bilibili.com/video/BV1MANUAL123",
+      status: "queued",
+      createdAt: "2026-05-14T00:00:00.000Z",
+      updatedAt: "2026-05-14T00:00:00.000Z",
+      transcriptText: "这是手工整理的第一段。\n\n这是手工整理的第二段。"
+    });
+
+    const result = await runVideoQueue({
+      config: {
+        contentRoot,
+        stateRoot: runtime.stateRoot,
+        deployRoot: join(root, "deploy"),
+        ytDlpBin: "yt-dlp",
+        ytDlpArgs: [],
+        ytDlpArgsByPlatform: {},
+        pythonBin: "python3",
+        whisperModel: "large-v3",
+        tempRoot: runtime.tempRoot
+      },
+      runtime,
+      env: {
+        VIDEO_TO_BLOG_BRANCH: "master",
+        VIDEO_TO_BLOG_REMOTE: "origin"
+      },
+      now: () => "2026-05-14T00:00:00.000Z",
+      buildSite: async () => {
+        const distDir = join(root, "apps/blog/dist");
+        await mkdir(distDir, { recursive: true });
+        await writeFile(join(distDir, "index.html"), "<h1>manual</h1>", "utf8");
+      },
+      commitAndPush: async () => ({
+        committed: true,
+        pushed: true,
+        stagedFiles: [join(contentRoot, "manual", "index.mdx")],
+        commitHash: "commit-manual"
+      }),
+      run: async (command, args) => {
+        const joined = `${command} ${args.join(" ")}`;
+        if (joined.startsWith("yt-dlp --dump-single-json")) {
+          throw new Error("HTTP Error 412: Precondition Failed");
+        }
+        throw new Error(`Unexpected command: ${joined}`);
+      },
+      fetchBilibiliMetadata: async () => ({
+        id: "BV1MANUAL123",
+        title: "手工 transcript 测试",
+        webpageUrl: "https://www.bilibili.com/video/BV1MANUAL123",
+        platform: "bilibili",
+        uploader: "Vison",
+        description: "手工文字稿兜底",
+        duration: 120,
+        publishedAt: "2026-05-14",
+        subtitles: [],
+        automaticSubtitles: []
+      }),
+      downloadBilibiliSubtitles: async () => []
+    });
+
+    expect(result.processed).toBe(1);
+    expect(result.results[0]).toMatchObject({
+      id: "job-manual-1",
+      committed: true
+    });
+
+    const queue = await readQueueState(runtime.queuePath);
+    expect(queue.jobs[0]?.status).toBe("succeeded");
+
+    const articlePath = join(contentRoot, "transcript", "index.mdx");
+    const article = await readFile(articlePath, "utf8");
+    expect(article).toContain("手工 transcript 测试");
+    expect(article).toContain("这是手工整理的第一段");
+  });
 });

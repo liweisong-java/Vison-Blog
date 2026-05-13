@@ -63,11 +63,12 @@ async function main() {
 
   if (command === "enqueue") {
     const url = readArg("--url");
+    const transcriptText = readArg("--transcript");
     if (!url) {
       throw new Error("Missing required --url argument.");
     }
 
-    printJson(await enqueueVideo({ runtime, url }));
+    printJson(await enqueueVideo({ runtime, url, transcriptText }));
     return;
   }
 

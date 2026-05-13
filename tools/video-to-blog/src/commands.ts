@@ -13,6 +13,7 @@ import { findExistingVideoArticle, updatePublishedManifest, withManagedArticleTr
 import type { VideoToBlogConfig, VideoToBlogJob, VideoToBlogRuntime } from "./types.js";
 import { runCommand } from "./process.js";
 import { detectVideoPlatform } from "./platform.js";
+import { buildTranscriptFromManualText } from "./manual-transcript.js";
 
 export async function doctorVideoToBlog({
   config,
@@ -43,10 +44,12 @@ export async function doctorVideoToBlog({
 export async function enqueueVideo({
   runtime,
   url,
+  transcriptText,
   now = () => new Date().toISOString()
 }: {
   runtime: VideoToBlogRuntime;
   url: string;
+  transcriptText?: string;
   now?: () => string;
 }) {
   const timestamp = now();
@@ -56,10 +59,11 @@ export async function enqueueVideo({
     url,
     status: "queued",
     createdAt: timestamp,
-    updatedAt: timestamp
+    updatedAt: timestamp,
+    transcriptText: transcriptText?.trim() || undefined
   });
 
-  return { ok: true, id, url };
+  return { ok: true, id, url, manualTranscript: Boolean(transcriptText?.trim()) };
 }
 
 export async function getVideoToBlogStatus(runtime: VideoToBlogRuntime) {
@@ -185,36 +189,40 @@ export async function runVideoQueue({
 
       await writeFile(join(artifactRoot, "metadata.json"), JSON.stringify(metadata, null, 2), "utf8");
 
-      if (!subtitleFiles.length) {
-        subtitleFiles = await downloadSubtitleArtifacts({
-          url: started.url,
-          ytDlpBin: config.ytDlpBin,
-          ytDlpArgs: config.ytDlpArgs,
-          ytDlpArgsByPlatform: config.ytDlpArgsByPlatform,
-          outputRoot: subtitleRoot,
-          run
-        }).catch(() => []);
-      }
+      const transcript = started.transcriptText
+        ? buildTranscriptFromManualText(started.transcriptText)
+        : await (async () => {
+            if (!subtitleFiles.length) {
+              subtitleFiles = await downloadSubtitleArtifacts({
+                url: started.url,
+                ytDlpBin: config.ytDlpBin,
+                ytDlpArgs: config.ytDlpArgs,
+                ytDlpArgsByPlatform: config.ytDlpArgsByPlatform,
+                outputRoot: subtitleRoot,
+                run
+              }).catch(() => []);
+            }
 
-      if (!subtitleFiles.length) {
-        audioPath = await downloadAudioArtifact({
-          url: started.url,
-          ytDlpBin: config.ytDlpBin,
-          ytDlpArgs: config.ytDlpArgs,
-          ytDlpArgsByPlatform: config.ytDlpArgsByPlatform,
-          outputRoot: audioRoot,
-          run
-        });
-      }
+            if (!subtitleFiles.length) {
+              audioPath = await downloadAudioArtifact({
+                url: started.url,
+                ytDlpBin: config.ytDlpBin,
+                ytDlpArgs: config.ytDlpArgs,
+                ytDlpArgsByPlatform: config.ytDlpArgsByPlatform,
+                outputRoot: audioRoot,
+                run
+              });
+            }
 
-      const transcript = await transcribeVideo({
-        subtitleFiles,
-        audioPath,
-        pythonBin: config.pythonBin,
-        whisperModel: config.whisperModel,
-        toolRoot: runtime.toolRoot,
-        run
-      });
+            return transcribeVideo({
+              subtitleFiles,
+              audioPath,
+              pythonBin: config.pythonBin,
+              whisperModel: config.whisperModel,
+              toolRoot: runtime.toolRoot,
+              run
+            });
+          })();
 
       const transcriptPath = join(artifactRoot, "transcript.json");
       await import("node:fs/promises").then(({ writeFile }) =>

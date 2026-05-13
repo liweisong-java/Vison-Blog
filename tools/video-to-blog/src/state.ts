@@ -11,6 +11,7 @@ const jobSchema = z.object({
   status: z.enum(["queued", "running", "succeeded", "failed"]),
   createdAt: z.string().min(1),
   updatedAt: z.string().min(1),
+  transcriptText: z.string().min(1).optional(),
   slug: z.string().min(1).optional(),
   error: z.string().min(1).optional()
 });

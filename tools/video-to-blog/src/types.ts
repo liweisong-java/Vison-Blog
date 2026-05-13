@@ -31,6 +31,7 @@ export type VideoToBlogJob = {
   status: VideoToBlogJobStatus;
   createdAt: string;
   updatedAt: string;
+  transcriptText?: string;
   slug?: string;
   error?: string;
 };
