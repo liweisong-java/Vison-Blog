@@ -146,7 +146,7 @@ async function main() {
   if (command === "server-install") {
     const user = readArg("--user") ?? env.SERVER_PUBLISH_USER ?? "deploy";
     const group = readArg("--group") ?? env.SERVER_PUBLISH_GROUP;
-    const intervalMinutes = Number(readArg("--interval-minutes") ?? env.SERVER_PUBLISH_INTERVAL_MINUTES ?? "5");
+    const intervalMinutes = Number(readArg("--interval-minutes") ?? env.SERVER_PUBLISH_INTERVAL_MINUTES ?? "1");
     const unitPaths = getSystemdUnitPaths();
     const commandLine = `bash -lc 'cd ${repoRoot} && pnpm publish:server-run'`;
 

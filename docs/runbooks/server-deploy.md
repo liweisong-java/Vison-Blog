@@ -290,7 +290,7 @@ pnpm publish:server-run
 ### 5. 安装 systemd 定时任务
 
 ```bash
-pnpm --filter publisher dev server-install --user deploy --group deploy --interval-minutes 5
+pnpm --filter publisher dev server-install --user deploy --group deploy --interval-minutes 1
 ```
 
 安装后会生成：

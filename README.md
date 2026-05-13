@@ -162,7 +162,7 @@ pnpm publish:auto-install
 安装后会发生这些事：
 
 - 监听思源当前博客笔记本的数据目录变化
-- 每 5 分钟做一次兜底检查，避免错过手机同步
+- 每 1 分钟做一次兜底检查，尽量把同步延迟压低
 - 只有检测到笔记本内容变化时才会触发真正同步
 - 同步成功后自动提交并推送到配置好的 Git 分支
 
@@ -195,7 +195,7 @@ pnpm publish:server-run
 - 构建 Astro 站点
 - 把 `apps/blog/dist` 发布到 `/data/Vison-Blog/current`
 
-推荐再配合 `systemd timer` 做每 5 分钟一次的自动巡检。
+推荐再配合 `systemd timer` 做每 1 分钟一次的自动巡检。
 
 ### 7. 自动上线闭环
 

@@ -181,7 +181,7 @@ pnpm publish:auto-install
 安装完成后：
 
 - `launchd` 会监听当前思源博客笔记本的数据目录
-- 每 5 分钟自动兜底检查一次
+- 每 1 分钟自动兜底检查一次
 - 只有检测到笔记变化时才会真正执行同步
 - 同步成功后自动提交并推送到当前安全分支目标
 - 如果目标分支是 `master`，并且仓库已配置服务器部署 workflow，就会继续自动上线
@@ -233,7 +233,7 @@ pnpm publish:server-run
 为了让它持续巡检，建议再安装 Linux `systemd` 定时任务：
 
 ```bash
-pnpm --filter publisher dev server-install --user deploy --group deploy --interval-minutes 5
+pnpm --filter publisher dev server-install --user deploy --group deploy --interval-minutes 1
 ```
 
 安装完成后，服务器会创建：
@@ -241,7 +241,7 @@ pnpm --filter publisher dev server-install --user deploy --group deploy --interv
 - `/etc/systemd/system/vision-blog-publisher.service`
 - `/etc/systemd/system/vision-blog-publisher.timer`
 
-默认每 5 分钟执行一次完整巡检。
+默认每 1 分钟执行一次完整巡检。
 
 ### 服务器主导模式下怎么理解“发文成功”
 

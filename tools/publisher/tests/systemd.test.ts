@@ -37,4 +37,10 @@ describe("systemd helpers", () => {
     expect(timer).toContain("Persistent=true");
     expect(timer).toContain("Unit=vision-blog-publisher.service");
   });
+
+  it("defaults to a one-minute polling timer for lower publish latency", () => {
+    const timer = buildSystemdTimer({});
+
+    expect(timer).toContain("OnCalendar=*:0/1");
+  });
 });

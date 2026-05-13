@@ -49,7 +49,7 @@ export function buildSystemdService({
 }
 
 export function buildSystemdTimer({
-  onCalendar = "*:0/5",
+  onCalendar = "*:0/1",
   persistent = true
 }: {
   onCalendar?: string;
