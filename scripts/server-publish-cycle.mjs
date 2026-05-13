@@ -52,6 +52,8 @@ async function main() {
   const branch = process.env.SERVER_PUBLISH_BRANCH ?? "master";
   const remote = process.env.SERVER_PUBLISH_REMOTE ?? "origin";
   const releaseId = process.env.SERVER_PUBLISH_RELEASE_ID ?? new Date().toISOString().replace(/[:.]/g, "-");
+  const gitAuthorName = process.env.SERVER_PUBLISH_GIT_AUTHOR_NAME ?? "Vision Blog Bot";
+  const gitAuthorEmail = process.env.SERVER_PUBLISH_GIT_AUTHOR_EMAIL ?? "vision-blog-bot@users.noreply.github.com";
   const runtimeDir = join(runtimeRoot, releaseId);
   const publisherCliEntry = resolve(runtimeDir, "tools/publisher/src/cli.ts");
   const tsxCliEntry = resolve(runtimeDir, "tools/publisher/node_modules/tsx/dist/cli.mjs");
@@ -91,8 +93,12 @@ async function main() {
       cwd: runtimeDir,
       env: {
         PUBLISH_SKIP_BLOG_CHECKS: "true",
-          PUBLISH_PUSH: "false",
-          PUBLISH_SYNC_BEFORE_EXPORT: "true"
+        PUBLISH_PUSH: "false",
+        PUBLISH_SYNC_BEFORE_EXPORT: "true",
+        GIT_AUTHOR_NAME: gitAuthorName,
+        GIT_AUTHOR_EMAIL: gitAuthorEmail,
+        GIT_COMMITTER_NAME: gitAuthorName,
+        GIT_COMMITTER_EMAIL: gitAuthorEmail
       }
     });
     await runNodeScript(resolve(runtimeDir, "scripts/generate-private-dashboard.mjs"), [], { cwd: runtimeDir });
