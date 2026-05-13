@@ -118,7 +118,7 @@ export async function buildWechatArticle({
   note: PublishedNote;
   markdown: string;
 }) {
-  const body = normalizeMarkdownBody(markdown, note.title)
+  const body = normalizeSiyuanStructures(normalizeMarkdownBody(markdown, note.title), "plain")
     .replace(/!\[[^\]]*]\([^)]+\)/g, "")
     .trim();
 

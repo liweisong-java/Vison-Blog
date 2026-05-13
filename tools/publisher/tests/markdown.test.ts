@@ -308,6 +308,34 @@ console.log("hello")
     expect(bundle.body).not.toContain('{: style="background-color: var(--b3-theme-primary-light);"}');
   });
 
+  it("normalizes Siyuan inline html marks into stable markdown content", async () => {
+    const bundle = await buildPostBundle({
+      note: {
+        id: "doc-tech-inline-marks",
+        title: "内联标记示例",
+        slug: "inline-marks-example",
+        category: "tech",
+        excerpt: "思源导出的内联 HTML 标记应被收敛成稳定的博客内容。",
+        featured: false,
+        publishedAt: "2026-05-13",
+        tags: ["inline-marks"]
+      },
+      markdown:
+        '请查看 <span data-type="a" data-href="assets/guide.pdf">操作说明</span>，并执行 <span data-type="code">pnpm dev</span>，关注 <span data-type="strong">关键步骤</span>。<br /><span data-type="em">别漏掉环境变量</span>'
+    });
+
+    expect(bundle.body).toContain("[操作说明](./guide.pdf)");
+    expect(bundle.body).toContain("`pnpm dev`");
+    expect(bundle.body).toContain("**关键步骤**");
+    expect(bundle.body).toContain("*别漏掉环境变量*");
+    expect(bundle.body).toContain("<br />");
+    expect(bundle.body).not.toContain("data-type=");
+    expect(bundle.assets).toContainEqual({
+      sourcePath: "assets/guide.pdf",
+      fileName: "guide.pdf"
+    });
+  });
+
   it("builds a wechat-friendly markdown export", async () => {
     const article = await buildWechatArticle({
       note: {
@@ -328,6 +356,43 @@ console.log("hello")
     expect(article.body).toContain("# From Notes to Site");
     expect(article.body).toContain("A practical walkthrough.");
     expect(article.body).not.toContain("assets/image-demo.png");
+  });
+
+  it("builds a wechat export from Siyuan semantic blocks without leaking mdx-only syntax", async () => {
+    const article = await buildWechatArticle({
+      note: {
+        id: "doc-tech-wechat-semantic",
+        title: "公众号同步示例",
+        slug: "wechat-semantic-example",
+        category: "tech",
+        excerpt: "思源结构在公众号导出里也应保持可读。",
+        featured: false,
+        publishedAt: "2026-05-13",
+        tags: ["wechat", "semantic"],
+        wechatReady: true
+      },
+      markdown: `::: tip
+把提示内容同步给公众号。
+:::
+
+{{{col
+第一部分重点说明。
+
+第二部分补充细节。
+}}}
+
+参考资料：<span data-type="a" data-href="https://example.com/docs">官方文档</span>`
+    });
+
+    expect(article.body).toContain("把提示内容同步给公众号。");
+    expect(article.body).toContain("第一部分重点说明。");
+    expect(article.body).toContain("第二部分补充细节。");
+    expect(article.body).toContain("[官方文档](https://example.com/docs)");
+    expect(article.body).not.toContain("<Callout");
+    expect(article.body).not.toContain("<Columns>");
+    expect(article.body).not.toContain("::: tip");
+    expect(article.body).not.toContain("{{{col");
+    expect(article.body).not.toContain("data-type=");
   });
 
   it("builds a wechat export without repeating the article title", async () => {
