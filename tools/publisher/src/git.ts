@@ -21,6 +21,18 @@ async function resolvePushTarget({
 
   if (branch?.trim()) {
     const requestedBranch = branch.trim();
+    if (!currentBranch && !upstreamBranch) {
+      const currentHead = (await git.raw(["rev-parse", "HEAD"])).trim();
+      const remoteHead = await git
+        .raw(["rev-parse", "--verify", `refs/remotes/${remote}/${requestedBranch}`])
+        .then((value) => value.trim())
+        .catch(() => "");
+
+      if (remoteHead && remoteHead === currentHead) {
+        return requestedBranch;
+      }
+    }
+
     if (
       requestedBranch !== currentBranch &&
       requestedBranch !== upstreamBranch

@@ -161,6 +161,55 @@ describe("commitAndPush", () => {
     expect(push).not.toHaveBeenCalled();
   });
 
+  it("allows pushing an explicit branch from a detached worktree when HEAD matches the remote branch tip", async () => {
+    let headReads = 0;
+
+    raw.mockImplementation(async (args: string[]) => {
+      const command = args.join(" ");
+
+      if (command === "diff --cached --name-only") {
+        return "apps/blog/src/content/posts/post-mpxnkju/index.mdx\n";
+      }
+
+      if (command === "branch --show-current") {
+        return "\n";
+      }
+
+      if (command === "rev-parse --abbrev-ref --symbolic-full-name @{u}") {
+        throw new Error("fatal: no upstream configured");
+      }
+
+      if (command === "rev-parse HEAD") {
+        headReads += 1;
+        return headReads === 1 ? "base123\n" : "commit456\n";
+      }
+
+      if (command === "rev-parse --verify refs/remotes/origin/master") {
+        return "base123\n";
+      }
+
+      throw new Error(`Unexpected git raw command: ${command}`);
+    });
+
+    const { commitAndPush } = await import("../src/git");
+    const result = await commitAndPush({
+      repoRoot: "/tmp/vision-blog",
+      branch: "master",
+      remote: "origin",
+      message: "chore(content): sync siyuan posts",
+      includePaths: ["/tmp/vision-blog/apps/blog/src/content/posts"]
+    });
+
+    expect(commit).toHaveBeenCalledWith("chore(content): sync siyuan posts");
+    expect(push).toHaveBeenCalledWith("origin", "HEAD:master");
+    expect(result).toEqual({
+      committed: true,
+      pushed: true,
+      commitHash: "commit456",
+      stagedFiles: ["apps/blog/src/content/posts/post-mpxnkju/index.mdx"]
+    });
+  });
+
   it("commits without pushing when git push is disabled", async () => {
     raw.mockImplementation(async (args: string[]) => {
       const command = args.join(" ");
