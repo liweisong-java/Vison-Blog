@@ -262,6 +262,7 @@ pnpm publish:server-run
 | `pnpm video:enqueue --url <链接>` | 提交一个公开视频整理任务 |
 | `pnpm video:run` | 执行一次视频任务队列 |
 | `pnpm video:status` | 查看视频任务队列状态 |
+| `VIDEO_TO_BLOG_SKIP_CHECK=1 pnpm video:run` | 服务器快速模式，跳过 `astro check` 直接构建发布 |
 
 ## 部署、自动上线与评论
 
@@ -296,6 +297,26 @@ pnpm publish:server-run
 - [服务器静态部署说明](docs/runbooks/server-deploy.md)
 - [私有统计页运维说明](docs/runbooks/private-dashboard.md)
 - [Vercel 可选部署说明](docs/runbooks/vercel-setup.md)
+
+## 视频转博客当前可用模式
+
+`video-to-blog` 目前已经具备 3 条可用路径：
+
+- `yt-dlp` 直接抓公开视频的元数据、字幕或音频
+- B 站网页层被 `412` 拦截时，自动切到公开 API 兜底拿元数据与字幕
+- 平台暂时拿不到字幕或音频时，可以在入队时直接附带人工整理文字稿，系统仍然会生成博客文章
+
+人工 transcript 入队示例：
+
+```bash
+pnpm video:enqueue -- --url "https://www.bilibili.com/video/BV1GJ411x7h7" --transcript "第一段整理内容。"
+VIDEO_TO_BLOG_SKIP_CHECK=1 pnpm video:run
+```
+
+补充说明：
+
+- 队列里如果残留 `running` 状态任务，下一次 `video:run` 会自动回收成 `queued` 再继续处理
+- 服务器场景建议优先使用 `VIDEO_TO_BLOG_SKIP_CHECK=1`，避免被较慢的 `astro check` 阻塞内容发布
 
 ## 私有统计页
 
@@ -333,6 +354,7 @@ pnpm private:dashboard:traffic
 - 已支持零手填优先的自动发文规则
 - 已支持 `master` 分支自动构建并部署到自托管静态服务器
 - 已支持私有统计页与本地 dashboard 快照生成
+- 已支持公开视频链接整理成博客草稿，包含 B 站公开接口兜底与人工 transcript 兜底
 - 暂未内置“直接发公众号”的自动集成，当前阶段提供兼容稿导出
 
 ## 说明
