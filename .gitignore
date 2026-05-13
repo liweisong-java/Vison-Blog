@@ -14,3 +14,4 @@ target/
 apps/blog/test-results/
 playwright-report/
 tools/publisher/publisher.config.json
+tools/video-to-blog/video-to-blog.config.json

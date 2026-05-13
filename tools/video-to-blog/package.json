@@ -1,0 +1,22 @@
+{
+  "name": "video-to-blog",
+  "private": true,
+  "type": "module",
+  "bin": {
+    "vision-video-to-blog": "./dist/cli.js"
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "test": "vitest run",
+    "dev": "tsx src/cli.ts"
+  },
+  "dependencies": {
+    "dotenv": "^17.4.2",
+    "gray-matter": "^4.0.3",
+    "simple-git": "^3.36.0",
+    "zod": "^4.4.3"
+  },
+  "devDependencies": {
+    "tsx": "^4.21.0"
+  }
+}

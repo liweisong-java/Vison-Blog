@@ -6,6 +6,8 @@ describe("server-led publishing script", () => {
   it("keeps the server publish cycle isolated through git worktree runtime copies", async () => {
     const script = await readFile(resolve(process.cwd(), "../../scripts/server-publish-cycle.mjs"), "utf8");
 
+    expect(script).toContain("withRepoLock");
+    expect(script).toContain("repo.lock");
     expect(script).toContain("git");
     expect(script).toContain("worktree");
     expect(script).toContain("SERVER_PUBLISH_PUSH_CONTENT");

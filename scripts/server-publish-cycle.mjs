@@ -3,10 +3,12 @@ import {execFile} from "node:child_process";
 import {promisify} from "node:util";
 import {dirname, join, resolve} from "node:path";
 import {fileURLToPath} from "node:url";
+import {withRepoLock} from "./lib/repo-lock.mjs";
 
 const execFileAsync = promisify(execFile);
 const root = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const runtimeRoot = process.env.SERVER_PUBLISH_RUNTIME_ROOT ?? resolve(root, ".server-runtime");
+const repoLockPath = resolve(root, ".superpowers", "locks", "repo.lock");
 
 function envFlag(name, fallback = false) {
   const value = process.env[name];
@@ -143,7 +145,7 @@ async function main() {
   }
 }
 
-await main().catch((error) => {
+await withRepoLock(repoLockPath, main).catch((error) => {
   console.error(error instanceof Error ? error.message : String(error));
   process.exitCode = 1;
 });

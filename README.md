@@ -6,6 +6,7 @@
 
 - 中文优先的排版与阅读体验
 - `SiYuan` 作为唯一内容源，适合手机和桌面混合写作
+- 新增 `video-to-blog` 工具，可把公开视频链接整理成博客文章
 - 无数据库、无业务后端、无传统 CMS
 - 内置 `init / doctor / dry-run / sync` 发布链路
 - 自动生成博客文章，并可按需导出公众号兼容稿
@@ -45,6 +46,7 @@
 .
 ├── apps/blog           # Astro 博客前台
 ├── tools/publisher     # 思源发布器
+├── tools/video-to-blog # 视频链接转博客工具
 ├── docs/runbooks       # 使用与部署文档
 └── exports/wechat      # 公众号兼容稿导出目录
 ```
@@ -255,6 +257,11 @@ pnpm publish:server-run
 | `pnpm publish:auto-once` | 手动执行一次自动巡检 |
 | `pnpm publish:auto-uninstall` | 卸载本机自动发布任务 |
 | `pnpm publish:server-run` | 服务器主导模式下执行一次完整巡检、构建与上线 |
+| `pnpm video:init` | 初始化视频转博客工具本地配置 |
+| `pnpm video:doctor` | 检查视频转博客依赖环境 |
+| `pnpm video:enqueue --url <链接>` | 提交一个公开视频整理任务 |
+| `pnpm video:run` | 执行一次视频任务队列 |
+| `pnpm video:status` | 查看视频任务队列状态 |
 
 ## 部署、自动上线与评论
 
@@ -285,6 +292,7 @@ pnpm publish:server-run
 详细说明见：
 
 - [思源发布器使用手册](docs/runbooks/siyuan-publisher.md)
+- [视频转博客使用手册](docs/runbooks/video-to-blog.md)
 - [服务器静态部署说明](docs/runbooks/server-deploy.md)
 - [私有统计页运维说明](docs/runbooks/private-dashboard.md)
 - [Vercel 可选部署说明](docs/runbooks/vercel-setup.md)
