@@ -261,15 +261,20 @@ export async function runVideoQueue({
       await import("node:fs/promises").then(({ writeFile }) =>
         writeFile(transcriptPath, JSON.stringify(transcript, null, 2), "utf8")
       );
+      logRunStage(`job=${job.id} transcript=saved path=${transcriptPath}`);
 
+      logRunStage(`job=${job.id} existing-article=scan-start`);
       const existing = await findExistingVideoArticle(config.contentRoot, metadata.webpageUrl);
+      logRunStage(`job=${job.id} existing-article=scan-done slug=${existing?.slug ?? "none"}`);
       const article = composeVideoArticle({
         metadata,
         transcript,
         slugOverride: existing?.slug,
         now
       });
+      logRunStage(`job=${job.id} article=composed slug=${article.slug}`);
 
+      logRunStage(`job=${job.id} transaction=enter`);
       const deployment = await withManagedArticleTransaction({
         runtime,
         article,
