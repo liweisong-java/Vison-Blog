@@ -3,6 +3,8 @@
   "stateRoot": ".superpowers/video-to-blog",
   "deployRoot": "/data/Vison-Blog",
   "ytDlpBin": "yt-dlp",
+  "ytDlpArgs": [],
+  "ytDlpArgsByPlatform": {},
   "pythonBin": "python3",
   "whisperModel": "large-v3",
   "tempRoot": ".superpowers/video-to-blog/tmp"

@@ -3,6 +3,8 @@ export type VideoToBlogConfig = {
   stateRoot: string;
   deployRoot: string;
   ytDlpBin: string;
+  ytDlpArgs: string[];
+  ytDlpArgsByPlatform: Partial<Record<SupportedVideoPlatform, string[]>>;
   pythonBin: string;
   whisperModel: string;
   tempRoot: string;

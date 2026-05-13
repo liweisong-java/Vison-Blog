@@ -46,46 +46,84 @@ function mapMetadata(raw: RawMetadata, url: string, platform: SupportedVideoPlat
   };
 }
 
+function buildYtDlpArgs({
+  url,
+  ytDlpArgs = [],
+  ytDlpArgsByPlatform = {},
+  commandArgs
+}: {
+  url: string;
+  ytDlpArgs?: string[];
+  ytDlpArgsByPlatform?: Partial<Record<SupportedVideoPlatform, string[]>>;
+  commandArgs: string[];
+}) {
+  const platform = detectVideoPlatform(url);
+  return {
+    platform,
+    args: [...ytDlpArgs, ...(ytDlpArgsByPlatform[platform] ?? []), ...commandArgs, url]
+  };
+}
+
 export async function fetchVideoMetadata({
   url,
   ytDlpBin,
+  ytDlpArgs = [],
+  ytDlpArgsByPlatform = {},
   run = runCommand
 }: {
   url: string;
   ytDlpBin: string;
+  ytDlpArgs?: string[];
+  ytDlpArgsByPlatform?: Partial<Record<SupportedVideoPlatform, string[]>>;
   run?: RunCommand;
 }) {
-  const platform = detectVideoPlatform(url);
-  const { stdout } = await run(ytDlpBin, ["--dump-single-json", "--no-warnings", "--skip-download", url]);
+  const { platform, args } = buildYtDlpArgs({
+    url,
+    ytDlpArgs,
+    ytDlpArgsByPlatform,
+    commandArgs: ["--dump-single-json", "--no-warnings", "--skip-download"]
+  });
+  const { stdout } = await run(ytDlpBin, args);
   return mapMetadata(JSON.parse(stdout) as RawMetadata, url, platform);
 }
 
 export async function downloadSubtitleArtifacts({
   url,
   ytDlpBin,
+  ytDlpArgs = [],
+  ytDlpArgsByPlatform = {},
   outputRoot,
-  run = runCommand
+  run = runCommand,
+  listFiles = readdir
 }: {
   url: string;
   ytDlpBin: string;
+  ytDlpArgs?: string[];
+  ytDlpArgsByPlatform?: Partial<Record<SupportedVideoPlatform, string[]>>;
   outputRoot: string;
   run?: RunCommand;
+  listFiles?: typeof readdir;
 }) {
   const outputTemplate = join(outputRoot, "subtitle.%(ext)s");
-  await run(ytDlpBin, [
-    "--skip-download",
-    "--write-subs",
-    "--write-auto-subs",
-    "--sub-langs",
-    "all,-live_chat",
-    "--sub-format",
-    "vtt/srt/best",
-    "--output",
-    outputTemplate,
-    url
-  ]);
+  const { args } = buildYtDlpArgs({
+    url,
+    ytDlpArgs,
+    ytDlpArgsByPlatform,
+    commandArgs: [
+      "--skip-download",
+      "--write-subs",
+      "--write-auto-subs",
+      "--sub-langs",
+      "all,-live_chat",
+      "--sub-format",
+      "vtt/srt/best",
+      "--output",
+      outputTemplate
+    ]
+  });
+  await run(ytDlpBin, args);
 
-  const files = await readdir(outputRoot);
+  const files = await listFiles(outputRoot);
   return files
     .filter((file) => file.startsWith("subtitle."))
     .map((file) => join(outputRoot, file));
@@ -94,26 +132,30 @@ export async function downloadSubtitleArtifacts({
 export async function downloadAudioArtifact({
   url,
   ytDlpBin,
+  ytDlpArgs = [],
+  ytDlpArgsByPlatform = {},
   outputRoot,
-  run = runCommand
+  run = runCommand,
+  listFiles = readdir
 }: {
   url: string;
   ytDlpBin: string;
+  ytDlpArgs?: string[];
+  ytDlpArgsByPlatform?: Partial<Record<SupportedVideoPlatform, string[]>>;
   outputRoot: string;
   run?: RunCommand;
+  listFiles?: typeof readdir;
 }) {
   const outputTemplate = join(outputRoot, "audio.%(ext)s");
-  await run(ytDlpBin, [
-    "--no-playlist",
-    "--no-warnings",
-    "-f",
-    "bestaudio/best",
-    "--output",
-    outputTemplate,
-    url
-  ]);
+  const { args } = buildYtDlpArgs({
+    url,
+    ytDlpArgs,
+    ytDlpArgsByPlatform,
+    commandArgs: ["--no-playlist", "--no-warnings", "-f", "bestaudio/best", "--output", outputTemplate]
+  });
+  await run(ytDlpBin, args);
 
-  const files = await readdir(outputRoot);
+  const files = await listFiles(outputRoot);
   const audio = files.find((file) => file.startsWith("audio."));
   if (!audio) {
     throw new Error("yt-dlp did not produce an audio artifact.");

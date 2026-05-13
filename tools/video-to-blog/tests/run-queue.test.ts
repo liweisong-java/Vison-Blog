@@ -44,6 +44,8 @@ describe("runVideoQueue", () => {
         stateRoot: runtime.stateRoot,
         deployRoot: join(root, "deploy"),
         ytDlpBin: "yt-dlp",
+        ytDlpArgs: [],
+        ytDlpArgsByPlatform: {},
         pythonBin: "python3",
         whisperModel: "large-v3",
         tempRoot: runtime.tempRoot

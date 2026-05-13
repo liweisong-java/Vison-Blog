@@ -22,7 +22,7 @@ export async function doctorVideoToBlog({
   run?: typeof runCommand;
 }) {
   await access(config.contentRoot);
-  await run(config.ytDlpBin, ["--version"]);
+  await run(config.ytDlpBin, [...config.ytDlpArgs, "--version"]);
   await run(config.pythonBin, ["-c", "import faster_whisper"]);
 
   return {
@@ -134,6 +134,8 @@ export async function runVideoQueue({
       const metadata = await fetchVideoMetadata({
         url: started.url,
         ytDlpBin: config.ytDlpBin,
+        ytDlpArgs: config.ytDlpArgs,
+        ytDlpArgsByPlatform: config.ytDlpArgsByPlatform,
         run
       });
       await writeFile(join(artifactRoot, "metadata.json"), JSON.stringify(metadata, null, 2), "utf8");
@@ -146,6 +148,8 @@ export async function runVideoQueue({
       const subtitleFiles = await downloadSubtitleArtifacts({
         url: started.url,
         ytDlpBin: config.ytDlpBin,
+        ytDlpArgs: config.ytDlpArgs,
+        ytDlpArgsByPlatform: config.ytDlpArgsByPlatform,
         outputRoot: subtitleRoot,
         run
       }).catch(() => []);
@@ -155,6 +159,8 @@ export async function runVideoQueue({
         : await downloadAudioArtifact({
             url: started.url,
             ytDlpBin: config.ytDlpBin,
+            ytDlpArgs: config.ytDlpArgs,
+            ytDlpArgsByPlatform: config.ytDlpArgsByPlatform,
             outputRoot: audioRoot,
             run
           });

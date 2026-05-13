@@ -8,6 +8,14 @@ const rawConfigSchema = z.object({
   stateRoot: z.string().min(1),
   deployRoot: z.string().min(1),
   ytDlpBin: z.string().min(1),
+  ytDlpArgs: z.array(z.string().min(1)).default([]),
+  ytDlpArgsByPlatform: z
+    .object({
+      youtube: z.array(z.string().min(1)).optional(),
+      bilibili: z.array(z.string().min(1)).optional(),
+      douyin: z.array(z.string().min(1)).optional()
+    })
+    .default({}),
   pythonBin: z.string().min(1),
   whisperModel: z.string().min(1),
   tempRoot: z.string().min(1)

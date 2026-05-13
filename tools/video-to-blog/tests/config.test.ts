@@ -12,5 +12,7 @@ describe("loadVideoToBlogConfig", () => {
     expect(config.stateRoot).toBe("/tmp/vision-blog/.superpowers/video-to-blog");
     expect(config.deployRoot).toBe("/data/Vison-Blog");
     expect(config.tempRoot).toBe("/tmp/vision-blog/.superpowers/video-to-blog/tmp");
+    expect(config.ytDlpArgs).toEqual([]);
+    expect(config.ytDlpArgsByPlatform).toEqual({});
   });
 });
