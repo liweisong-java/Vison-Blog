@@ -87,6 +87,8 @@ async function main() {
       resolve(runtimeDir, "tools/publisher/publisher.config.json")
     );
     copyIfExists(resolve(root, ".superpowers"), resolve(runtimeDir, ".superpowers"));
+    await run("git", ["config", "user.name", gitAuthorName], { cwd: runtimeDir });
+    await run("git", ["config", "user.email", gitAuthorEmail], { cwd: runtimeDir });
 
     await run("pnpm", ["install", "--frozen-lockfile"], { cwd: runtimeDir });
     await runNodeScript(tsxCliEntry, [publisherCliEntry, "sync"], {

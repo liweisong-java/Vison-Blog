@@ -18,9 +18,9 @@ describe("server-led publishing script", () => {
     expect(script).toContain("generate-private-dashboard.mjs");
     expect(script).toContain("PUBLISH_SKIP_BLOG_CHECKS: \"true\"");
     expect(script).toContain("PUBLISH_SYNC_BEFORE_EXPORT: \"true\"");
-    expect(script).toContain("GIT_AUTHOR_NAME");
-    expect(script).toContain("GIT_AUTHOR_EMAIL");
-    expect(script).toContain("GIT_COMMITTER_NAME");
-    expect(script).toContain("GIT_COMMITTER_EMAIL");
+    expect(script).toContain('"config", "user.name"');
+    expect(script).toContain('"config", "user.email"');
+    expect(script).toContain("user.name");
+    expect(script).toContain("user.email");
   });
 });
