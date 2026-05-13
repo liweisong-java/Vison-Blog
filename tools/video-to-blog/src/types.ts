@@ -84,3 +84,5 @@ export type ComposedArticle = {
   body: string;
   canonicalUrl: string;
 };
+
+export type VideoRequestJson = (url: string, options?: { headers?: Record<string, string> }) => Promise<unknown>;

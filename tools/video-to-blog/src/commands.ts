@@ -4,6 +4,7 @@ import { join, resolve } from "node:path";
 import { writeFile } from "node:fs/promises";
 import { enqueueVideoJob, readManifest, readQueueState, updateQueuedJob, writeJobSnapshot } from "./state.js";
 import { fetchVideoMetadata, downloadAudioArtifact, downloadSubtitleArtifacts } from "./yt-dlp.js";
+import { downloadBilibiliSubtitleArtifacts, fetchBilibiliMetadata as fetchBilibiliMetadataFallback } from "./bilibili.js";
 import { transcribeVideo } from "./transcribe.js";
 import { composeVideoArticle } from "./compose.js";
 import { buildBlogArtifacts, deployLocalStaticSite } from "./deploy.js";
@@ -11,6 +12,7 @@ import { commitAndPushManagedPaths } from "./git.js";
 import { findExistingVideoArticle, updatePublishedManifest, withManagedArticleTransaction } from "./publish.js";
 import type { VideoToBlogConfig, VideoToBlogJob, VideoToBlogRuntime } from "./types.js";
 import { runCommand } from "./process.js";
+import { detectVideoPlatform } from "./platform.js";
 
 export async function doctorVideoToBlog({
   config,
@@ -106,6 +108,8 @@ export async function runVideoQueue({
   buildSite = buildBlogArtifacts,
   commitAndPush = commitAndPushManagedPaths,
   deploySite = deployLocalStaticSite,
+  fetchBilibiliMetadata = fetchBilibiliMetadataFallback,
+  downloadBilibiliSubtitles = downloadBilibiliSubtitleArtifacts,
   now = () => new Date().toISOString()
 }: {
   config: VideoToBlogConfig;
@@ -115,6 +119,8 @@ export async function runVideoQueue({
   buildSite?: typeof buildBlogArtifacts;
   commitAndPush?: typeof commitAndPushManagedPaths;
   deploySite?: typeof deployLocalStaticSite;
+  fetchBilibiliMetadata?: typeof fetchBilibiliMetadataFallback;
+  downloadBilibiliSubtitles?: typeof downloadBilibiliSubtitleArtifacts;
   now?: () => string;
 }) {
   const queue = await readQueueState(runtime.queuePath);
@@ -131,39 +137,75 @@ export async function runVideoQueue({
     await mkdir(artifactRoot, { recursive: true });
 
     try {
-      const metadata = await fetchVideoMetadata({
-        url: started.url,
-        ytDlpBin: config.ytDlpBin,
-        ytDlpArgs: config.ytDlpArgs,
-        ytDlpArgsByPlatform: config.ytDlpArgsByPlatform,
-        run
-      });
-      await writeFile(join(artifactRoot, "metadata.json"), JSON.stringify(metadata, null, 2), "utf8");
-
+      const platform = detectVideoPlatform(started.url);
       const subtitleRoot = resolve(artifactRoot, "subtitles");
       const audioRoot = resolve(artifactRoot, "audio");
       await mkdir(subtitleRoot, { recursive: true });
       await mkdir(audioRoot, { recursive: true });
 
-      const subtitleFiles = await downloadSubtitleArtifacts({
-        url: started.url,
-        ytDlpBin: config.ytDlpBin,
-        ytDlpArgs: config.ytDlpArgs,
-        ytDlpArgsByPlatform: config.ytDlpArgsByPlatform,
-        outputRoot: subtitleRoot,
-        run
-      }).catch(() => []);
+      const requestJson = async (url: string, options?: { headers?: Record<string, string> }) => {
+        const { stdout } = await run("curl", [
+          "-fsSL",
+          ...(options?.headers
+            ? Object.entries(options.headers).flatMap(([key, value]) => ["-H", `${key}: ${value}`])
+            : []),
+          url
+        ]);
+        return JSON.parse(stdout) as unknown;
+      };
 
-      const audioPath = subtitleFiles.length
-        ? undefined
-        : await downloadAudioArtifact({
-            url: started.url,
-            ytDlpBin: config.ytDlpBin,
-            ytDlpArgs: config.ytDlpArgs,
-            ytDlpArgsByPlatform: config.ytDlpArgsByPlatform,
-            outputRoot: audioRoot,
-            run
-          });
+      let metadata;
+      let subtitleFiles: string[] = [];
+      let audioPath: string | undefined;
+
+      try {
+        metadata = await fetchVideoMetadata({
+          url: started.url,
+          ytDlpBin: config.ytDlpBin,
+          ytDlpArgs: config.ytDlpArgs,
+          ytDlpArgsByPlatform: config.ytDlpArgsByPlatform,
+          run
+        });
+      } catch (error) {
+        const message = error instanceof Error ? error.message : String(error);
+        if (platform !== "bilibili" || !message.includes("412")) {
+          throw error;
+        }
+
+        metadata = await fetchBilibiliMetadata({
+          url: started.url,
+          requestJson
+        });
+        subtitleFiles = await downloadBilibiliSubtitles({
+          url: started.url,
+          outputRoot: subtitleRoot,
+          requestJson
+        });
+      }
+
+      await writeFile(join(artifactRoot, "metadata.json"), JSON.stringify(metadata, null, 2), "utf8");
+
+      if (!subtitleFiles.length) {
+        subtitleFiles = await downloadSubtitleArtifacts({
+          url: started.url,
+          ytDlpBin: config.ytDlpBin,
+          ytDlpArgs: config.ytDlpArgs,
+          ytDlpArgsByPlatform: config.ytDlpArgsByPlatform,
+          outputRoot: subtitleRoot,
+          run
+        }).catch(() => []);
+      }
+
+      if (!subtitleFiles.length) {
+        audioPath = await downloadAudioArtifact({
+          url: started.url,
+          ytDlpBin: config.ytDlpBin,
+          ytDlpArgs: config.ytDlpArgs,
+          ytDlpArgsByPlatform: config.ytDlpArgsByPlatform,
+          outputRoot: audioRoot,
+          run
+        });
+      }
 
       const transcript = await transcribeVideo({
         subtitleFiles,

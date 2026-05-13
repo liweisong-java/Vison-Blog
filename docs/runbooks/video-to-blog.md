@@ -29,6 +29,19 @@ pnpm video:init
 - `VIDEO_TO_BLOG_GIT_AUTHOR_NAME`
 - `VIDEO_TO_BLOG_GIT_AUTHOR_EMAIL`
 
+`video-to-blog.config.json` 还支持按平台补充 `yt-dlp` 参数，例如：
+
+```json
+{
+  "ytDlpArgs": ["--socket-timeout", "30"],
+  "ytDlpArgsByPlatform": {
+    "youtube": ["--extractor-args", "youtube:player_client=web"],
+    "bilibili": ["--impersonate", "Chrome-136:Windows-10"],
+    "douyin": []
+  }
+}
+```
+
 ## 运行前准备
 
 服务器上需要具备：
@@ -38,6 +51,7 @@ pnpm video:init
 - `python3`
 - `yt-dlp`
 - `faster-whisper`
+- 如果需要 `--impersonate`，建议安装兼容版 `curl-cffi`
 
 Python 依赖建议：
 
@@ -50,6 +64,19 @@ pip3 install faster-whisper
 ```bash
 pip3 install yt-dlp
 ```
+
+如果要启用 `yt-dlp` 的浏览器伪装能力，推荐补充：
+
+```bash
+pip3 install "yt-dlp[default,curl-cffi]"
+pip3 install "curl-cffi>=0.14,<0.15" --force-reinstall
+```
+
+说明：
+
+- 当前 `yt-dlp 2026.03.17` 与 `curl-cffi 0.15.x` 不兼容
+- 实测 `curl-cffi 0.14.x` 可正常启用 `--impersonate`
+- 可以用 `yt-dlp --list-impersonate-targets` 验证是否生效
 
 ## 检查环境
 
