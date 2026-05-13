@@ -54,6 +54,7 @@ async function main() {
   const releaseId = process.env.SERVER_PUBLISH_RELEASE_ID ?? new Date().toISOString().replace(/[:.]/g, "-");
   const gitAuthorName = process.env.SERVER_PUBLISH_GIT_AUTHOR_NAME ?? "Vision Blog Bot";
   const gitAuthorEmail = process.env.SERVER_PUBLISH_GIT_AUTHOR_EMAIL ?? "vision-blog-bot@users.noreply.github.com";
+  const pushContent = envFlag("SERVER_PUBLISH_PUSH_CONTENT", true);
   const runtimeDir = join(runtimeRoot, releaseId);
   const publisherCliEntry = resolve(runtimeDir, "tools/publisher/src/cli.ts");
   const tsxCliEntry = resolve(runtimeDir, "tools/publisher/node_modules/tsx/dist/cli.mjs");
@@ -95,7 +96,7 @@ async function main() {
       cwd: runtimeDir,
       env: {
         PUBLISH_SKIP_BLOG_CHECKS: "true",
-        PUBLISH_PUSH: "false",
+        PUBLISH_PUSH: pushContent ? "true" : "false",
         PUBLISH_SYNC_BEFORE_EXPORT: "true",
         GIT_AUTHOR_NAME: gitAuthorName,
         GIT_AUTHOR_EMAIL: gitAuthorEmail,

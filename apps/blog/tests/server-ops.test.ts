@@ -8,7 +8,8 @@ describe("server-led publishing script", () => {
 
     expect(script).toContain("git");
     expect(script).toContain("worktree");
-    expect(script).toContain("PUBLISH_PUSH: \"false\"");
+    expect(script).toContain("SERVER_PUBLISH_PUSH_CONTENT");
+    expect(script).toContain('PUBLISH_PUSH: pushContent ? "true" : "false"');
     expect(script).toContain("deploy-local");
     expect(script).toContain("pnpm");
     expect(script).toContain("exec");
