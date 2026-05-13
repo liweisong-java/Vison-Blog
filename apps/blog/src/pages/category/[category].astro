@@ -8,32 +8,18 @@ export async function getStaticPaths() {
   return ["tech", "life"].map((category) => ({ params: { category } }));
 }
 
-const categoryCopy = {
-  tech: {
-    label: "技术",
-    summary: "放一些技术实践、工具流、AI 使用心得，以及那些值得反复整理的方法。"
-  },
-  life: {
-    label: "生活",
-    summary: "放一些日常记录、慢一点的观察，以及技术之外还想留下来的部分。"
-  }
-} as const;
-
 const { category } = Astro.params as { category: "tech" | "life" };
 const posts = filterPostsByCategory(
   sortPublishedPosts(await getCollection("posts", ({ data }) => data.publish)),
   category
 );
-const copy = categoryCopy[category];
+const label = category === "tech" ? "技术" : "生活";
 ---
 
-<BaseLayout title={`${copy.label} | 伟松的博客`} description={`${copy.label}分类文章列表。`}>
+<BaseLayout title={`${label} | 伟松的博客`} description={`${label}分类文章列表。`}>
   <div class="category-page">
-    <section class="category-hero">
-      <div class="category-hero__main">
-        <h1>{copy.label}</h1>
-        <p class="page-intro__summary">{copy.summary}</p>
-      </div>
+    <section class="page-intro page-intro--compact">
+      <h1>{label}</h1>
       <p class="post-meta">共 {posts.length} 篇</p>
     </section>
 

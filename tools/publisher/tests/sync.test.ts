@@ -502,6 +502,54 @@ describe("syncPublishedNotes", () => {
     );
   });
 
+  it("writes a valid bundle when a note contains Siyuan-specific semantic blocks", async () => {
+    const writeBundle = vi.fn();
+
+    await syncPublishedNotes({
+      dryRun: false,
+      config: baseConfig,
+      client: {
+        queryDocuments: vi.fn().mockResolvedValue([
+          {
+            id: "doc-tech-semantic",
+            content: "思源结构示例",
+            hpath: "/思源结构示例",
+            updated: "20260513120000"
+          }
+        ]),
+        getBlockAttrs: vi.fn().mockResolvedValue({}),
+        exportMarkdown: vi.fn().mockResolvedValue({
+          content: `::: tip
+提示内容
+:::
+
+::: fold 细节
+折叠内容
+:::`
+        })
+      },
+      collectContentEntries: vi.fn().mockResolvedValue([]),
+      writeBundle,
+      removeManagedPost: vi.fn(),
+      runBlogChecks: vi.fn(),
+      commitAndPush: vi.fn().mockResolvedValue({ committed: false }),
+      triggerDeploy: vi.fn()
+    });
+
+    expect(writeBundle).toHaveBeenCalledWith(
+      "/tmp/content",
+      expect.objectContaining({
+        body: expect.stringContaining("<Callout")
+      })
+    );
+    expect(writeBundle).toHaveBeenCalledWith(
+      "/tmp/content",
+      expect.objectContaining({
+        body: expect.stringContaining("<details")
+      })
+    );
+  });
+
   it("reports invalid published notes with clear reasons", async () => {
     await expect(
       syncPublishedNotes({

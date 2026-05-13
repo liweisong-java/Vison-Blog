@@ -758,6 +758,91 @@ aside {
   border: 1px solid var(--line);
 }
 
+.mdx-callout,
+.mdx-quote-block,
+.mdx-embed-card {
+  margin: 1.4em 0;
+  padding: 18px 20px;
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  background: color-mix(in srgb, var(--surface) 84%, white);
+}
+
+.mdx-callout__body > :first-child,
+.mdx-quote-block__content > :first-child,
+.mdx-embed-card > :first-child {
+  margin-top: 0;
+}
+
+.mdx-callout__body > :last-child,
+.mdx-quote-block__content > :last-child,
+.mdx-embed-card > :last-child {
+  margin-bottom: 0;
+}
+
+.mdx-callout {
+  border-left-width: 3px;
+}
+
+.mdx-callout--tip,
+.mdx-callout--note,
+.mdx-callout--info {
+  border-left-color: var(--accent);
+}
+
+.mdx-callout--warning {
+  border-left-color: #d97706;
+}
+
+.mdx-quote-block {
+  margin-left: 0;
+}
+
+.mdx-quote-block__source {
+  margin-top: 12px;
+  color: var(--muted);
+  font-size: 14px;
+  line-height: 1.7;
+}
+
+.mdx-embed-card {
+  position: relative;
+}
+
+.mdx-embed-card::before {
+  content: "嵌入内容";
+  display: block;
+  margin-bottom: 10px;
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.mdx-columns {
+  display: grid;
+  gap: 18px;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  margin: 1.5em 0;
+}
+
+.mdx-columns__column {
+  min-width: 0;
+  padding: 16px 18px;
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  background: color-mix(in srgb, var(--surface) 88%, white);
+}
+
+.mdx-columns__column > :first-child {
+  margin-top: 0;
+}
+
+.mdx-columns__column > :last-child {
+  margin-bottom: 0;
+}
+
 .prose figcaption {
   margin-top: 10px;
   color: var(--muted);
@@ -1322,12 +1407,6 @@ aside {
     gap: 6px;
   }
 
-  .category-hero {
-    align-items: flex-start;
-    flex-direction: column;
-    gap: 8px;
-  }
-
   .category-page .hero,
   .archive-page .hero,
   .about-page .hero {
@@ -1496,5 +1575,18 @@ aside {
   .prose td {
     min-width: 120px;
     padding: 10px 12px;
+  }
+
+  .mdx-callout,
+  .mdx-quote-block,
+  .mdx-embed-card,
+  .mdx-columns__column {
+    padding: 16px 16px 18px;
+    border-radius: 14px;
+  }
+
+  .mdx-columns {
+    grid-template-columns: 1fr;
+    gap: 14px;
   }
 }

@@ -1,0 +1,10 @@
+---
+const { source } = Astro.props;
+---
+
+<blockquote class="mdx-quote-block">
+  <div class="mdx-quote-block__content">
+    <slot />
+  </div>
+  {source && <footer class="mdx-quote-block__source">{source}</footer>}
+</blockquote>

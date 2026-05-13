@@ -1,0 +1,9 @@
+---
+const { type = "note" } = Astro.props;
+---
+
+<aside class={`mdx-callout mdx-callout--${type}`}>
+  <div class="mdx-callout__body">
+    <slot />
+  </div>
+</aside>

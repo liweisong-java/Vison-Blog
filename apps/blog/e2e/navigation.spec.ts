@@ -14,8 +14,8 @@ test("route pages exist for categories, tags, archive, and about", async ({ page
 
   await page.goto("/archive/");
   await expect(page.getByRole("heading", { name: "归档" })).toBeVisible();
-  await expect(page.locator("[data-page-intro='archive'] .page-intro__summary")).toContainText("共 ");
-  await expect(page.locator("[data-page-intro='archive'] .page-intro__summary")).toContainText(" 篇");
+  await expect(page.locator("[data-page-intro='archive'] .post-meta")).toContainText("共 ");
+  await expect(page.locator("[data-page-intro='archive'] .post-meta")).toContainText(" 篇");
   await expect(page.locator("[data-page-intro='archive']")).toBeVisible();
 
   await page.goto("/about/");

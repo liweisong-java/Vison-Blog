@@ -1,5 +1,6 @@
 import matter from "gray-matter";
 import type { PublishedNote } from "./types.js";
+import { normalizeSiyuanStructures } from "./markdown-normalizers.js";
 
 const assetPattern = /assets\/[A-Za-z0-9._/-]+/g;
 const assetValuePattern = /^assets\/[A-Za-z0-9._/-]+$/;
@@ -61,7 +62,8 @@ export async function buildPostBundle({
   markdown: string;
 }) {
   const normalizedMarkdown = normalizeMarkdownBody(markdown, note.title);
-  const { assets, rewrittenMarkdown } = rewriteAssetPaths(normalizedMarkdown);
+  const semanticMarkdown = normalizeSiyuanStructures(normalizedMarkdown);
+  const { assets, rewrittenMarkdown } = rewriteAssetPaths(semanticMarkdown);
   const coverAssetPath = note.cover?.trim();
   if (
     coverAssetPath &&

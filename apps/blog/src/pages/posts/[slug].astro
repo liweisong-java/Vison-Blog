@@ -2,7 +2,11 @@
 import { getCollection, render } from "astro:content";
 import ArticleToc from "../../components/ArticleToc.astro";
 import Comments from "../../components/Comments.astro";
+import Callout from "../../components/mdx/Callout.astro";
+import Columns from "../../components/mdx/Columns.astro";
+import EmbedCard from "../../components/mdx/EmbedCard.astro";
 import PostCard from "../../components/PostCard.astro";
+import QuoteBlock from "../../components/mdx/QuoteBlock.astro";
 import { siteConfig } from "../../data/site";
 import BaseLayout from "../../layouts/BaseLayout.astro";
 import {
@@ -54,7 +58,14 @@ const hasRelatedPosts = relatedPosts.length > 0;
       <div class="article-main">
         <ArticleToc headings={groupedHeadings} variant="mobile" />
         <div class="prose">
-          <Content />
+          <Content
+            components={{
+              Callout,
+              QuoteBlock,
+              EmbedCard,
+              Columns
+            }}
+          />
         </div>
         {post.data.canonicalUrl && (
           <p class="article-source">

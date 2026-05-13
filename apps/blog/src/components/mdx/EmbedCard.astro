@@ -1,0 +1,7 @@
+---
+const { kind = "block-ref" } = Astro.props;
+---
+
+<section class={`mdx-embed-card mdx-embed-card--${kind}`}>
+  <slot />
+</section>
