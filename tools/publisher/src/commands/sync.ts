@@ -346,10 +346,12 @@ function getWechatRemovedSlugs({
 
 async function filterLiveDocuments({
   docs,
-  siyuanWorkspaceDir
+  siyuanWorkspaceDir,
+  notebookId
 }: {
   docs: SiYuanDocument[];
   siyuanWorkspaceDir: string;
+  notebookId: string;
 }) {
   const liveDocs: SiYuanDocument[] = [];
 
@@ -360,7 +362,7 @@ async function filterLiveDocuments({
     }
 
     try {
-      await access(join(siyuanWorkspaceDir, "data", doc.path.replace(/^\//, "")));
+      await access(join(siyuanWorkspaceDir, "data", notebookId, doc.path.replace(/^\/+/, "")));
       liveDocs.push(doc);
     } catch {
       // Deletions can briefly linger in the blocks index. Only publish docs whose source file still exists.
@@ -416,7 +418,8 @@ export async function syncPublishedNotes({
   const queriedDocs = await client.queryDocuments(config.notebookId);
   const docs = await filterLiveDocuments({
     docs: queriedDocs,
-    siyuanWorkspaceDir: config.siyuanWorkspaceDir
+    siyuanWorkspaceDir: config.siyuanWorkspaceDir,
+    notebookId: config.notebookId
   });
   const stateStore = publisherState;
   const now = stateStore?.now ?? (() => new Date().toISOString());

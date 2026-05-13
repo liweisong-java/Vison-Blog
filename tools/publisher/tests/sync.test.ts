@@ -1,4 +1,7 @@
 import matter from "gray-matter";
+import { mkdir, mkdtemp, writeFile } from "node:fs/promises";
+import { join } from "node:path";
+import { tmpdir } from "node:os";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { syncPublishedNotes } from "../src/commands/sync";
 import { createInitialPublisherState } from "../src/publisher-state.js";
@@ -173,6 +176,54 @@ describe("syncPublishedNotes", () => {
     });
 
     expect(writeBundle).not.toHaveBeenCalled();
+  });
+
+  it("keeps live documents when the .sy file exists under the notebook directory", async () => {
+    const root = await mkdtemp(join(tmpdir(), "vision-publisher-live-docs-"));
+    const notebookDir = join(root, "data", "demo");
+    await mkdir(notebookDir, { recursive: true });
+    await writeFile(join(notebookDir, "doc-tech-1.sy"), "{}", "utf8");
+
+    const writeBundle = vi.fn();
+
+    const result = await syncPublishedNotes({
+      dryRun: false,
+      config: {
+        ...baseConfig,
+        notebookId: "demo",
+        siyuanWorkspaceDir: root
+      },
+      client: {
+        queryDocuments: vi.fn().mockResolvedValue([
+          {
+            id: "doc-tech-1",
+            content: "From Notes to Site",
+            hpath: "/Blog/From Notes to Site",
+            path: "/doc-tech-1.sy",
+            updated: "20260510120000"
+          }
+        ]),
+        getBlockAttrs: vi.fn().mockResolvedValue({
+          "blog-pub": "true",
+          "blog-cat": "tech",
+          "blog-slug": "from-notes-to-site",
+          "blog-excerpt": "How a SiYuan note becomes a deployed editorial article.",
+          "blog-date": "2026-05-10"
+        }),
+        exportMarkdown: vi.fn().mockResolvedValue({
+          content: "## Intro\n\nA practical walkthrough for publishing from notes."
+        })
+      },
+      collectContentEntries: vi.fn().mockResolvedValue([]),
+      writeBundle,
+      removeManagedPost: vi.fn(),
+      runBlogChecks: vi.fn(),
+      commitAndPush: vi.fn().mockResolvedValue({ committed: false }),
+      triggerDeploy: vi.fn()
+    });
+
+    expect(result.written).toEqual(["from-notes-to-site"]);
+    expect(writeBundle).toHaveBeenCalledTimes(1);
   });
 
   it("fills slug, excerpt, and published date from the note when attrs are missing", async () => {
