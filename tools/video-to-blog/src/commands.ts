@@ -104,6 +104,24 @@ async function setJobState({
   return updated;
 }
 
+async function recycleRunningJobs(runtime: VideoToBlogRuntime) {
+  const queue = await readQueueState(runtime.queuePath);
+  const recycled = queue.jobs.filter((job) => job.status === "running");
+
+  for (const job of recycled) {
+    await setJobState({
+      runtime,
+      jobId: job.id,
+      patch: {
+        status: "queued",
+        error: "Recovered from an interrupted previous run."
+      }
+    });
+  }
+
+  return recycled.length;
+}
+
 export async function runVideoQueue({
   config,
   runtime,
@@ -127,6 +145,7 @@ export async function runVideoQueue({
   downloadBilibiliSubtitles?: typeof downloadBilibiliSubtitleArtifacts;
   now?: () => string;
 }) {
+  await recycleRunningJobs(runtime);
   const queue = await readQueueState(runtime.queuePath);
   const queuedJobs = queue.jobs.filter((job) => job.status === "queued");
   const results = [];
@@ -243,6 +262,7 @@ export async function runVideoQueue({
         task: async ({ markPersisted }) => {
           await buildSite({
             workspaceRoot: runtime.workspaceRoot,
+            skipCheck: env.VIDEO_TO_BLOG_SKIP_CHECK === "1",
             run
           });
 

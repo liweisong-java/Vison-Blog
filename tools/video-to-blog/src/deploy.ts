@@ -33,14 +33,18 @@ export async function deployLocalStaticSite({
 
 export async function buildBlogArtifacts({
   workspaceRoot,
+  skipCheck = false,
   run = runCommand
 }: {
   workspaceRoot: string;
+  skipCheck?: boolean;
   run?: RunCommand;
 }) {
   await run(process.execPath, [join(workspaceRoot, "scripts/generate-private-dashboard.mjs")], {
     cwd: workspaceRoot
   });
-  await run("pnpm", ["--filter", "blog", "check"], { cwd: workspaceRoot });
+  if (!skipCheck) {
+    await run("pnpm", ["--filter", "blog", "check"], { cwd: workspaceRoot });
+  }
   await run("pnpm", ["--filter", "blog", "build"], { cwd: workspaceRoot });
 }
