@@ -53,6 +53,11 @@ export type SiYuanDocument = {
   updated: string;
 };
 
+export type SiYuanSyncInfo = {
+    stat: string;
+    synced: number;
+};
+
 export type PublishedNote = {
   id: string;
   title: string;

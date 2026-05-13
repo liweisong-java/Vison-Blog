@@ -1,4 +1,4 @@
-import type { SiYuanDocument } from "./types.js";
+import type {SiYuanDocument, SiYuanSyncInfo} from "./types.js";
 
 type CreateSiYuanClientArgs = {
   baseUrl: string;
@@ -46,6 +46,12 @@ export function createSiYuanClient({
     },
     exportMarkdown(id: string) {
       return request<{ content: string }>("/api/export/exportMdContent", { id });
+    },
+      performSync() {
+          return request<null>("/api/sync/performSync", {});
+      },
+      getSyncInfo() {
+          return request<SiYuanSyncInfo>("/api/sync/getSyncInfo", {});
     }
   };
 }

@@ -1,8 +1,8 @@
-import { cpSync, existsSync, mkdirSync, rmSync } from "node:fs";
-import { execFile } from "node:child_process";
-import { promisify } from "node:util";
-import { dirname, join, resolve } from "node:path";
-import { fileURLToPath } from "node:url";
+import {cpSync, existsSync, mkdirSync, rmSync} from "node:fs";
+import {execFile} from "node:child_process";
+import {promisify} from "node:util";
+import {dirname, join, resolve} from "node:path";
+import {fileURLToPath} from "node:url";
 
 const execFileAsync = promisify(execFile);
 const root = resolve(dirname(fileURLToPath(import.meta.url)), "..");
@@ -91,7 +91,8 @@ async function main() {
       cwd: runtimeDir,
       env: {
         PUBLISH_SKIP_BLOG_CHECKS: "true",
-        PUBLISH_PUSH: "false"
+          PUBLISH_PUSH: "false",
+          PUBLISH_SYNC_BEFORE_EXPORT: "true"
       }
     });
     await runNodeScript(resolve(runtimeDir, "scripts/generate-private-dashboard.mjs"), [], { cwd: runtimeDir });

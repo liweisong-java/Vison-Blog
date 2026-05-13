@@ -311,7 +311,87 @@ systemctl list-timers vision-blog-publisher.timer
 systemctl start vision-blog-publisher.service
 ```
 
-### 6. Nginx 指向 current
+推荐再记住这些日常运维命令：
+
+```bash
+systemctl status vision-blog-publisher.timer --no-pager
+systemctl status vision-blog-publisher.service --no-pager
+systemctl list-timers vision-blog-publisher.timer --no-pager
+journalctl -u vision-blog-publisher.service -n 100 --no-pager
+```
+
+如果你需要临时暂停自动发布：
+
+```bash
+systemctl stop vision-blog-publisher.timer
+systemctl disable vision-blog-publisher.timer
+```
+
+恢复自动发布：
+
+```bash
+systemctl enable --now vision-blog-publisher.timer
+```
+
+### 6. 当前推荐的日常使用方式
+
+当你已经切到服务器主导模式后，建议把下面这件事理解成新的工作原则：
+
+- 服务器上的思源工作区，才是生产内容源
+- 服务器上的 `pnpm publish:server-run`，才是正式发布动作
+- `/data/Vison-Blog/current`，才是正式线上版本入口
+
+更适合的使用姿势是：
+
+- 直接在浏览器里打开服务器上的思源继续写
+- 或者保证你本地思源和服务器思源走的是同一份稳定同步源
+
+如果你只在本地思源里继续写，而服务器思源没有拿到同样的新内容，那么服务器定时任务不会自动知道这些变化。
+
+### 7. 手动排障顺序
+
+如果你发现“文章没有上线”或“定时器看起来没生效”，优先按这个顺序排：
+
+1. 看定时器是否仍在等待中
+
+```bash
+systemctl status vision-blog-publisher.timer --no-pager
+```
+
+2. 手动触发一次 service
+
+```bash
+systemctl start vision-blog-publisher.service
+```
+
+3. 立刻看最近日志
+
+```bash
+journalctl -u vision-blog-publisher.service -n 100 --no-pager
+```
+
+4. 单独检查思源接口
+
+```bash
+cd /data/Vison-Blog/repo
+pnpm publish:doctor
+```
+
+5. 单独检查内容同步
+
+```bash
+cd /data/Vison-Blog/repo
+pnpm publish:sync
+```
+
+6. 单独检查完整服务器链路
+
+```bash
+cd /data/Vison-Blog/repo
+pnpm publish:server-run
+```
+
+### 8. Nginx 指向 current
 
 正式站点根目录仍然保持：
 
@@ -321,7 +401,7 @@ root /data/Vison-Blog/current;
 
 也就是说，不管你是云端部署还是服务器主导，Nginx 这一层都不用改思路。
 
-### 7. 关于 GitHub 的角色
+### 9. 关于 GitHub 的角色
 
 服务器主导模式下，GitHub 更适合作为：
 
@@ -331,7 +411,20 @@ root /data/Vison-Blog/current;
 
 不应该再把 GitHub Actions 视为唯一生产发布器，因为云端构建拿不到服务器上的私有思源工作区。
 
-### Actions 构建成功但没有部署
+### 10. 回滚
+
+如果这次服务器主导发布产出了异常版本，仍然可以直接把 `current` 指回旧 release：
+
+```bash
+ln -sfn /data/Vison-Blog/releases/<old-release-id> /data/Vison-Blog/.next-current
+mv -Tf /data/Vison-Blog/.next-current /data/Vison-Blog/current
+```
+
+回滚完成后刷新页面即可。
+
+### 11. 常见问题
+
+#### Actions 构建成功但没有部署
 
 优先检查：
 
@@ -341,7 +434,7 @@ root /data/Vison-Blog/current;
 
 当前 workflow 会在 Secrets 不完整时跳过部署步骤，并给出 warning。
 
-### 上传失败
+#### 上传失败
 
 优先检查：
 
@@ -349,13 +442,38 @@ root /data/Vison-Blog/current;
 - 服务器防火墙是否允许当前 SSH 端口
 - 私钥是否和服务器公钥成对
 
-### 页面 404 或资源错乱
+#### 页面 404 或资源错乱
 
 优先检查：
 
 - Web 服务根目录是不是 `/data/Vison-Blog/current`
 - 是否误把根目录指到了 `releases` 的父目录
 - `SITE_URL` 是否与正式域名一致
+
+#### `publish:doctor` 报思源认证失败
+
+优先检查：
+
+- `tools/publisher/.env` 里的 `SIYUAN_TOKEN`
+- `SIYUAN_BASE_URL` 是否仍是 `http://127.0.0.1:6806`
+- 思源容器是否仍在运行
+
+可直接执行：
+
+```bash
+docker ps | grep siyuan
+cd /data/Vison-Blog/repo
+pnpm publish:doctor
+```
+
+#### 定时器正常，但内容没有更新
+
+优先检查：
+
+- 服务器思源工作区里是否真的收到了最新笔记
+- 你是不是只改了本地思源，而服务器端没有同步到同一份内容源
+
+服务器主导模式下，真正决定线上内容的是服务器上的思源工作区，不是你本地电脑上的那一份缓存。
 
 ## 相关文档
 

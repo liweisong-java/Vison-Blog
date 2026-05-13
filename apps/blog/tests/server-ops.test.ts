@@ -1,6 +1,6 @@
-import { readFile } from "node:fs/promises";
-import { resolve } from "node:path";
-import { describe, expect, it } from "vitest";
+import {readFile} from "node:fs/promises";
+import {resolve} from "node:path";
+import {describe, expect, it} from "vitest";
 
 describe("server-led publishing script", () => {
   it("keeps the server publish cycle isolated through git worktree runtime copies", async () => {
@@ -17,5 +17,6 @@ describe("server-led publishing script", () => {
     expect(script).toContain("astro");
     expect(script).toContain("generate-private-dashboard.mjs");
     expect(script).toContain("PUBLISH_SKIP_BLOG_CHECKS: \"true\"");
+      expect(script).toContain("PUBLISH_SYNC_BEFORE_EXPORT: \"true\"");
   });
 });

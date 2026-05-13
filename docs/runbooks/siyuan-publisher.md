@@ -243,6 +243,54 @@ pnpm --filter publisher dev server-install --user deploy --group deploy --interv
 
 默认每 5 分钟执行一次完整巡检。
 
+### 服务器主导模式下怎么理解“发文成功”
+
+在这套模式里，真正的顺序应该理解成：
+
+```text
+服务器上的思源工作区有新内容
+  -> 定时器触发 vision-blog-publisher.service
+  -> pnpm publish:server-run
+  -> current 切到新的 release
+```
+
+也就是说：
+
+- 服务器上的思源工作区，才是正式内容源
+- 服务器上的 `current` 软链，才代表真正上线的版本
+- GitHub Actions 可以继续保留，但它不再是唯一生产发布器
+
+### 服务器日常查看命令
+
+```bash
+systemctl status vision-blog-publisher.timer --no-pager
+systemctl status vision-blog-publisher.service --no-pager
+systemctl list-timers vision-blog-publisher.timer --no-pager
+journalctl -u vision-blog-publisher.service -n 100 --no-pager
+```
+
+### 手动补跑一次服务器发布
+
+```bash
+cd /data/Vison-Blog/repo
+pnpm publish:server-run
+```
+
+### 暂停或恢复服务器自动发布
+
+暂停：
+
+```bash
+systemctl stop vision-blog-publisher.timer
+systemctl disable vision-blog-publisher.timer
+```
+
+恢复：
+
+```bash
+systemctl enable --now vision-blog-publisher.timer
+```
+
 ## 使用建议
 
 - 如果文章只是草稿，直接放到带 `草稿` 或 `draft` 的标题、目录里即可，不必再专门补属性
@@ -257,6 +305,8 @@ pnpm --filter publisher dev server-install --user deploy --group deploy --interv
 - 同步后没触发部署：先确认这次是否真的产生了 git 提交；如果用的是 GitHub Actions 部署，再去看仓库 Actions；如果用的是外部平台，再检查 `PUBLISH_DEPLOY_HOOK`
 - 公众号导出稿没有更新：检查 `blog-wechat` 是否为 `true`，以及 `wechatExportDir` 是否已配置
 - 服务器主导模式下手机 App 不能直接连服务器：这是思源官方服务端模式的限制，建议用手机浏览器访问服务器上的思源
+- 服务器主导模式下文章没更新：先确认服务器上的思源工作区是不是已经拿到最新内容，再看
+  `systemctl status vision-blog-publisher.timer` 和 `journalctl -u vision-blog-publisher.service -n 100 --no-pager`
 
 ## 相关文档
 

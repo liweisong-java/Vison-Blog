@@ -1,31 +1,32 @@
-import { execFile } from "node:child_process";
-import { existsSync } from "node:fs";
-import { stat, writeFile } from "node:fs/promises";
-import { pathToFileURL } from "node:url";
-import { resolve } from "node:path";
-import { cwd, env } from "node:process";
-import { promisify } from "node:util";
-import { config as loadEnv } from "dotenv";
-import { commitAndPush as commitAndPushGit } from "./git.js";
-import { loadPublisherConfig } from "./config.js";
-import { formatCliError, printJson } from "./cli-output.js";
+import {execFile} from "node:child_process";
+import {existsSync} from "node:fs";
+import {stat, writeFile} from "node:fs/promises";
+import {pathToFileURL} from "node:url";
+import {resolve} from "node:path";
+import {cwd, env} from "node:process";
+import {promisify} from "node:util";
+import {config as loadEnv} from "dotenv";
+import {commitAndPush as commitAndPushGit} from "./git.js";
+import {loadPublisherConfig} from "./config.js";
+import {formatCliError, printJson} from "./cli-output.js";
 import {
-  autoPublishOnceCommand,
-  createRunCommand,
-  getAutoPublishStatusCommand,
-  installAutoPublishLaunchAgentCommand,
-  uninstallAutoPublishLaunchAgentCommand
+    autoPublishOnceCommand,
+    createRunCommand,
+    getAutoPublishStatusCommand,
+    installAutoPublishLaunchAgentCommand,
+    uninstallAutoPublishLaunchAgentCommand
 } from "./commands/auto.js";
-import { doctorCommand } from "./commands/doctor.js";
-import { initPublisherFiles } from "./commands/init.js";
-import { removeManagedPost, removeWechatArticle, writeBundle, writeWechatArticle } from "./fs.js";
-import { collectContentEntries } from "./repository.js";
-import { createSiYuanClient } from "./siyuan-client.js";
-import { syncPublishedNotes } from "./commands/sync.js";
-import { readPublisherState, writePublisherState } from "./publisher-state.js";
-import { resolvePublisherRuntime } from "./runtime.js";
-import { deployLocalStaticSite } from "./local-deploy.js";
-import { buildSystemdService, buildSystemdTimer, getSystemdServiceName, getSystemdUnitPaths } from "./systemd.js";
+import {doctorCommand} from "./commands/doctor.js";
+import {initPublisherFiles} from "./commands/init.js";
+import {removeManagedPost, removeWechatArticle, writeBundle, writeWechatArticle} from "./fs.js";
+import {collectContentEntries} from "./repository.js";
+import {createSiYuanClient} from "./siyuan-client.js";
+import {syncPublishedNotes} from "./commands/sync.js";
+import {readPublisherState, writePublisherState} from "./publisher-state.js";
+import {resolvePublisherRuntime} from "./runtime.js";
+import {deployLocalStaticSite} from "./local-deploy.js";
+import {buildSystemdService, buildSystemdTimer, getSystemdServiceName, getSystemdUnitPaths} from "./systemd.js";
+import {ensureLatestSiYuanSync} from "./siyuan-sync-gate.js";
 
 const execFileAsync = promisify(execFile);
 const runtime = resolvePublisherRuntime({
@@ -50,6 +51,10 @@ function normalizeBooleanEnv(value: string | undefined, fallback: boolean) {
   }
 
   return ["1", "true", "yes", "on"].includes(value.toLowerCase());
+}
+
+function shouldSyncBeforeExport() {
+    return normalizeBooleanEnv(env.PUBLISH_SYNC_BEFORE_EXPORT, false);
 }
 
 function readArg(name: string) {
@@ -212,6 +217,15 @@ async function main() {
       }
     });
 
+    async function syncWithOptionalSiYuanRefresh() {
+        await ensureLatestSiYuanSync({
+            enabled: shouldSyncBeforeExport(),
+            client
+        });
+
+        return sync();
+    }
+
   if (command === "auto-once") {
     printJson(
       await autoPublishOnceCommand({
@@ -280,7 +294,7 @@ async function main() {
           writeState: (state) => writePublisherState(config.publisherStatePath ?? runtime.publisherStatePath, state)
         }
       })
-    : await sync();
+      : await syncWithOptionalSiYuanRefresh();
 
   printJson(result);
 }
