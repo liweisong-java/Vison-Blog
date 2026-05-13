@@ -105,12 +105,25 @@ function normalizeExcerptCandidate(value: string | undefined) {
     .trim();
 }
 
+function stripTitlePrefixFromExcerpt(value: string, title: string) {
+  const normalizedTitle = normalizeExcerptCandidate(title);
+  if (!normalizedTitle || !value.startsWith(normalizedTitle)) {
+    return value;
+  }
+
+  return value.slice(normalizedTitle.length).trim();
+}
+
 function countExcerptUnits(value: string) {
   return (value.match(/[\p{Script=Han}]|[A-Za-z0-9]+/gu) ?? []).length;
 }
 
 function hasUsableExcerpt(value: string) {
   return countExcerptUnits(value) >= 4;
+}
+
+function hasMeaningfulExcerptTail(value: string) {
+  return countExcerptUnits(value) >= 1;
 }
 
 function publishedDateFromUpdated(updated: string) {
@@ -210,13 +223,16 @@ function normalizePublishedNote(
   }
 
   const configuredExcerpt = normalizeExcerptCandidate(readAttrVariants(attrs, config.attrs.excerpt));
-  const generatedExcerpt = normalizeExcerptCandidate(excerptFromMarkdown(markdown));
   const titleExcerpt = normalizeExcerptCandidate(doc.content);
+  const generatedExcerpt = normalizeExcerptCandidate(excerptFromMarkdown(markdown));
+  const generatedExcerptWithoutTitle = stripTitlePrefixFromExcerpt(generatedExcerpt, titleExcerpt);
   const excerpt =
     configuredExcerpt && hasUsableExcerpt(configuredExcerpt)
       ? configuredExcerpt
-      : generatedExcerpt && hasUsableExcerpt(generatedExcerpt)
+      : generatedExcerptWithoutTitle && hasUsableExcerpt(generatedExcerptWithoutTitle)
         ? generatedExcerpt
+        : generatedExcerptWithoutTitle && hasMeaningfulExcerptTail(generatedExcerptWithoutTitle)
+          ? generatedExcerpt
         : titleExcerpt;
   if (!excerpt || !hasUsableExcerpt(excerpt)) {
     reasons.push("excerpt must include enough readable content");
