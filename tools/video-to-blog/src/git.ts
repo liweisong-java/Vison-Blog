@@ -6,16 +6,29 @@ export async function commitAndPushManagedPaths({
   branch,
   remote,
   message,
-  includePaths
+  includePaths,
+  authorName,
+  authorEmail
 }: {
   repoRoot: string;
   branch: string;
   remote: string;
   message: string;
   includePaths: string[];
+  authorName?: string;
+  authorEmail?: string;
 }) {
   const git = simpleGit(repoRoot);
   const relativePaths = includePaths.map((path) => relative(repoRoot, path)).filter(Boolean);
+
+  if (authorName) {
+    await git.addConfig("user.name", authorName);
+  }
+
+  if (authorEmail) {
+    await git.addConfig("user.email", authorEmail);
+  }
+
   await git.add(relativePaths);
   const stagedOutput = await git.raw(["diff", "--cached", "--name-only"]);
   const stagedFiles = stagedOutput

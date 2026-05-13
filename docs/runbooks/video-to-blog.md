@@ -22,6 +22,13 @@ pnpm video:init
 - `tools/video-to-blog/.env`
 - `tools/video-to-blog/video-to-blog.config.json`
 
+建议把 `.env` 里的这些值一起补上：
+
+- `VIDEO_TO_BLOG_BRANCH`
+- `VIDEO_TO_BLOG_REMOTE`
+- `VIDEO_TO_BLOG_GIT_AUTHOR_NAME`
+- `VIDEO_TO_BLOG_GIT_AUTHOR_EMAIL`
+
 ## 运行前准备
 
 服务器上需要具备：

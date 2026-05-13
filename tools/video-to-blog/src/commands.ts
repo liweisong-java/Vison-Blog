@@ -195,7 +195,9 @@ export async function runVideoQueue({
             branch: env.VIDEO_TO_BLOG_BRANCH ?? "master",
             remote: env.VIDEO_TO_BLOG_REMOTE ?? "origin",
             message: `feat(video): publish ${article.slug}`,
-            includePaths: [config.contentRoot]
+            includePaths: [config.contentRoot],
+            authorName: env.VIDEO_TO_BLOG_GIT_AUTHOR_NAME ?? "Vision Video Bot",
+            authorEmail: env.VIDEO_TO_BLOG_GIT_AUTHOR_EMAIL ?? "vision-video-bot@users.noreply.github.com"
           });
           markPersisted();
 
