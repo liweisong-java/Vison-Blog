@@ -15,6 +15,10 @@ import { runCommand } from "./process.js";
 import { detectVideoPlatform } from "./platform.js";
 import { buildTranscriptFromManualText } from "./manual-transcript.js";
 
+function logRunStage(message: string) {
+  console.error(`[video-to-blog] ${message}`);
+}
+
 export async function doctorVideoToBlog({
   config,
   runtime,
@@ -151,6 +155,7 @@ export async function runVideoQueue({
   const results = [];
 
   for (const job of queuedJobs) {
+    logRunStage(`start job=${job.id} url=${job.url}`);
     const started = await setJobState({
       runtime,
       jobId: job.id,
@@ -189,12 +194,14 @@ export async function runVideoQueue({
           ytDlpArgsByPlatform: config.ytDlpArgsByPlatform,
           run
         });
+        logRunStage(`job=${job.id} metadata=yt-dlp platform=${platform}`);
       } catch (error) {
         const message = error instanceof Error ? error.message : String(error);
         if (platform !== "bilibili" || !message.includes("412")) {
           throw error;
         }
 
+        logRunStage(`job=${job.id} metadata=bilibili-api-fallback`);
         metadata = await fetchBilibiliMetadata({
           url: started.url,
           requestJson
@@ -209,7 +216,10 @@ export async function runVideoQueue({
       await writeFile(join(artifactRoot, "metadata.json"), JSON.stringify(metadata, null, 2), "utf8");
 
       const transcript = started.transcriptText
-        ? buildTranscriptFromManualText(started.transcriptText)
+        ? (() => {
+            logRunStage(`job=${job.id} transcript=manual`);
+            return buildTranscriptFromManualText(started.transcriptText);
+          })()
         : await (async () => {
             if (!subtitleFiles.length) {
               subtitleFiles = await downloadSubtitleArtifacts({
@@ -220,9 +230,13 @@ export async function runVideoQueue({
                 outputRoot: subtitleRoot,
                 run
               }).catch(() => []);
+              if (subtitleFiles.length) {
+                logRunStage(`job=${job.id} transcript=subtitle files=${subtitleFiles.length}`);
+              }
             }
 
             if (!subtitleFiles.length) {
+              logRunStage(`job=${job.id} transcript=asr-audio-download`);
               audioPath = await downloadAudioArtifact({
                 url: started.url,
                 ytDlpBin: config.ytDlpBin,
@@ -260,12 +274,15 @@ export async function runVideoQueue({
         runtime,
         article,
         task: async ({ markPersisted }) => {
+          logRunStage(`job=${job.id} build=start skipCheck=${env.VIDEO_TO_BLOG_SKIP_CHECK === "1"}`);
           await buildSite({
             workspaceRoot: runtime.workspaceRoot,
             skipCheck: env.VIDEO_TO_BLOG_SKIP_CHECK === "1",
             run
           });
+          logRunStage(`job=${job.id} build=done`);
 
+          logRunStage(`job=${job.id} git=commit-push-start`);
           const commitResult = await commitAndPush({
             repoRoot: runtime.workspaceRoot,
             branch: env.VIDEO_TO_BLOG_BRANCH ?? "master",
@@ -275,13 +292,16 @@ export async function runVideoQueue({
             authorName: env.VIDEO_TO_BLOG_GIT_AUTHOR_NAME ?? "Vision Video Bot",
             authorEmail: env.VIDEO_TO_BLOG_GIT_AUTHOR_EMAIL ?? "vision-video-bot@users.noreply.github.com"
           });
+          logRunStage(`job=${job.id} git=commit-push-done committed=${commitResult.committed} pushed=${commitResult.pushed}`);
           markPersisted();
 
+          logRunStage(`job=${job.id} deploy=start`);
           await deploySite({
             distDir: join(runtime.workspaceRoot, "apps/blog/dist"),
             deployRoot: config.deployRoot,
             releaseId: now().replace(/[:.]/g, "-"),
           });
+          logRunStage(`job=${job.id} deploy=done`);
 
           await updatePublishedManifest({
             runtime,
@@ -289,6 +309,7 @@ export async function runVideoQueue({
             slug: article.slug,
             now: now()
           });
+          logRunStage(`job=${job.id} manifest=updated slug=${article.slug}`);
 
           return commitResult;
         }
@@ -308,6 +329,7 @@ export async function runVideoQueue({
         slug: article.slug,
         committed: deployment.committed
       });
+      logRunStage(`job=${job.id} done status=succeeded slug=${article.slug}`);
     } catch (error) {
       const message = error instanceof Error ? error.message : String(error);
       await setJobState({
@@ -322,6 +344,7 @@ export async function runVideoQueue({
         id: job.id,
         error: message
       });
+      logRunStage(`job=${job.id} done status=failed error=${message}`);
     }
   }
 
