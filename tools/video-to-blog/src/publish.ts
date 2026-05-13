@@ -5,6 +5,8 @@ import { withRepoLock } from "./repo-lock.js";
 import type { ComposedArticle, VideoMetadata, VideoToBlogRuntime } from "./types.js";
 import { readManifest, writeManifest } from "./state.js";
 
+const LEGACY_BACKUP_SUFFIX = ".bak-video-to-blog";
+
 export async function writeVideoArticle(contentRoot: string, article: ComposedArticle) {
   const target = join(contentRoot, article.slug, "index.mdx");
   const tempTarget = `${target}.tmp`;
@@ -12,6 +14,37 @@ export async function writeVideoArticle(contentRoot: string, article: ComposedAr
   await writeFile(tempTarget, article.body, "utf8");
   await rename(tempTarget, target);
   return target;
+}
+
+export async function cleanupLegacyArticleBackups(contentRoot: string) {
+  const { readdir } = await import("node:fs/promises");
+  const removed: string[] = [];
+
+  async function visit(current: string) {
+    const entries = await readdir(current, { withFileTypes: true });
+    for (const entry of entries) {
+      const absolute = join(current, entry.name);
+      if (!entry.isDirectory()) {
+        continue;
+      }
+
+      if (entry.name.endsWith(LEGACY_BACKUP_SUFFIX)) {
+        await rm(absolute, { recursive: true, force: true });
+        removed.push(absolute);
+        continue;
+      }
+
+      await visit(absolute);
+    }
+  }
+
+  try {
+    await visit(contentRoot);
+  } catch {
+    return [];
+  }
+
+  return removed;
 }
 
 export async function findExistingVideoArticle(contentRoot: string, canonicalUrl: string) {
@@ -43,6 +76,9 @@ async function readdirRecursive(root: string): Promise<string[]> {
     for (const entry of entries) {
       const absolute = join(current, entry.name);
       if (entry.isDirectory()) {
+        if (entry.name.endsWith(LEGACY_BACKUP_SUFFIX)) {
+          continue;
+        }
         await visit(absolute);
       } else {
         result.push(absolute);
@@ -65,12 +101,14 @@ export async function withManagedArticleTransaction<T>({
 }) {
   const articleDir = join(runtime.workspaceRoot, "apps/blog/src/content/posts", article.slug);
   const articlePath = join(articleDir, "index.mdx");
-  const backupDir = `${articleDir}.bak-video-to-blog`;
+  const backupDir = join(runtime.stateRoot, "backups", article.slug);
+  const legacyBackupDir = `${articleDir}${LEGACY_BACKUP_SUFFIX}`;
 
   return withRepoLock(runtime.repoLockPath, async () => {
     let persisted = false;
 
     try {
+      await rm(legacyBackupDir, { recursive: true, force: true });
       await rm(backupDir, { recursive: true, force: true });
       await cp(articleDir, backupDir, { recursive: true });
     } catch {

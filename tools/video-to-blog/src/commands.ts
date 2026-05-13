@@ -9,7 +9,12 @@ import { transcribeVideo } from "./transcribe.js";
 import { composeVideoArticle } from "./compose.js";
 import { buildBlogArtifacts, deployLocalStaticSite } from "./deploy.js";
 import { commitAndPushManagedPaths } from "./git.js";
-import { findExistingVideoArticle, updatePublishedManifest, withManagedArticleTransaction } from "./publish.js";
+import {
+  cleanupLegacyArticleBackups,
+  findExistingVideoArticle,
+  updatePublishedManifest,
+  withManagedArticleTransaction
+} from "./publish.js";
 import type { VideoToBlogConfig, VideoToBlogJob, VideoToBlogRuntime } from "./types.js";
 import { runCommand } from "./process.js";
 import { detectVideoPlatform } from "./platform.js";
@@ -262,6 +267,11 @@ export async function runVideoQueue({
         writeFile(transcriptPath, JSON.stringify(transcript, null, 2), "utf8")
       );
       logRunStage(`job=${job.id} transcript=saved path=${transcriptPath}`);
+
+      const removedLegacyBackups = await cleanupLegacyArticleBackups(config.contentRoot);
+      if (removedLegacyBackups.length) {
+        logRunStage(`job=${job.id} backup-cleanup=removed count=${removedLegacyBackups.length}`);
+      }
 
       logRunStage(`job=${job.id} existing-article=scan-start`);
       const existing = await findExistingVideoArticle(config.contentRoot, metadata.webpageUrl);
