@@ -1,6 +1,7 @@
 import type { PublishedNote, PublisherConfig, SiYuanDocument } from "../types.js";
 import { buildPostBundle, buildWechatArticle } from "../markdown.js";
 import { copyAssetFiles } from "../fs.js";
+import { normalizeSiyuanStructures } from "../markdown-normalizers.js";
 import {
   createInitialPublisherState,
   recordPublisherFailure,
@@ -74,10 +75,16 @@ function slugify(input: string) {
 }
 
 function excerptFromMarkdown(markdown: string) {
-  const normalized = markdown
+  const normalized = normalizeSiyuanStructures(markdown)
     .replace(/^---[\s\S]*?---/m, "")
+    .replace(/<details[^>]*>/g, " ")
+    .replace(/<\/details>/g, " ")
+    .replace(/<summary>(.*?)<\/summary>/g, " $1 ")
+    .replace(/<\/?(Callout|QuoteBlock|EmbedCard|Columns)\b[^>]*>/g, " ")
+    .replace(/<\/?div\b[^>]*>/g, " ")
     .replace(/!\[[^\]]*]\([^)]+\)/g, " ")
     .replace(/\[[^\]]+]\([^)]+\)/g, "$1")
+    .replace(/<[^>]+>/g, " ")
     .replace(/`{1,3}[^`]*`{1,3}/g, " ")
     .replace(/[#>*_\-\n\r]+/g, " ")
     .replace(/\s+/g, " ")

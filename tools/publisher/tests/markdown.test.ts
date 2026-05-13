@@ -259,6 +259,55 @@ console.log("hello")
     expect(bundle.body).toContain("右侧内容");
   });
 
+  it("normalizes Siyuan super block column syntax into a columns component", async () => {
+    const bundle = await buildPostBundle({
+      note: {
+        id: "doc-tech-super-columns",
+        title: "超级块分栏示例",
+        slug: "super-columns-example",
+        category: "tech",
+        excerpt: "思源超级块分栏应被转换成博客内部语义分栏。",
+        featured: false,
+        publishedAt: "2026-05-13",
+        tags: ["super-block"]
+      },
+      markdown: `{{{col
+第一列内容
+
+第二列内容
+}}}`
+    });
+
+    expect(bundle.body).toContain("<Columns>");
+    expect(bundle.body).toContain("第一列内容");
+    expect(bundle.body).toContain("第二列内容");
+  });
+
+  it("strips standalone and inline IAL attribute markers from the published mdx body", async () => {
+    const bundle = await buildPostBundle({
+      note: {
+        id: "doc-tech-ial",
+        title: "IAL 清洗示例",
+        slug: "ial-example",
+        category: "tech",
+        excerpt: "思源导出的属性标记不应原样出现在博客正文里。",
+        featured: false,
+        publishedAt: "2026-05-13",
+        tags: ["ial"]
+      },
+      markdown: `这一段后面跟着样式属性{: style="color: red;"}
+
+> 引用内容
+{: style="background-color: var(--b3-theme-primary-light);"}
+`
+    });
+
+    expect(bundle.body).toContain("这一段后面跟着样式属性");
+    expect(bundle.body).toContain("> 引用内容");
+    expect(bundle.body).not.toContain('{: style="color: red;"}');
+    expect(bundle.body).not.toContain('{: style="background-color: var(--b3-theme-primary-light);"}');
+  });
+
   it("builds a wechat-friendly markdown export", async () => {
     const article = await buildWechatArticle({
       note: {

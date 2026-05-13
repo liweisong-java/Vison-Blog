@@ -1,3 +1,4 @@
+import matter from "gray-matter";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { syncPublishedNotes } from "../src/commands/sync";
 import { createInitialPublisherState } from "../src/publisher-state.js";
@@ -548,6 +549,49 @@ describe("syncPublishedNotes", () => {
         body: expect.stringContaining("<details")
       })
     );
+  });
+
+  it("generates a clean excerpt from Siyuan semantic blocks and IAL markers", async () => {
+    const writeBundle = vi.fn();
+
+    await syncPublishedNotes({
+      dryRun: false,
+      config: baseConfig,
+      client: {
+        queryDocuments: vi.fn().mockResolvedValue([
+          {
+            id: "doc-tech-excerpt-clean",
+            content: "思源摘要清洗示例",
+            hpath: "/思源摘要清洗示例",
+            updated: "20260513120000"
+          }
+        ]),
+        getBlockAttrs: vi.fn().mockResolvedValue({}),
+        exportMarkdown: vi.fn().mockResolvedValue({
+          content: `{{{col
+第一列这部分解释如何把 AI 工作流真正接进日常开发。
+
+第二列补充测试、部署和复盘要点。
+}}}
+{: style="color: red;"}`
+        })
+      },
+      collectContentEntries: vi.fn().mockResolvedValue([]),
+      writeBundle,
+      removeManagedPost: vi.fn(),
+      runBlogChecks: vi.fn(),
+      commitAndPush: vi.fn().mockResolvedValue({ committed: false }),
+      triggerDeploy: vi.fn()
+    });
+
+    const writtenBundle = writeBundle.mock.calls[0]?.[1] as { body: string };
+    const parsed = matter(writtenBundle.body);
+
+    expect(parsed.data.excerpt).toContain("第一列这部分解释如何把 AI 工作流真正接进日常开发");
+    expect(parsed.data.excerpt).toContain("第二列补充测试、部署和复盘要点");
+    expect(parsed.data.excerpt).not.toContain("{{{col");
+    expect(parsed.data.excerpt).not.toContain("{:");
+    expect(parsed.data.excerpt).not.toContain("<Columns>");
   });
 
   it("reports invalid published notes with clear reasons", async () => {

@@ -2,6 +2,39 @@ function escapeHtmlAttribute(value: string) {
   return value.replace(/&/g, "&amp;").replace(/"/g, "&quot;").replace(/</g, "&lt;");
 }
 
+type SuperBlockLayout = "col" | "row";
+
+function isCodeFenceBoundary(line: string) {
+  return /^```/.test(line);
+}
+
+function stripSiyuanIAL(markdown: string) {
+  const lines = markdown.split("\n");
+  const output: string[] = [];
+  let inCodeFence = false;
+
+  for (const line of lines) {
+    if (isCodeFenceBoundary(line)) {
+      inCodeFence = !inCodeFence;
+      output.push(line);
+      continue;
+    }
+
+    if (inCodeFence) {
+      output.push(line);
+      continue;
+    }
+
+    if (/^\s*(?:\{:\s*[^{}\n]*\})+\s*$/u.test(line)) {
+      continue;
+    }
+
+    output.push(line.replace(/\s*(?:\{:\s*[^{}\n]*\})+\s*$/u, ""));
+  }
+
+  return output.join("\n");
+}
+
 function isDirectiveStart(line: string) {
   const match = line.match(/^:::\s*([a-z-]+)(?:\s+(.*))?$/u);
   if (!match) {
@@ -26,9 +59,21 @@ function consumeDirectiveBlock(lines: string[], startIndex: number) {
 
   let depth = 1;
   const contentLines: string[] = [];
+  let inCodeFence = false;
 
   for (let index = startIndex + 1; index < lines.length; index += 1) {
     const line = lines[index];
+    if (isCodeFenceBoundary(line)) {
+      inCodeFence = !inCodeFence;
+      contentLines.push(line);
+      continue;
+    }
+
+    if (inCodeFence) {
+      contentLines.push(line);
+      continue;
+    }
+
     if (isDirectiveStart(line)) {
       depth += 1;
       contentLines.push(line);
@@ -54,21 +99,113 @@ function consumeDirectiveBlock(lines: string[], startIndex: number) {
   return null;
 }
 
+function isSuperBlockStart(line: string) {
+  const match = line.match(/^\{\{\{\s*(col|row)\s*$/u);
+  if (!match) {
+    return null;
+  }
+
+  return {
+    layout: match[1].trim().toLowerCase() as SuperBlockLayout
+  };
+}
+
+function isSuperBlockEnd(line: string) {
+  return /^\s*\}\}\}\s*$/u.test(line);
+}
+
+function consumeSuperBlock(lines: string[], startIndex: number) {
+  const start = isSuperBlockStart(lines[startIndex]);
+  if (!start) {
+    return null;
+  }
+
+  let depth = 1;
+  const contentLines: string[] = [];
+  let inCodeFence = false;
+
+  for (let index = startIndex + 1; index < lines.length; index += 1) {
+    const line = lines[index];
+    if (isCodeFenceBoundary(line)) {
+      inCodeFence = !inCodeFence;
+      contentLines.push(line);
+      continue;
+    }
+
+    if (inCodeFence) {
+      contentLines.push(line);
+      continue;
+    }
+
+    if (isSuperBlockStart(line)) {
+      depth += 1;
+      contentLines.push(line);
+      continue;
+    }
+
+    if (isSuperBlockEnd(line)) {
+      depth -= 1;
+      if (depth === 0) {
+        return {
+          layout: start.layout,
+          content: contentLines.join("\n"),
+          nextIndex: index + 1
+        };
+      }
+      contentLines.push(line);
+      continue;
+    }
+
+    contentLines.push(line);
+  }
+
+  return null;
+}
+
+function splitLooseColumnSegments(markdown: string) {
+  return markdown
+    .split(/\n{2,}/u)
+    .map((segment) => segment.trim())
+    .filter(Boolean);
+}
+
+function renderSuperBlock(layout: SuperBlockLayout, content: string) {
+  if (layout === "col") {
+    return renderColumns(content);
+  }
+
+  return normalizeSiyuanStructures(content).trim();
+}
+
 function splitColumnSegments(markdown: string) {
   const lines = markdown.split("\n");
   const segments: string[] = [];
   const looseLines: string[] = [];
+  let inCodeFence = false;
 
   const flushLooseLines = () => {
     const content = looseLines.join("\n").trim();
     if (content) {
-      segments.push(content);
+      segments.push(...splitLooseColumnSegments(content));
     }
     looseLines.length = 0;
   };
 
   let index = 0;
   while (index < lines.length) {
+    if (isCodeFenceBoundary(lines[index])) {
+      inCodeFence = !inCodeFence;
+      looseLines.push(lines[index]);
+      index += 1;
+      continue;
+    }
+
+    if (inCodeFence) {
+      looseLines.push(lines[index]);
+      index += 1;
+      continue;
+    }
+
     const directive = isDirectiveStart(lines[index]);
     if (directive?.name === "column") {
       flushLooseLines();
@@ -80,6 +217,23 @@ function splitColumnSegments(markdown: string) {
       }
       if (block.content.trim()) {
         segments.push(block.content.trim());
+      }
+      index = block.nextIndex;
+      continue;
+    }
+
+    const superBlock = isSuperBlockStart(lines[index]);
+    if (superBlock) {
+      flushLooseLines();
+      const block = consumeSuperBlock(lines, index);
+      if (!block) {
+        looseLines.push(lines[index]);
+        index += 1;
+        continue;
+      }
+      const rendered = renderSuperBlock(block.layout, block.content).trim();
+      if (rendered) {
+        segments.push(rendered);
       }
       index = block.nextIndex;
       continue;
@@ -142,7 +296,7 @@ function renderDirectiveBlock(name: string, argument: string, content: string) {
 }
 
 export function normalizeSiyuanStructures(markdown: string) {
-  const lines = markdown.split("\n");
+  const lines = stripSiyuanIAL(markdown).split("\n");
   const output: string[] = [];
   let index = 0;
   let inCodeFence = false;
@@ -150,7 +304,7 @@ export function normalizeSiyuanStructures(markdown: string) {
   while (index < lines.length) {
     const line = lines[index];
 
-    if (/^```/.test(line)) {
+    if (isCodeFenceBoundary(line)) {
       inCodeFence = !inCodeFence;
       output.push(line);
       index += 1;
@@ -160,6 +314,23 @@ export function normalizeSiyuanStructures(markdown: string) {
     if (inCodeFence) {
       output.push(line);
       index += 1;
+      continue;
+    }
+
+    const superBlock = isSuperBlockStart(line);
+    if (superBlock) {
+      const block = consumeSuperBlock(lines, index);
+      if (!block) {
+        output.push(line);
+        index += 1;
+        continue;
+      }
+
+      const rendered = renderSuperBlock(block.layout, block.content);
+      if (rendered) {
+        output.push(rendered);
+      }
+      index = block.nextIndex;
       continue;
     }
 
