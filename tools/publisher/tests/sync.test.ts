@@ -226,6 +226,77 @@ describe("syncPublishedNotes", () => {
     );
   });
 
+  it("cleans zero-width characters from a generated excerpt before writing the bundle", async () => {
+    const writeBundle = vi.fn();
+
+    await syncPublishedNotes({
+      dryRun: false,
+      config: baseConfig,
+      client: {
+        queryDocuments: vi.fn().mockResolvedValue([
+          {
+            id: "doc-zero-width-1",
+            content: "这是一个博客",
+            hpath: "/这是一个博客",
+            updated: "20260511170947"
+          }
+        ]),
+        getBlockAttrs: vi.fn().mockResolvedValue({}),
+        exportMarkdown: vi.fn().mockResolvedValue({
+          content: "这是一个博客\u200d 你好\u200b"
+        })
+      },
+      collectContentEntries: vi.fn().mockResolvedValue([]),
+      writeBundle,
+      removeManagedPost: vi.fn(),
+      runBlogChecks: vi.fn(),
+      commitAndPush: vi.fn().mockResolvedValue({ committed: false }),
+      triggerDeploy: vi.fn()
+    });
+
+    const writtenBundle = writeBundle.mock.calls[0]?.[1] as { body: string };
+    const parsed = matter(writtenBundle.body);
+
+    expect(parsed.data.excerpt).toBe("这是一个博客 你好");
+    expect(parsed.data.excerpt).not.toContain("\u200d");
+    expect(parsed.data.excerpt).not.toContain("\u200b");
+  });
+
+  it("falls back to the note title when a generated excerpt is mostly symbol noise", async () => {
+    const writeBundle = vi.fn();
+
+    await syncPublishedNotes({
+      dryRun: false,
+      config: baseConfig,
+      client: {
+        queryDocuments: vi.fn().mockResolvedValue([
+          {
+            id: "doc-symbol-noise-1",
+            content: "这是第二个博客",
+            hpath: "/这是第二个博客",
+            updated: "20260513142030"
+          }
+        ]),
+        getBlockAttrs: vi.fn().mockResolvedValue({}),
+        exportMarkdown: vi.fn().mockResolvedValue({
+          content: "√√√√√√√√"
+        })
+      },
+      collectContentEntries: vi.fn().mockResolvedValue([]),
+      writeBundle,
+      removeManagedPost: vi.fn(),
+      runBlogChecks: vi.fn(),
+      commitAndPush: vi.fn().mockResolvedValue({ committed: false }),
+      triggerDeploy: vi.fn()
+    });
+
+    const writtenBundle = writeBundle.mock.calls[0]?.[1] as { body: string };
+    const parsed = matter(writtenBundle.body);
+
+    expect(parsed.data.excerpt).toBe("这是第二个博客");
+    expect(parsed.data.excerpt).not.toContain("√");
+  });
+
   it("publishes notebook notes by default and falls back to a safe generated slug for Chinese titles", async () => {
     const writeBundle = vi.fn();
 

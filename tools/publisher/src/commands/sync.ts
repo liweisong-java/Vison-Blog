@@ -30,6 +30,7 @@ const slugPattern = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
 const draftPattern = /(?:^|\/)(?:draft|drafts|草稿|未发布|未完成)(?:\/|$)|^(?:草稿|draft)[:：-]/iu;
 const techKeywordPattern =
   /(ai|人工智能|技术|开发|代码|编程|java|javascript|typescript|node|astro|vercel|prompt|workflow|工作流|接口|数据库|前端|后端|算法|部署|调试|性能|系统|工程)/iu;
+const invisibleCharPattern = /[\u200B-\u200D\uFEFF]/gu;
 
 function readAttrVariants(attrs: Record<string, string>, key: string) {
   const values = [
@@ -90,7 +91,18 @@ function excerptFromMarkdown(markdown: string) {
     .replace(/\s+/g, " ")
     .trim();
 
-  return normalized.slice(0, 140).trim();
+  return normalized.replace(invisibleCharPattern, "").slice(0, 140).trim();
+}
+
+function normalizeExcerptCandidate(value: string | undefined) {
+  if (!value) {
+    return "";
+  }
+
+  return value
+    .replace(invisibleCharPattern, "")
+    .replace(/\s+/g, " ")
+    .trim();
 }
 
 function countExcerptUnits(value: string) {
@@ -197,12 +209,15 @@ function normalizePublishedNote(
     reasons.push(`slug "${slug}" contains unsupported characters`);
   }
 
-  const configuredExcerpt = readAttrVariants(attrs, config.attrs.excerpt);
-  const generatedExcerpt = excerptFromMarkdown(markdown);
+  const configuredExcerpt = normalizeExcerptCandidate(readAttrVariants(attrs, config.attrs.excerpt));
+  const generatedExcerpt = normalizeExcerptCandidate(excerptFromMarkdown(markdown));
+  const titleExcerpt = normalizeExcerptCandidate(doc.content);
   const excerpt =
     configuredExcerpt && hasUsableExcerpt(configuredExcerpt)
       ? configuredExcerpt
-      : generatedExcerpt;
+      : generatedExcerpt && hasUsableExcerpt(generatedExcerpt)
+        ? generatedExcerpt
+        : titleExcerpt;
   if (!excerpt || !hasUsableExcerpt(excerpt)) {
     reasons.push("excerpt must include enough readable content");
   }
