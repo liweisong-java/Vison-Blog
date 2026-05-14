@@ -21,7 +21,7 @@ const data = await loadPrivateDashboard();
         <span class="desk-hero__badge">Video</span>
       </div>
       <h1>视频转博客</h1>
-      <p class="desk-hero__summary">贴上链接和整理后的文本，直接生成博客，不再来回切命令行。</p>
+      <p class="desk-hero__summary">只贴视频链接就能自动尝试提取字幕或转写音频；如果你已经整理好文本，也可以直接贴进来覆盖。</p>
     </section>
 
     <nav class="desk-inline-nav" aria-label="Desk navigation">
@@ -33,9 +33,9 @@ const data = await loadPrivateDashboard();
       <div class="desk-video-card__header">
         <div>
           <p class="desk-video-card__label">Video To Blog</p>
-          <h2>直接生成博客</h2>
+          <h2>选择生成方式</h2>
         </div>
-        <p class="desk-video-card__hint">适合你已经拿到 transcript 的场景。点一次按钮，系统会直接入队、处理，并把结果回写到博客仓库。</p>
+        <p class="desk-video-card__hint">默认就是自动模式，只贴链接也能开始；只有你想覆盖文字内容时，才切到手动文本模式。</p>
       </div>
 
       <label class="desk-field">
@@ -49,23 +49,59 @@ const data = await loadPrivateDashboard();
         />
       </label>
 
-      <label class="desk-field">
+      <div class="desk-mode-switch" role="tablist" aria-label="生成方式">
+        <button
+          type="button"
+          class="is-active"
+          aria-pressed="true"
+          data-video-mode-button
+          data-mode-value="auto"
+        >
+          自动读取视频文字
+        </button>
+        <button
+          type="button"
+          aria-pressed="false"
+          data-video-mode-button
+          data-mode-value="manual"
+        >
+          使用我提供的文本
+        </button>
+      </div>
+
+      <div class="desk-mode-panel" data-video-mode-panel="auto">
+        <p><strong>自动模式：</strong> 你只需要贴链接。系统会先抓字幕，抓不到再下载音频做转写。</p>
+      </div>
+
+      <div class="desk-mode-panel" data-video-mode-panel="manual" hidden>
+        <p><strong>手动模式：</strong> 适合你已经自己整理过文字，或者想精修表达时使用。提交后会直接按这份文本生成。</p>
+      </div>
+
+      <label class="desk-field" data-video-manual-field hidden>
         <span>视频文本</span>
         <textarea
           class="desk-input desk-input--multiline"
-          placeholder="把视频整理好的文本贴到这里"
+          placeholder="粘贴你整理好的视频文本"
           aria-label="人工 transcript"
           data-video-transcript
         ></textarea>
       </label>
 
+      <div class="desk-video-notes" aria-label="使用说明">
+        <p><strong>自动模式：</strong> 适合大多数情况，省事，但文字质量取决于字幕和转写结果。</p>
+        <p><strong>手动模式：</strong> 适合你已经整理好文稿，生成更快，也更可控。</p>
+      </div>
+
       <div class="desk-video-actions">
         <button type="button" data-video-submit>生成博客</button>
-        <button type="button" class="desk-button desk-button--ghost" data-video-copy>复制文本</button>
         <button type="button" class="desk-button desk-button--secondary" data-video-refresh>刷新状态</button>
       </div>
 
-      <p class="desk-video-feedback" data-video-feedback>填入链接和文本后，点一次按钮就会直接开始处理。</p>
+      <div class="desk-inline-action" data-video-copy-wrap hidden>
+        <button type="button" class="desk-button desk-button--ghost" data-video-copy>复制文本</button>
+      </div>
+
+      <p class="desk-video-feedback" data-video-feedback>默认是自动模式，只填链接就能开始。</p>
     </section>
 
     <section class="desk-command-list">
@@ -91,9 +127,14 @@ const data = await loadPrivateDashboard();
     const transcriptInput = document.querySelector("[data-video-transcript]");
     const submitButton = document.querySelector("[data-video-submit]");
     const copyButton = document.querySelector("[data-video-copy]");
+    const copyWrap = document.querySelector("[data-video-copy-wrap]");
     const refreshButton = document.querySelector("[data-video-refresh]");
+    const modeButtons = Array.from(document.querySelectorAll("[data-video-mode-button]"));
+    const modePanels = Array.from(document.querySelectorAll("[data-video-mode-panel]"));
+    const manualField = document.querySelector("[data-video-manual-field]");
     const feedback = document.querySelector("[data-video-feedback]");
     const statusPanel = document.querySelector("[data-video-status]");
+    let currentMode = "auto";
 
     const setFeedback = (message) => {
       if (feedback instanceof HTMLElement) {
@@ -146,6 +187,36 @@ const data = await loadPrivateDashboard();
       `;
     };
 
+    const setMode = (mode) => {
+      currentMode = mode === "manual" ? "manual" : "auto";
+
+      modeButtons.forEach((button) => {
+        if (!(button instanceof HTMLButtonElement)) {
+          return;
+        }
+
+        const active = button.dataset.modeValue === currentMode;
+        button.classList.toggle("is-active", active);
+        button.setAttribute("aria-pressed", active ? "true" : "false");
+      });
+
+      modePanels.forEach((panel) => {
+        if (!(panel instanceof HTMLElement)) {
+          return;
+        }
+
+        panel.hidden = panel.dataset.videoModePanel !== currentMode;
+      });
+
+      if (manualField instanceof HTMLElement) {
+        manualField.hidden = currentMode !== "manual";
+      }
+
+      if (copyWrap instanceof HTMLElement) {
+        copyWrap.hidden = currentMode !== "manual";
+      }
+    };
+
     const fetchStatus = async () => {
       const response = await fetch(`${apiBaseUrl}/status`);
       if (!response.ok) {
@@ -160,6 +231,11 @@ const data = await loadPrivateDashboard();
     const copyTranscript = async () => {
       const transcript =
         transcriptInput instanceof HTMLTextAreaElement ? transcriptInput.value.trim() : "";
+
+      if (currentMode !== "manual") {
+        setFeedback("切到“使用我提供的文本”后，才需要复制这段内容。");
+        return;
+      }
 
       if (!transcript) {
         setFeedback("当前还没有可复制的文本。");
@@ -180,23 +256,38 @@ const data = await loadPrivateDashboard();
         return;
       }
 
-      if (!transcript) {
-        setFeedback("请先贴入整理好的视频文本。");
+      const manualMode = currentMode === "manual";
+      if (manualMode && !transcript) {
+        setFeedback("你当前选的是手动文本模式，请先贴入视频文本。");
         return;
       }
 
-      setFeedback("任务已提交，正在处理，请稍等。");
-      setStatus("系统正在提交并执行当前任务。");
+      setFeedback(
+        manualMode
+          ? "任务已提交，正在根据你提供的文本生成博客。"
+          : "任务已提交，正在自动提取视频文字并生成博客，请稍等。"
+      );
+      setStatus(
+        manualMode
+          ? "系统正在使用你提供的文本生成当前任务。"
+          : "系统正在抓取字幕或转写音频，请稍等。"
+      );
 
       const response = await fetch(`${apiBaseUrl}/submit`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json"
         },
-        body: JSON.stringify({
-          url,
+        body: JSON.stringify(
           transcript
-        })
+            ? {
+                url,
+                transcript
+              }
+            : {
+                url
+              }
+        )
       });
 
       const payload = await response.json().catch(() => ({}));
@@ -208,6 +299,21 @@ const data = await loadPrivateDashboard();
       const slug = payload?.result?.results?.[0]?.slug;
       setFeedback(slug ? `处理完成，文章已生成：${slug}` : "任务已处理完成。");
     };
+
+    modeButtons.forEach((button) => {
+      button?.addEventListener("click", () => {
+        if (!(button instanceof HTMLButtonElement)) {
+          return;
+        }
+
+        setMode(button.dataset.modeValue ?? "auto");
+        setFeedback(
+          button.dataset.modeValue === "manual"
+            ? "当前是手动文本模式，提交时会优先使用你提供的文字。"
+            : "当前是自动模式，只填链接就能开始。"
+        );
+      });
+    });
 
     copyButton?.addEventListener("click", () => {
       void copyTranscript().catch((error) => {
@@ -234,5 +340,7 @@ const data = await loadPrivateDashboard();
     void fetchStatus().catch(() => {
       setStatus("还没有连上 video-to-blog 服务，请先启动服务。");
     });
+
+    setMode("auto");
   </script>
 </BaseLayout>

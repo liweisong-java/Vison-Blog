@@ -154,6 +154,11 @@ describe("operations docs", () => {
     expect(page).toContain("粘贴视频链接");
     expect(page).toContain("生成博客");
     expect(page).toContain("复制文本");
+    expect(page).toContain("自动读取视频文字");
+    expect(page).toContain("使用我提供的文本");
+    expect(page).toContain("data-video-mode-button");
+    expect(page).toContain('data-video-mode-panel="auto"');
+    expect(page).toContain('data-video-mode-panel="manual"');
     expect(page).toContain("data-video-submit");
     expect(page).toContain("data-video-copy");
     expect(page).toContain("data-video-status");
