@@ -45,6 +45,12 @@ describe("operations docs", () => {
     expect(rootPackageJson.scripts?.["publish:dry-run"]).toBe("pnpm --filter publisher dev sync --dry-run");
     expect(rootPackageJson.scripts?.["publish:sync"]).toBe("pnpm --filter publisher dev sync");
     expect(rootPackageJson.scripts?.["publish:server-run"]).toBe("node scripts/server-publish-cycle.mjs");
+    expect(rootPackageJson.scripts?.["video:init"]).toBe("pnpm --filter video-to-blog dev init");
+    expect(rootPackageJson.scripts?.["video:doctor"]).toBe("pnpm --filter video-to-blog dev doctor");
+    expect(rootPackageJson.scripts?.["video:enqueue"]).toBe("pnpm --filter video-to-blog dev enqueue");
+    expect(rootPackageJson.scripts?.["video:run"]).toBe("pnpm --filter video-to-blog dev run");
+    expect(rootPackageJson.scripts?.["video:status"]).toBe("pnpm --filter video-to-blog dev status");
+    expect(rootPackageJson.scripts?.["video:install"]).toBe("pnpm --filter video-to-blog dev server-install");
   });
 
   it("keeps a Chinese Siyuan publishing runbook aligned with the root commands", async () => {
@@ -60,6 +66,21 @@ describe("operations docs", () => {
     expect(runbook).toContain("pnpm publish:sync");
     expect(runbook).toContain("pnpm publish:server-run");
     expect(runbook).toContain("服务器");
+  });
+
+  it("documents the video-to-blog workflow and root commands", async () => {
+    const readme = await readFile(resolve(process.cwd(), "../../README.md"), "utf8");
+    const runbook = await readFile(
+      resolve(process.cwd(), "../../docs/runbooks/video-to-blog.md"),
+      "utf8"
+    );
+
+    expect(readme).toContain("video-to-blog");
+    expect(readme).toContain("pnpm video:init");
+    expect(readme).toContain("pnpm video:enqueue --url <链接>");
+    expect(runbook).toContain("yt-dlp");
+    expect(runbook).toContain("faster-whisper");
+    expect(runbook).toContain("pnpm video:run");
   });
 
   it("documents the private dashboard workflow and protected route setup", async () => {

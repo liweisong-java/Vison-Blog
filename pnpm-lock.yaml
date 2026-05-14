@@ -74,6 +74,25 @@ importers:
         specifier: ^4.21.0
         version: 4.21.0
 
+  tools/video-to-blog:
+    dependencies:
+      dotenv:
+        specifier: ^17.4.2
+        version: 17.4.2
+      gray-matter:
+        specifier: ^4.0.3
+        version: 4.0.3
+      simple-git:
+        specifier: ^3.36.0
+        version: 3.36.0
+      zod:
+        specifier: ^4.4.3
+        version: 4.4.3
+    devDependencies:
+      tsx:
+        specifier: ^4.21.0
+        version: 4.21.0
+
 packages:
 
   '@astrojs/check@0.9.9':
