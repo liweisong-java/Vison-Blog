@@ -150,6 +150,7 @@ describe("operations docs", () => {
     expect(page).toContain("视频转博客");
     expect(page).toContain("粘贴视频链接");
     expect(page).toContain("生成入队命令");
+    expect(page).toContain("复制命令");
     expect(page).toContain("data-video-command");
     expect(page).toContain("/desk/");
   });

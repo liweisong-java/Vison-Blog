@@ -20,6 +20,7 @@ test("desk video page generates a runnable command on mobile", async ({ page }) 
 
   await expect(page.locator(".site-header")).toHaveCount(0);
   await expect(page.locator(".desk-video-card")).toBeVisible();
+  await expect(page.getByRole("button", { name: "复制命令" })).toBeVisible();
 
   await page.getByLabel("粘贴视频链接").fill("https://www.bilibili.com/video/BV1GJ411x7h7");
   await page.getByLabel("人工 transcript").fill("第一段整理内容。");
@@ -28,4 +29,7 @@ test("desk video page generates a runnable command on mobile", async ({ page }) 
   await expect(page.locator("[data-video-command]")).toContainText("pnpm video:enqueue");
   await expect(page.locator("[data-video-command]")).toContainText("BV1GJ411x7h7");
   await expect(page.locator("[data-video-feedback]")).toContainText(/命令已生成|可直接复制/);
+
+  await page.getByRole("button", { name: "复制命令" }).click();
+  await expect(page.locator("[data-video-feedback]")).toContainText("已复制");
 });

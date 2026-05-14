@@ -75,6 +75,7 @@ const manualExample =
           <p class="desk-video-card__label">命令结果</p>
           <h2>可直接复制</h2>
         </div>
+        <button type="button" class="desk-button desk-button--ghost" data-video-copy>复制命令</button>
       </div>
       <pre data-video-command><code>{manualExample}</code></pre>
     </section>
@@ -88,10 +89,16 @@ const manualExample =
     const urlInput = document.querySelector("[data-video-url]");
     const transcriptInput = document.querySelector("[data-video-transcript]");
     const buildButton = document.querySelector("[data-video-build]");
+    const copyButton = document.querySelector("[data-video-copy]");
     const output = document.querySelector("[data-video-command] code");
     const feedback = document.querySelector("[data-video-feedback]");
 
     const escapeDoubleQuotes = (value) => value.replace(/\\/g, "\\\\").replace(/"/g, '\\"').trim();
+    const setFeedback = (message) => {
+      if (feedback instanceof HTMLElement) {
+        feedback.textContent = message;
+      }
+    };
 
     buildButton?.addEventListener("click", () => {
       const url = urlInput instanceof HTMLInputElement ? urlInput.value.trim() : "";
@@ -99,9 +106,7 @@ const manualExample =
         transcriptInput instanceof HTMLTextAreaElement ? transcriptInput.value.trim() : "";
 
       if (!url) {
-        if (feedback instanceof HTMLElement) {
-          feedback.textContent = "先填入视频链接，再生成命令。";
-        }
+        setFeedback("先填入视频链接，再生成命令。");
         return;
       }
 
@@ -115,8 +120,36 @@ const manualExample =
         output.textContent = command;
       }
 
-      if (feedback instanceof HTMLElement) {
-        feedback.textContent = "命令已生成，可直接复制到终端执行。";
+      setFeedback("命令已生成，可直接复制到终端执行。");
+    });
+
+    copyButton?.addEventListener("click", async () => {
+      const command = output instanceof HTMLElement ? output.textContent?.trim() ?? "" : "";
+
+      if (!command) {
+        setFeedback("当前还没有可复制的命令。");
+        return;
+      }
+
+      try {
+        if (navigator.clipboard?.writeText) {
+          await navigator.clipboard.writeText(command);
+          setFeedback("命令已复制，可以直接粘贴执行。");
+          return;
+        }
+      } catch (error) {
+        console.warn("[desk/video] clipboard write failed", error);
+      }
+
+      const selection = window.getSelection();
+      const range = document.createRange();
+      if (output instanceof HTMLElement && selection) {
+        range.selectNodeContents(output);
+        selection.removeAllRanges();
+        selection.addRange(range);
+        const copied = document.execCommand("copy");
+        selection.removeAllRanges();
+        setFeedback(copied ? "命令已复制，可以直接粘贴执行。" : "复制失败，请手动长按复制。");
       }
     });
   </script>

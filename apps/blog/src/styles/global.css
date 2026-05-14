@@ -1348,6 +1348,15 @@ aside {
   color: #3d2e1f;
 }
 
+.desk-button--ghost {
+  min-height: 40px;
+  padding: 0 16px;
+  border: 1px solid rgba(35, 26, 18, 0.08);
+  background: #fff8ee;
+  color: #4d3c29;
+  box-shadow: none;
+}
+
 .desk-video-feedback {
   margin: 12px 0 0;
   color: #6f5f4d;
@@ -1356,8 +1365,10 @@ aside {
 }
 
 .desk-command-list__header {
-  display: grid;
-  gap: 6px;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 14px;
 }
 
 .desk-command-list pre {
@@ -1800,6 +1811,15 @@ aside {
   .desk-command-list {
     padding: 16px;
     border-radius: 24px;
+  }
+
+  .desk-command-list__header {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .desk-button--ghost {
+    width: 100%;
   }
 
   .desk-video-actions {
