@@ -72,4 +72,41 @@ describe("transcribeVideo", () => {
     expect(usePremiumTranscription).toHaveBeenCalledOnce();
     expect(run).toHaveBeenCalledOnce();
   });
+
+  it("falls back to local whisper when openai mode is enabled without an api key", async () => {
+    const usePremiumTranscription = vi.fn(async () => {
+      throw new Error("should not be called");
+    });
+    const run = vi.fn(async () => ({
+      stdout: JSON.stringify({
+        source: "asr",
+        language: "zh",
+        text: "这是缺少 key 时的本地兜底结果。",
+        segments: [
+          {
+            start: 0,
+            end: 1,
+            text: "这是缺少 key 时的本地兜底结果。"
+          }
+        ]
+      }),
+      stderr: ""
+    }));
+
+    const result = await transcribeVideo({
+      subtitleFiles: [],
+      audioPath: "/tmp/audio.mp3",
+      pythonBin: "python3",
+      whisperModel: "large-v3",
+      toolRoot: "/tmp/tools/video-to-blog",
+      transcriptionEngine: "openai",
+      premiumTranscriptionFallback: "local",
+      usePremiumTranscription,
+      run
+    });
+
+    expect(result.text).toContain("缺少 key 时的本地兜底结果");
+    expect(usePremiumTranscription).not.toHaveBeenCalled();
+    expect(run).toHaveBeenCalledOnce();
+  });
 });

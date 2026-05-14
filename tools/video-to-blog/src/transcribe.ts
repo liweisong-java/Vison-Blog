@@ -40,19 +40,17 @@ export async function transcribeVideo({
   }
 
   if (transcriptionEngine === "openai") {
-    if (!openAiApiKey) {
-      throw new Error("Missing OPENAI_API_KEY for premium transcription.");
-    }
-
-    try {
-      return await usePremiumTranscription({
-        audioPath,
-        apiKey: openAiApiKey,
-        model: openAiTranscriptionModel
-      });
-    } catch (error) {
-      if (premiumTranscriptionFallback === "none") {
-        throw error;
+    if (openAiApiKey) {
+      try {
+        return await usePremiumTranscription({
+          audioPath,
+          apiKey: openAiApiKey,
+          model: openAiTranscriptionModel
+        });
+      } catch (error) {
+        if (premiumTranscriptionFallback === "none") {
+          throw error;
+        }
       }
     }
   }
