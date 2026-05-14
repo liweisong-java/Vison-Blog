@@ -5,6 +5,17 @@ import { siteUrl } from "./site.config.mjs";
 
 export default defineConfig({
   site: siteUrl,
+  vite: {
+    server: {
+      proxy: {
+        "/video-api": {
+          target: "http://127.0.0.1:4319",
+          changeOrigin: true,
+          rewrite: (path) => path.replace(/^\/video-api/, "")
+        }
+      }
+    }
+  },
   integrations: [
     mdx(),
     sitemap({

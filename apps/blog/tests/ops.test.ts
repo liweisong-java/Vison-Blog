@@ -50,6 +50,7 @@ describe("operations docs", () => {
     expect(rootPackageJson.scripts?.["video:enqueue"]).toBe("pnpm --filter video-to-blog dev enqueue");
     expect(rootPackageJson.scripts?.["video:run"]).toBe("pnpm --filter video-to-blog dev run");
     expect(rootPackageJson.scripts?.["video:status"]).toBe("pnpm --filter video-to-blog dev status");
+    expect(rootPackageJson.scripts?.["video:serve"]).toBe("pnpm --filter video-to-blog dev serve");
     expect(rootPackageJson.scripts?.["video:install"]).toBe("pnpm --filter video-to-blog dev server-install");
   });
 
@@ -81,6 +82,7 @@ describe("operations docs", () => {
     expect(runbook).toContain("yt-dlp");
     expect(runbook).toContain("faster-whisper");
     expect(runbook).toContain("pnpm video:run");
+    expect(runbook).toContain("pnpm video:serve");
   });
 
   it("documents the private dashboard workflow and protected route setup", async () => {
@@ -146,12 +148,19 @@ describe("operations docs", () => {
 
   it("ships a dedicated video workspace under the personal desk", async () => {
     const page = await readFile(resolve(process.cwd(), "../blog/src/pages/desk/video.astro"), "utf8");
+    const astroConfig = await readFile(resolve(process.cwd(), "../blog/astro.config.mjs"), "utf8");
 
     expect(page).toContain("视频转博客");
     expect(page).toContain("粘贴视频链接");
-    expect(page).toContain("生成入队命令");
-    expect(page).toContain("复制命令");
-    expect(page).toContain("data-video-command");
+    expect(page).toContain("生成博客");
+    expect(page).toContain("复制文本");
+    expect(page).toContain("data-video-submit");
+    expect(page).toContain("data-video-copy");
+    expect(page).toContain("data-video-status");
     expect(page).toContain("/desk/");
+    expect(page).toContain('const apiBaseUrl = "/video-api"');
+    expect(page).not.toContain("http://127.0.0.1:4319");
+    expect(astroConfig).toContain('"/video-api"');
+    expect(astroConfig).toContain("http://127.0.0.1:4319");
   });
 });

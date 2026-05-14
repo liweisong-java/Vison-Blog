@@ -14,22 +14,67 @@ test("desk home behaves like a private app launcher", async ({ page }) => {
   await expect(page.locator(".desk-status-hint")).toHaveCount(1);
 });
 
-test("desk video page generates a runnable command on mobile", async ({ page }) => {
+test("desk video page submits a task directly on mobile", async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 844 });
+  await page.route("**/video-api/status", async (route) => {
+    await route.fulfill({
+      status: 200,
+      contentType: "application/json",
+      body: JSON.stringify({
+        ok: true,
+        status: {
+          queueSize: 2,
+          pending: 1,
+          publishedVideos: 6
+        },
+        running: false,
+        lastResult: {
+          processed: 1,
+          results: [{ slug: "video-demo-post" }]
+        },
+        lastError: null
+      })
+    });
+  });
+  await page.route("**/video-api/submit", async (route) => {
+    await route.fulfill({
+      status: 200,
+      contentType: "application/json",
+      body: JSON.stringify({
+        ok: true,
+        job: {
+          id: "job-123"
+        },
+        result: {
+          processed: 1,
+          results: [{ slug: "video-demo-post" }]
+        },
+        status: {
+          queueSize: 2,
+          pending: 0,
+          publishedVideos: 7
+        },
+        running: false,
+        lastResult: {
+          processed: 1,
+          results: [{ slug: "video-demo-post" }]
+        },
+        lastError: null
+      })
+    });
+  });
   await page.goto("/desk/video/");
 
   await expect(page.locator(".site-header")).toHaveCount(0);
   await expect(page.locator(".desk-video-card")).toBeVisible();
-  await expect(page.getByRole("button", { name: "复制命令" })).toBeVisible();
 
   await page.getByLabel("粘贴视频链接").fill("https://www.bilibili.com/video/BV1GJ411x7h7");
   await page.getByLabel("人工 transcript").fill("第一段整理内容。");
-  await page.getByRole("button", { name: "生成入队命令" }).click();
+  await expect(page.getByRole("button", { name: "复制文本" })).toBeVisible();
+  await page.getByRole("button", { name: "生成博客" }).click();
 
-  await expect(page.locator("[data-video-command]")).toContainText("pnpm video:enqueue");
-  await expect(page.locator("[data-video-command]")).toContainText("BV1GJ411x7h7");
-  await expect(page.locator("[data-video-feedback]")).toContainText(/命令已生成|可直接复制/);
-
-  await page.getByRole("button", { name: "复制命令" }).click();
-  await expect(page.locator("[data-video-feedback]")).toContainText("已复制");
+  await expect(page.locator("[data-video-feedback]")).toContainText("处理完成，文章已生成：video-demo-post");
+  await expect(page.locator("[data-video-status]")).toContainText("队列总数");
+  await expect(page.locator("[data-video-status]")).toContainText("已发布");
+  await expect(page.locator("[data-video-status]")).toContainText("video-demo-post");
 });

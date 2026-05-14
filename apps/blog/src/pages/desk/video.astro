@@ -3,8 +3,6 @@ import BaseLayout from "../../layouts/BaseLayout.astro";
 import { loadPrivateDashboard, summarizeDeskStatus } from "../../lib/private-dashboard";
 
 const data = await loadPrivateDashboard();
-const manualExample =
-  'pnpm video:enqueue -- --url "https://www.bilibili.com/video/BV1GJ411x7h7" --transcript "第一段整理内容。"\nVIDEO_TO_BLOG_SKIP_CHECK=1 pnpm video:run';
 ---
 
 <BaseLayout
@@ -23,7 +21,7 @@ const manualExample =
         <span class="desk-hero__badge">Video</span>
       </div>
       <h1>视频转博客</h1>
-      <p class="desk-hero__summary">先填链接，再决定是否附上人工 transcript，页面会直接帮你拼出可执行命令。</p>
+      <p class="desk-hero__summary">贴上链接和整理后的文本，直接生成博客，不再来回切命令行。</p>
     </section>
 
     <nav class="desk-inline-nav" aria-label="Desk navigation">
@@ -35,9 +33,9 @@ const manualExample =
       <div class="desk-video-card__header">
         <div>
           <p class="desk-video-card__label">Video To Blog</p>
-          <h2>生成入队命令</h2>
+          <h2>直接生成博客</h2>
         </div>
-        <p class="desk-video-card__hint">你可以先在手机上整理内容，再把命令贴到服务器或终端里执行。</p>
+        <p class="desk-video-card__hint">适合你已经拿到 transcript 的场景。点一次按钮，系统会直接入队、处理，并把结果回写到博客仓库。</p>
       </div>
 
       <label class="desk-field">
@@ -52,32 +50,34 @@ const manualExample =
       </label>
 
       <label class="desk-field">
-        <span>人工 transcript</span>
+        <span>视频文本</span>
         <textarea
           class="desk-input desk-input--multiline"
-          placeholder="可选：人工 transcript"
+          placeholder="把视频整理好的文本贴到这里"
           aria-label="人工 transcript"
           data-video-transcript
         ></textarea>
       </label>
 
       <div class="desk-video-actions">
-        <button type="button" data-video-build>生成入队命令</button>
-        <a href="/secret-dashboard/" class="desk-button desk-button--secondary">查看状态</a>
+        <button type="button" data-video-submit>生成博客</button>
+        <button type="button" class="desk-button desk-button--ghost" data-video-copy>复制文本</button>
+        <button type="button" class="desk-button desk-button--secondary" data-video-refresh>刷新状态</button>
       </div>
 
-      <p class="desk-video-feedback" data-video-feedback>填入链接后点击按钮，这里会生成可以直接复制的命令。</p>
+      <p class="desk-video-feedback" data-video-feedback>填入链接和文本后，点一次按钮就会直接开始处理。</p>
     </section>
 
     <section class="desk-command-list">
       <div class="desk-command-list__header">
         <div>
-          <p class="desk-video-card__label">命令结果</p>
-          <h2>可直接复制</h2>
+          <p class="desk-video-card__label">任务状态</p>
+          <h2>最近任务</h2>
         </div>
-        <button type="button" class="desk-button desk-button--ghost" data-video-copy>复制命令</button>
       </div>
-      <pre data-video-command><code>{manualExample}</code></pre>
+      <div class="desk-status-panel" data-video-status>
+        <p>等待提交任务。</p>
+      </div>
     </section>
 
     <section class="desk-status-hint" aria-label="当前状态">
@@ -86,71 +86,153 @@ const manualExample =
   </div>
 
   <script is:inline>
+    const apiBaseUrl = "/video-api";
     const urlInput = document.querySelector("[data-video-url]");
     const transcriptInput = document.querySelector("[data-video-transcript]");
-    const buildButton = document.querySelector("[data-video-build]");
+    const submitButton = document.querySelector("[data-video-submit]");
     const copyButton = document.querySelector("[data-video-copy]");
-    const output = document.querySelector("[data-video-command] code");
+    const refreshButton = document.querySelector("[data-video-refresh]");
     const feedback = document.querySelector("[data-video-feedback]");
+    const statusPanel = document.querySelector("[data-video-status]");
 
-    const escapeDoubleQuotes = (value) => value.replace(/\\/g, "\\\\").replace(/"/g, '\\"').trim();
     const setFeedback = (message) => {
       if (feedback instanceof HTMLElement) {
         feedback.textContent = message;
       }
     };
 
-    buildButton?.addEventListener("click", () => {
+    const setStatus = (message) => {
+      if (statusPanel instanceof HTMLElement) {
+        statusPanel.innerHTML = `<p>${message}</p>`;
+      }
+    };
+
+    const renderStatus = (payload) => {
+      if (!(statusPanel instanceof HTMLElement)) {
+        return;
+      }
+
+      const status = payload?.status ?? {};
+      const lastResult = payload?.lastResult ?? null;
+      const lastError = payload?.lastError ?? null;
+      const running = Boolean(payload?.running);
+
+      const rows = [
+        `<div><span>队列总数</span><strong>${status.queueSize ?? 0}</strong></div>`,
+        `<div><span>待处理</span><strong>${status.pending ?? 0}</strong></div>`,
+        `<div><span>已发布</span><strong>${status.publishedVideos ?? 0}</strong></div>`
+      ];
+
+      const notes = [];
+      if (running) {
+        notes.push("<p>系统正在处理当前任务。</p>");
+      }
+      if (lastResult?.results?.length) {
+        const latest = lastResult.results[0] ?? {};
+        if (latest.slug) {
+          notes.push(`<p>最近一次生成文章：<code>${latest.slug}</code></p>`);
+        }
+      }
+      if (lastError) {
+        notes.push(`<p>最近错误：${lastError}</p>`);
+      }
+      if (!notes.length) {
+        notes.push("<p>最近没有新的处理结果。</p>");
+      }
+
+      statusPanel.innerHTML = `
+        <div class="desk-status-grid">${rows.join("")}</div>
+        <div class="desk-status-notes">${notes.join("")}</div>
+      `;
+    };
+
+    const fetchStatus = async () => {
+      const response = await fetch(`${apiBaseUrl}/status`);
+      if (!response.ok) {
+        throw new Error("状态服务暂时不可用。");
+      }
+
+      const payload = await response.json();
+      renderStatus(payload);
+      return payload;
+    };
+
+    const copyTranscript = async () => {
+      const transcript =
+        transcriptInput instanceof HTMLTextAreaElement ? transcriptInput.value.trim() : "";
+
+      if (!transcript) {
+        setFeedback("当前还没有可复制的文本。");
+        return;
+      }
+
+      await navigator.clipboard.writeText(transcript);
+      setFeedback("文本已复制，可以直接贴到别处继续使用。");
+    };
+
+    const submitTask = async () => {
       const url = urlInput instanceof HTMLInputElement ? urlInput.value.trim() : "";
       const transcript =
         transcriptInput instanceof HTMLTextAreaElement ? transcriptInput.value.trim() : "";
 
       if (!url) {
-        setFeedback("先填入视频链接，再生成命令。");
+        setFeedback("先填入视频链接。");
         return;
       }
 
-      const commandParts = ['pnpm video:enqueue -- --url', `"${escapeDoubleQuotes(url)}"`];
-      if (transcript) {
-        commandParts.push("--transcript", `"${escapeDoubleQuotes(transcript)}"`);
-      }
-      const command = `${commandParts.join(" ")}\nVIDEO_TO_BLOG_SKIP_CHECK=1 pnpm video:run`;
-
-      if (output instanceof HTMLElement) {
-        output.textContent = command;
+      if (!transcript) {
+        setFeedback("请先贴入整理好的视频文本。");
+        return;
       }
 
-      setFeedback("命令已生成，可直接复制到终端执行。");
+      setFeedback("任务已提交，正在处理，请稍等。");
+      setStatus("系统正在提交并执行当前任务。");
+
+      const response = await fetch(`${apiBaseUrl}/submit`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          url,
+          transcript
+        })
+      });
+
+      const payload = await response.json().catch(() => ({}));
+      if (!response.ok || payload?.ok === false) {
+        throw new Error(payload?.message ?? "提交失败，请检查 video-to-blog 服务。");
+      }
+
+      renderStatus(payload);
+      const slug = payload?.result?.results?.[0]?.slug;
+      setFeedback(slug ? `处理完成，文章已生成：${slug}` : "任务已处理完成。");
+    };
+
+    copyButton?.addEventListener("click", () => {
+      void copyTranscript().catch((error) => {
+        const message = error instanceof Error ? error.message : String(error);
+        setFeedback(message);
+      });
     });
 
-    copyButton?.addEventListener("click", async () => {
-      const command = output instanceof HTMLElement ? output.textContent?.trim() ?? "" : "";
+    submitButton?.addEventListener("click", () => {
+      void submitTask().catch((error) => {
+        const message = error instanceof Error ? error.message : String(error);
+        setFeedback(message);
+        setStatus(message);
+      });
+    });
 
-      if (!command) {
-        setFeedback("当前还没有可复制的命令。");
-        return;
-      }
+    refreshButton?.addEventListener("click", () => {
+      void fetchStatus().catch((error) => {
+        const message = error instanceof Error ? error.message : String(error);
+        setFeedback(message);
+      });
+    });
 
-      try {
-        if (navigator.clipboard?.writeText) {
-          await navigator.clipboard.writeText(command);
-          setFeedback("命令已复制，可以直接粘贴执行。");
-          return;
-        }
-      } catch (error) {
-        console.warn("[desk/video] clipboard write failed", error);
-      }
-
-      const selection = window.getSelection();
-      const range = document.createRange();
-      if (output instanceof HTMLElement && selection) {
-        range.selectNodeContents(output);
-        selection.removeAllRanges();
-        selection.addRange(range);
-        const copied = document.execCommand("copy");
-        selection.removeAllRanges();
-        setFeedback(copied ? "命令已复制，可以直接粘贴执行。" : "复制失败，请手动长按复制。");
-      }
+    void fetchStatus().catch(() => {
+      setStatus("还没有连上 video-to-blog 服务，请先启动服务。");
     });
   </script>
 </BaseLayout>

@@ -21,6 +21,7 @@
     "video:enqueue": "pnpm --filter video-to-blog dev enqueue",
     "video:run": "pnpm --filter video-to-blog dev run",
     "video:status": "pnpm --filter video-to-blog dev status",
+    "video:serve": "pnpm --filter video-to-blog dev serve",
     "video:install": "pnpm --filter video-to-blog dev server-install",
     "private:dashboard": "node scripts/generate-private-dashboard.mjs",
     "private:dashboard:traffic": "node scripts/fetch-umami-stats.mjs",

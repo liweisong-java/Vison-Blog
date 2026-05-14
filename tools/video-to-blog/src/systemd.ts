@@ -4,11 +4,16 @@ export function getVideoToBlogServiceName() {
   return "vision-video-to-blog";
 }
 
+export function getVideoToBlogApiServiceName() {
+  return "vision-video-to-blog-api";
+}
+
 export function getVideoToBlogUnitPaths() {
   const serviceName = getVideoToBlogServiceName();
   return {
     servicePath: join("/etc/systemd/system", `${serviceName}.service`),
-    timerPath: join("/etc/systemd/system", `${serviceName}.timer`)
+    timerPath: join("/etc/systemd/system", `${serviceName}.timer`),
+    apiServicePath: join("/etc/systemd/system", `${getVideoToBlogApiServiceName()}.service`)
   };
 }
 
@@ -42,6 +47,40 @@ export function buildVideoToBlogSystemdService({
     `WorkingDirectory=${escapeUnitValue(workspaceRoot)}`,
     `EnvironmentFile=${escapeUnitValue(environmentFile)}`,
     `ExecStart=${escapeUnitValue(command)}`,
+    ""
+  ].filter(Boolean);
+
+  return `${lines.join("\n")}\n`;
+}
+
+export function buildVideoToBlogApiSystemdService({
+  workspaceRoot,
+  user,
+  group,
+  environmentFile,
+  command
+}: {
+  workspaceRoot: string;
+  user: string;
+  group?: string;
+  environmentFile: string;
+  command: string;
+}) {
+  const lines = [
+    "[Unit]",
+    "Description=Vision Blog video-to-blog API server",
+    "After=network-online.target",
+    "Wants=network-online.target",
+    "",
+    "[Service]",
+    "Type=simple",
+    `User=${escapeUnitValue(user)}`,
+    group ? `Group=${escapeUnitValue(group)}` : "",
+    `WorkingDirectory=${escapeUnitValue(workspaceRoot)}`,
+    `EnvironmentFile=${escapeUnitValue(environmentFile)}`,
+    `ExecStart=${escapeUnitValue(command)}`,
+    "Restart=always",
+    "RestartSec=3",
     ""
   ].filter(Boolean);
 

@@ -1382,6 +1382,61 @@ aside {
   line-height: 1.7;
 }
 
+.desk-status-panel {
+  margin-top: 14px;
+  padding: 14px;
+  border-radius: 20px;
+  background: #f8f4eb;
+  color: #3c3022;
+}
+
+.desk-status-panel p {
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.8;
+}
+
+.desk-status-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.desk-status-grid div {
+  min-width: 0;
+  padding: 12px 12px 14px;
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.82);
+  border: 1px solid rgba(35, 26, 18, 0.05);
+}
+
+.desk-status-grid span {
+  display: block;
+  color: #7c6a53;
+  font-size: 12px;
+  line-height: 1.6;
+}
+
+.desk-status-grid strong {
+  display: block;
+  margin-top: 8px;
+  color: #231a12;
+  font-size: 24px;
+  line-height: 1.1;
+}
+
+.desk-status-notes {
+  display: grid;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.desk-status-notes code {
+  padding: 0.12em 0.36em;
+  border-radius: 6px;
+  background: rgba(35, 26, 18, 0.06);
+}
+
 .private-dashboard-hero {
   display: grid;
   gap: 14px;
@@ -1625,6 +1680,10 @@ aside {
 
   .dashboard-metrics--three {
     grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .desk-status-grid {
+    grid-template-columns: 1fr;
   }
 }
 

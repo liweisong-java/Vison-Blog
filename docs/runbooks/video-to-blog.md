@@ -102,6 +102,19 @@ pnpm video:enqueue --url "https://www.youtube.com/watch?v=..."
 pnpm video:status
 ```
 
+启动页面直连服务：
+
+```bash
+pnpm video:serve
+```
+
+开发时，博客页面会通过同源路径 `/video-api` 自动代理到这个服务，所以你只需要同时开着：
+
+```bash
+pnpm dev
+pnpm video:serve
+```
+
 执行队列：
 
 ```bash
@@ -143,6 +156,19 @@ pnpm video:install -- --user root --group root --interval-minutes 5
 
 - `/etc/systemd/system/vision-video-to-blog.service`
 - `/etc/systemd/system/vision-video-to-blog.timer`
+- `/etc/systemd/system/vision-video-to-blog-api.service`
+
+如果你要让 `/desk/video/` 页面在服务器上直接可用，记得再把同源接口反向代理到 API 服务：
+
+```nginx
+location ^~ /video-api/ {
+  proxy_pass http://127.0.0.1:4319/;
+  proxy_http_version 1.1;
+  proxy_set_header Host $host;
+  proxy_set_header X-Real-IP $remote_addr;
+  proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+}
+```
 
 常用排查命令：
 

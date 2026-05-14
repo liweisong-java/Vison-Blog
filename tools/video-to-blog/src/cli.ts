@@ -9,11 +9,14 @@ import { config as loadEnv } from "dotenv";
 import { formatCliError, printJson } from "./cli-output.js";
 import { loadVideoToBlogConfig } from "./config.js";
 import { enqueueVideo, getVideoToBlogStatus, doctorVideoToBlog, runVideoQueue } from "./commands.js";
+import { startVideoToBlogApiServer } from "./api-server.js";
 import { initVideoToBlogFiles } from "./init.js";
 import { resolveVideoToBlogRuntime } from "./runtime.js";
 import {
+  buildVideoToBlogApiSystemdService,
   buildVideoToBlogSystemdService,
   buildVideoToBlogSystemdTimer,
+  getVideoToBlogApiServiceName,
   getVideoToBlogServiceName,
   getVideoToBlogUnitPaths
 } from "./systemd.js";
@@ -77,12 +80,37 @@ async function main() {
     return;
   }
 
+  if (command === "serve") {
+    const host = readArg("--host") ?? env.VIDEO_TO_BLOG_API_HOST ?? "127.0.0.1";
+    const port = Number(readArg("--port") ?? env.VIDEO_TO_BLOG_API_PORT ?? "4319");
+    const server = await startVideoToBlogApiServer({
+      host,
+      port,
+      runtime,
+      config,
+      env,
+      enqueueVideo,
+      getVideoToBlogStatus,
+      runVideoQueue
+    });
+
+    printJson({
+      ok: true,
+      host: server.host,
+      port: server.port,
+      submitUrl: `http://${server.host}:${server.port}/submit`,
+      statusUrl: `http://${server.host}:${server.port}/status`
+    });
+    return;
+  }
+
   if (command === "server-install") {
     const user = readArg("--user") ?? env.VIDEO_TO_BLOG_USER ?? "deploy";
     const group = readArg("--group") ?? env.VIDEO_TO_BLOG_GROUP;
     const intervalMinutes = Number(readArg("--interval-minutes") ?? env.VIDEO_TO_BLOG_INTERVAL_MINUTES ?? "5");
     const unitPaths = getVideoToBlogUnitPaths();
     const commandLine = `bash -lc 'cd ${runtime.workspaceRoot} && pnpm video:run'`;
+    const apiCommandLine = `bash -lc 'cd ${runtime.workspaceRoot} && pnpm video:serve'`;
 
     await writeFile(
       unitPaths.servicePath,
@@ -96,6 +124,17 @@ async function main() {
       "utf8"
     );
     await writeFile(
+      unitPaths.apiServicePath,
+      buildVideoToBlogApiSystemdService({
+        workspaceRoot: runtime.workspaceRoot,
+        user,
+        group,
+        environmentFile: runtime.envPath,
+        command: apiCommandLine
+      }),
+      "utf8"
+    );
+    await writeFile(
       unitPaths.timerPath,
       buildVideoToBlogSystemdTimer({
         onCalendar: `*:0/${intervalMinutes}`
@@ -104,10 +143,12 @@ async function main() {
     );
     await execFileAsync("systemctl", ["daemon-reload"]);
     await execFileAsync("systemctl", ["enable", "--now", `${getVideoToBlogServiceName()}.timer`]);
+    await execFileAsync("systemctl", ["enable", "--now", `${getVideoToBlogApiServiceName()}.service`]);
 
     printJson({
       ok: true,
       servicePath: unitPaths.servicePath,
+      apiServicePath: unitPaths.apiServicePath,
       timerPath: unitPaths.timerPath,
       intervalMinutes
     });
