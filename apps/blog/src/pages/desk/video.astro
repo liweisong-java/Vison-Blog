@@ -1,0 +1,123 @@
+---
+import BaseLayout from "../../layouts/BaseLayout.astro";
+import { loadPrivateDashboard, summarizeDeskStatus } from "../../lib/private-dashboard";
+
+const data = await loadPrivateDashboard();
+const manualExample =
+  'pnpm video:enqueue -- --url "https://www.bilibili.com/video/BV1GJ411x7h7" --transcript "第一段整理内容。"\nVIDEO_TO_BLOG_SKIP_CHECK=1 pnpm video:run';
+---
+
+<BaseLayout
+  title="视频转博客 | 个人中控台"
+  description="个人中控台中的视频转博客工作区。"
+  robots="noindex,nofollow,noarchive"
+  showHeader={false}
+  showFooter={false}
+  mainClass="desk-shell"
+  bodyClass="desk-body"
+>
+  <div class="desk-video-page">
+    <section class="desk-hero desk-hero--compact">
+      <div class="desk-hero__topline">
+        <p class="desk-hero__eyebrow">Vison Desk</p>
+        <span class="desk-hero__badge">Video</span>
+      </div>
+      <h1>视频转博客</h1>
+      <p class="desk-hero__summary">先填链接，再决定是否附上人工 transcript，页面会直接帮你拼出可执行命令。</p>
+    </section>
+
+    <nav class="desk-inline-nav" aria-label="Desk navigation">
+      <a href="/desk/">返回中控台</a>
+      <a href="/secret-dashboard/">查看后台</a>
+    </nav>
+
+    <section class="desk-video-card">
+      <div class="desk-video-card__header">
+        <div>
+          <p class="desk-video-card__label">Video To Blog</p>
+          <h2>生成入队命令</h2>
+        </div>
+        <p class="desk-video-card__hint">你可以先在手机上整理内容，再把命令贴到服务器或终端里执行。</p>
+      </div>
+
+      <label class="desk-field">
+        <span>视频链接</span>
+        <input
+          class="desk-input"
+          type="text"
+          placeholder="粘贴视频链接"
+          aria-label="粘贴视频链接"
+          data-video-url
+        />
+      </label>
+
+      <label class="desk-field">
+        <span>人工 transcript</span>
+        <textarea
+          class="desk-input desk-input--multiline"
+          placeholder="可选：人工 transcript"
+          aria-label="人工 transcript"
+          data-video-transcript
+        ></textarea>
+      </label>
+
+      <div class="desk-video-actions">
+        <button type="button" data-video-build>生成入队命令</button>
+        <a href="/secret-dashboard/" class="desk-button desk-button--secondary">查看状态</a>
+      </div>
+
+      <p class="desk-video-feedback" data-video-feedback>填入链接后点击按钮，这里会生成可以直接复制的命令。</p>
+    </section>
+
+    <section class="desk-command-list">
+      <div class="desk-command-list__header">
+        <div>
+          <p class="desk-video-card__label">命令结果</p>
+          <h2>可直接复制</h2>
+        </div>
+      </div>
+      <pre data-video-command><code>{manualExample}</code></pre>
+    </section>
+
+    <section class="desk-status-hint" aria-label="当前状态">
+      <p>{summarizeDeskStatus(data)}</p>
+    </section>
+  </div>
+
+  <script is:inline>
+    const urlInput = document.querySelector("[data-video-url]");
+    const transcriptInput = document.querySelector("[data-video-transcript]");
+    const buildButton = document.querySelector("[data-video-build]");
+    const output = document.querySelector("[data-video-command] code");
+    const feedback = document.querySelector("[data-video-feedback]");
+
+    const escapeDoubleQuotes = (value) => value.replace(/\\/g, "\\\\").replace(/"/g, '\\"').trim();
+
+    buildButton?.addEventListener("click", () => {
+      const url = urlInput instanceof HTMLInputElement ? urlInput.value.trim() : "";
+      const transcript =
+        transcriptInput instanceof HTMLTextAreaElement ? transcriptInput.value.trim() : "";
+
+      if (!url) {
+        if (feedback instanceof HTMLElement) {
+          feedback.textContent = "先填入视频链接，再生成命令。";
+        }
+        return;
+      }
+
+      const commandParts = ['pnpm video:enqueue -- --url', `"${escapeDoubleQuotes(url)}"`];
+      if (transcript) {
+        commandParts.push("--transcript", `"${escapeDoubleQuotes(transcript)}"`);
+      }
+      const command = `${commandParts.join(" ")}\nVIDEO_TO_BLOG_SKIP_CHECK=1 pnpm video:run`;
+
+      if (output instanceof HTMLElement) {
+        output.textContent = command;
+      }
+
+      if (feedback instanceof HTMLElement) {
+        feedback.textContent = "命令已生成，可直接复制到终端执行。";
+      }
+    });
+  </script>
+</BaseLayout>

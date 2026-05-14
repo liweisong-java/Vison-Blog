@@ -9,9 +9,22 @@ interface Props {
   description: string;
   ogType?: string;
   robots?: string;
+  showHeader?: boolean;
+  showFooter?: boolean;
+  mainClass?: string;
+  bodyClass?: string;
 }
 
-const { title, description, ogType = "website", robots } = Astro.props;
+const {
+  title,
+  description,
+  ogType = "website",
+  robots,
+  showHeader = true,
+  showFooter = true,
+  mainClass = "page-shell",
+  bodyClass
+} = Astro.props;
 const canonical = new URL(Astro.url.pathname, siteConfig.siteUrl);
 ---
 
@@ -33,11 +46,11 @@ const canonical = new URL(Astro.url.pathname, siteConfig.siteUrl);
     <link rel="canonical" href={canonical.toString()} />
     {robots && <meta name="robots" content={robots} />}
   </head>
-  <body>
-    <Header />
-    <main class="page-shell">
+  <body class={bodyClass}>
+    {showHeader && <Header />}
+    <main class={mainClass}>
       <slot />
     </main>
-    <Footer />
+    {showFooter && <Footer />}
   </body>
 </html>

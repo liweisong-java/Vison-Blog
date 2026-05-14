@@ -124,4 +124,33 @@ describe("operations docs", () => {
     expect(deployRunbook).toContain("publish:server-run");
     expect(publishRunbook).toContain("浏览器");
   });
+
+  it("keeps the personal desk routes private and excluded from discovery surfaces", async () => {
+    const astroConfig = await readFile(resolve(process.cwd(), "../blog/astro.config.mjs"), "utf8");
+    const siteConfig = await readFile(resolve(process.cwd(), "../blog/site.config.mjs"), "utf8");
+
+    expect(astroConfig).toContain('/desk/');
+    expect(astroConfig).toContain('/desk/video/');
+    expect(siteConfig).not.toContain('/desk/');
+  });
+
+  it("ships a mobile-first personal desk home with app-like entry cards", async () => {
+    const page = await readFile(resolve(process.cwd(), "../blog/src/pages/desk/index.astro"), "utf8");
+
+    expect(page).toContain('title="个人中控台');
+    expect(page).toContain("/desk/video/");
+    expect(page).toContain("/secret-dashboard/");
+    expect(page).not.toContain("http://localhost:4321/secret-dashboard/index.html");
+    expect(page).toContain("Vison Desk");
+  });
+
+  it("ships a dedicated video workspace under the personal desk", async () => {
+    const page = await readFile(resolve(process.cwd(), "../blog/src/pages/desk/video.astro"), "utf8");
+
+    expect(page).toContain("视频转博客");
+    expect(page).toContain("粘贴视频链接");
+    expect(page).toContain("生成入队命令");
+    expect(page).toContain("data-video-command");
+    expect(page).toContain("/desk/");
+  });
 });

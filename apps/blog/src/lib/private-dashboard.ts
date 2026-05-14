@@ -166,6 +166,13 @@ export function summarizeDashboard(input: Pick<PrivateDashboard, "generatedAt" |
   return `最近已更新：${generatedAt}，当前发布状态：${status}。`;
 }
 
+export function summarizeDeskStatus(input: Pick<PrivateDashboard, "publisher">) {
+  const status = getPublisherStatusLabel(input.publisher.status);
+  const pending = input.publisher.pendingCount;
+  const lastSuccess = formatDateTime(input.publisher.lastSuccessAt);
+  return `${status}，队列 ${pending} 条，最近成功 ${lastSuccess}`;
+}
+
 export function toPercent(value: number, total: number) {
   if (total <= 0) {
     return "0%";

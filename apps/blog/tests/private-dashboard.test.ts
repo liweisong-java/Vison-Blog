@@ -3,6 +3,7 @@ import {
   createEmptyPrivateDashboard,
   getPublisherStatusLabel,
   privateDashboardSchema,
+  summarizeDeskStatus,
   summarizeDashboard
 } from "../src/lib/private-dashboard";
 
@@ -75,5 +76,17 @@ describe("private dashboard", () => {
 
     expect(privateDashboardSchema.parse(payload).publisher.status).toBe("warning");
     expect(summarizeDashboard(payload)).toContain("空态结构");
+  });
+
+  it("builds a concise personal desk status line", () => {
+    expect(
+      summarizeDeskStatus({
+        publisher: {
+          status: "healthy",
+          pendingCount: 2,
+          lastSuccessAt: "2026-05-12T11:30:00.000Z"
+        }
+      } as never)
+    ).toContain("队列 2 条");
   });
 });

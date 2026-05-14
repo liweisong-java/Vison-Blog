@@ -1,0 +1,59 @@
+---
+import BaseLayout from "../../layouts/BaseLayout.astro";
+import { loadPrivateDashboard, summarizeDeskStatus } from "../../lib/private-dashboard";
+
+type QuickLink = {
+  href: string;
+  label: string;
+  meta: string;
+  icon: string;
+  note: string;
+};
+
+const data = await loadPrivateDashboard();
+const quickLinks: QuickLink[] = [
+  { href: "/", label: "博客", meta: "公开页面", icon: "读", note: "写完后直接看结果" },
+  { href: "/secret-dashboard/", label: "后台", meta: "详细统计", icon: "台", note: "看同步、访问和状态" },
+  { href: "/desk/video/", label: "视频转博客", meta: "整理入口", icon: "影", note: "从链接到文章草稿" },
+  { href: "/about/", label: "关于我", meta: "个人名片", icon: "我", note: "对外信息统一查看" }
+];
+---
+
+<BaseLayout
+  title="个人中控台 | 伟松的博客"
+  description="隐藏的个人工作台。"
+  robots="noindex,nofollow,noarchive"
+  showHeader={false}
+  showFooter={false}
+  mainClass="desk-shell"
+  bodyClass="desk-body"
+>
+  <div class="desk-page">
+    <section class="desk-hero">
+      <div class="desk-hero__topline">
+        <p class="desk-hero__eyebrow">Vison Desk</p>
+        <span class="desk-hero__badge">私人入口</span>
+      </div>
+      <h1>今天先处理什么？</h1>
+      <p class="desk-hero__summary">只保留你最常会点开的几个入口，打开就能做事。</p>
+    </section>
+
+    <section class="desk-app-grid" aria-label="快捷入口">
+      {quickLinks.map((item) => (
+        <a class="desk-app-card" href={item.href}>
+          <span class="desk-app-card__icon" aria-hidden="true">{item.icon}</span>
+          <span class="desk-app-card__body">
+            <span class="desk-app-card__meta">{item.meta}</span>
+            <strong>{item.label}</strong>
+            <span>{item.note}</span>
+          </span>
+          <span class="desk-app-card__arrow" aria-hidden="true">进入</span>
+        </a>
+      ))}
+    </section>
+
+    <section class="desk-status-hint" aria-label="当前状态">
+      <p>{summarizeDeskStatus(data)}</p>
+    </section>
+  </div>
+</BaseLayout>

@@ -8,7 +8,10 @@ export default defineConfig({
   integrations: [
     mdx(),
     sitemap({
-      filter: (page) => !page.includes("/secret-dashboard/")
+      filter: (page) =>
+        !page.includes("/secret-dashboard/") &&
+        !page.includes("/desk/") &&
+        !page.includes("/desk/video/")
     })
   ]
 });
