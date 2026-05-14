@@ -7,7 +7,7 @@
 - 公开视频链接
 - 当前优先支持 `Bilibili`、`YouTube`、`Douyin`
 - 以中文或中英混合内容为主
-- 免费优先，本地 `faster-whisper` 识别
+- 效果优先，优先使用更高质量的转写链路
 
 ## 目录与配置
 
@@ -28,6 +28,7 @@ pnpm video:init
 - `VIDEO_TO_BLOG_REMOTE`
 - `VIDEO_TO_BLOG_GIT_AUTHOR_NAME`
 - `VIDEO_TO_BLOG_GIT_AUTHOR_EMAIL`
+- `OPENAI_API_KEY`（如果要启用高质量转写主链）
 
 `video-to-blog.config.json` 还支持按平台补充 `yt-dlp` 参数，例如：
 
@@ -42,6 +43,22 @@ pnpm video:init
 }
 ```
 
+如果你要启用“效果优先”的高质量转写，建议同时补上：
+
+```json
+{
+  "transcriptionEngine": "openai",
+  "openAiTranscriptionModel": "gpt-4o-transcribe",
+  "premiumTranscriptionFallback": "local"
+}
+```
+
+说明：
+
+- `transcriptionEngine: "openai"` 表示音频转写优先走高质量主链
+- `premiumTranscriptionFallback: "local"` 表示高质量链路失败时，自动回退到本地 `faster-whisper`
+- 如果你想强制只走高质量链路，可以把 `premiumTranscriptionFallback` 改成 `"none"`
+
 ## 运行前准备
 
 服务器上需要具备：
@@ -52,6 +69,7 @@ pnpm video:init
 - `yt-dlp`
 - `faster-whisper`
 - 如果需要 `--impersonate`，建议安装兼容版 `curl-cffi`
+- 如果启用高质量主链，还需要可用的 `OPENAI_API_KEY`
 
 Python 依赖建议：
 
@@ -128,10 +146,11 @@ pnpm video:run
 1. 读取队列里的待处理链接
 2. 用 `yt-dlp` 抽取视频元数据
 3. 优先下载字幕
-4. 没有可用字幕时下载音频并走 `faster-whisper`
-5. 生成 `apps/blog/src/content/posts/<slug>/index.mdx`
-6. git 提交并推送到 `master`
-7. 服务器本地执行博客构建并切换 `/data/Vison-Blog/current`
+4. 没有可用字幕时下载音频，并优先走高质量转写
+5. 高质量转写失败时，再回退到本地 `faster-whisper`
+6. 生成 `apps/blog/src/content/posts/<slug>/index.mdx`
+7. git 提交并推送到 `master`
+8. 服务器本地执行博客构建并切换 `/data/Vison-Blog/current`
 
 ## 与思源发布器的关系
 
@@ -183,5 +202,5 @@ journalctl -u vision-video-to-blog.service -n 100 --no-pager
 
 - 第一版只支持公开视频
 - 不支持会员、登录态、私有链接
-- 不做深度 AI 改写，当前是“结构化博客整理”
+- 抖音这类平台仍可能受源站风控影响，拿不到媒体时建议改走手动文本模式
 - 当前默认不自动导出公众号稿

@@ -141,6 +141,7 @@ export async function runVideoQueue({
   deploySite = deployLocalStaticSite,
   fetchBilibiliMetadata = fetchBilibiliMetadataFallback,
   downloadBilibiliSubtitles = downloadBilibiliSubtitleArtifacts,
+  transcribe = transcribeVideo,
   now = () => new Date().toISOString()
 }: {
   config: VideoToBlogConfig;
@@ -152,6 +153,7 @@ export async function runVideoQueue({
   deploySite?: typeof deployLocalStaticSite;
   fetchBilibiliMetadata?: typeof fetchBilibiliMetadataFallback;
   downloadBilibiliSubtitles?: typeof downloadBilibiliSubtitleArtifacts;
+  transcribe?: typeof transcribeVideo;
   now?: () => string;
 }) {
   await recycleRunningJobs(runtime);
@@ -252,12 +254,16 @@ export async function runVideoQueue({
               });
             }
 
-            return transcribeVideo({
+            return transcribe({
               subtitleFiles,
               audioPath,
               pythonBin: config.pythonBin,
               whisperModel: config.whisperModel,
               toolRoot: runtime.toolRoot,
+              transcriptionEngine: config.transcriptionEngine,
+              openAiApiKey: env.OPENAI_API_KEY,
+              openAiTranscriptionModel: config.openAiTranscriptionModel,
+              premiumTranscriptionFallback: config.premiumTranscriptionFallback,
               run
             });
           })();

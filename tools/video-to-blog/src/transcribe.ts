@@ -2,7 +2,8 @@ import { resolve } from "node:path";
 import { pickBestSubtitleFile, parseSubtitleFile } from "./subtitles.js";
 import type { RunCommand } from "./process.js";
 import { runCommand } from "./process.js";
-import type { Transcript } from "./types.js";
+import { transcribeWithOpenAi } from "./premium-transcribe.js";
+import type { PremiumTranscriptionFallback, Transcript, TranscriptionEngine } from "./types.js";
 
 export async function transcribeVideo({
   subtitleFiles,
@@ -10,6 +11,11 @@ export async function transcribeVideo({
   pythonBin,
   whisperModel,
   toolRoot,
+  transcriptionEngine = "local",
+  openAiApiKey,
+  openAiTranscriptionModel = "gpt-4o-transcribe",
+  premiumTranscriptionFallback = "local",
+  usePremiumTranscription = transcribeWithOpenAi,
   run = runCommand
 }: {
   subtitleFiles: string[];
@@ -17,6 +23,11 @@ export async function transcribeVideo({
   pythonBin: string;
   whisperModel: string;
   toolRoot: string;
+  transcriptionEngine?: TranscriptionEngine;
+  openAiApiKey?: string;
+  openAiTranscriptionModel?: string;
+  premiumTranscriptionFallback?: PremiumTranscriptionFallback;
+  usePremiumTranscription?: typeof transcribeWithOpenAi;
   run?: RunCommand;
 }): Promise<Transcript> {
   const preferredSubtitle = pickBestSubtitleFile(subtitleFiles);
@@ -26,6 +37,24 @@ export async function transcribeVideo({
 
   if (!audioPath) {
     throw new Error("No subtitles or audio are available for transcription.");
+  }
+
+  if (transcriptionEngine === "openai") {
+    if (!openAiApiKey) {
+      throw new Error("Missing OPENAI_API_KEY for premium transcription.");
+    }
+
+    try {
+      return await usePremiumTranscription({
+        audioPath,
+        apiKey: openAiApiKey,
+        model: openAiTranscriptionModel
+      });
+    } catch (error) {
+      if (premiumTranscriptionFallback === "none") {
+        throw error;
+      }
+    }
   }
 
   const scriptPath = resolve(toolRoot, "python", "transcribe.py");

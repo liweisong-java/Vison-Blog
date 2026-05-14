@@ -11,8 +11,29 @@ describe("loadVideoToBlogConfig", () => {
     expect(config.contentRoot).toBe("/tmp/vision-blog/apps/blog/src/content/posts");
     expect(config.stateRoot).toBe("/tmp/vision-blog/.superpowers/video-to-blog");
     expect(config.deployRoot).toBe("/data/Vison-Blog");
+    expect(config.pythonBin).toBe("/tmp/vision-blog/python3");
     expect(config.tempRoot).toBe("/tmp/vision-blog/.superpowers/video-to-blog/tmp");
     expect(config.ytDlpArgs).toEqual([]);
     expect(config.ytDlpArgsByPlatform).toEqual({});
+  });
+
+  it("also resolves a relative pythonBin against the repository root", async () => {
+    const config = await loadVideoToBlogConfig(
+      new URL("./fixtures/config-relative-python.json", import.meta.url),
+      "/tmp/vision-blog"
+    );
+
+    expect(config.pythonBin).toBe("/tmp/vision-blog/.venv-video-to-blog/bin/python");
+  });
+
+  it("keeps the high-quality transcription settings when provided", async () => {
+    const config = await loadVideoToBlogConfig(
+      new URL("./fixtures/config-premium.json", import.meta.url),
+      "/tmp/vision-blog"
+    );
+
+    expect(config.transcriptionEngine).toBe("openai");
+    expect(config.openAiTranscriptionModel).toBe("gpt-4o-transcribe");
+    expect(config.premiumTranscriptionFallback).toBe("local");
   });
 });

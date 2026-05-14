@@ -175,6 +175,102 @@ describe("video-to-blog api server", () => {
       await server.close();
     }
   });
+
+  it("translates douyin cookie failures into a readable api message", async () => {
+    const { startVideoToBlogApiServer } = await import("../src/api-server");
+    const server = await startVideoToBlogApiServer({
+      host: "127.0.0.1",
+      port: 0,
+      enqueueVideo: vi.fn(async () => ({
+        ok: true,
+        id: "job-123",
+        url: "https://v.douyin.com/f9_XaJ6rOB0/",
+        manualTranscript: false
+      })),
+      getVideoToBlogStatus: vi.fn(async () => ({
+        ok: true,
+        queueSize: 1,
+        pending: 1,
+        publishedVideos: 0
+      })),
+      runVideoQueue: vi.fn(async () => {
+        throw new Error(
+          "Command failed: yt-dlp --dump-single-json --no-warnings --skip-download https://v.douyin.com/f9_XaJ6rOB0/\nERROR: [Douyin] 7639300730813156659: Fresh cookies (not necessarily logged in) are needed\n"
+        );
+      }),
+      runtime: {} as never,
+      config: {} as never,
+      env: {}
+    });
+
+    try {
+      const parsed = await sendJsonRequest(server.port, "/submit", "POST", {
+        url: "https://v.douyin.com/f9_XaJ6rOB0/"
+      });
+
+      expect(parsed.message).toContain("抖音当前要求更有效的浏览器会话");
+    } finally {
+      await server.close();
+    }
+  });
+
+  it("treats queued job failures as api failures instead of fake success", async () => {
+    const { startVideoToBlogApiServer } = await import("../src/api-server");
+    const server = await startVideoToBlogApiServer({
+      host: "127.0.0.1",
+      port: 0,
+      enqueueVideo: vi.fn(async () => ({
+        ok: true,
+        id: "job-456",
+        url: "https://v.douyin.com/f9_XaJ6rOB0/",
+        manualTranscript: false
+      })),
+      getVideoToBlogStatus: vi.fn(async () => ({
+        ok: true,
+        queueSize: 1,
+        pending: 0,
+        publishedVideos: 0
+      }))
+        .mockResolvedValueOnce({
+          ok: true,
+          queueSize: 1,
+          pending: 1,
+          publishedVideos: 0
+        })
+        .mockResolvedValueOnce({
+          ok: true,
+          queueSize: 1,
+          pending: 0,
+          publishedVideos: 0
+        }),
+      runVideoQueue: vi.fn(async () => ({
+        ok: true,
+        processed: 1,
+        results: [
+          {
+            id: "job-456",
+            error:
+              "Command failed: yt-dlp --dump-single-json --no-warnings --skip-download https://v.douyin.com/f9_XaJ6rOB0/\nERROR: [Douyin] 7639300730813156659: Fresh cookies (not necessarily logged in) are needed\n"
+          }
+        ]
+      })),
+      runtime: {} as never,
+      config: {} as never,
+      env: {}
+    });
+
+    try {
+      const response = await sendRawJsonRequest(server.port, "/submit", "POST", {
+        url: "https://v.douyin.com/f9_XaJ6rOB0/"
+      });
+
+      expect(response.statusCode).toBe(422);
+      expect(response.payload.ok).toBe(false);
+      expect(response.payload.message).toContain("抖音当前要求更有效的浏览器会话");
+    } finally {
+      await server.close();
+    }
+  });
 });
 
 function createRequest(url: string, method: string, body = "") {
@@ -220,6 +316,16 @@ async function sendJsonRequest(
   method: "GET" | "POST",
   body?: Record<string, unknown>
 ) {
+  const response = await sendRawJsonRequest(port, path, method, body);
+  return response.payload;
+}
+
+async function sendRawJsonRequest(
+  port: number,
+  path: string,
+  method: "GET" | "POST",
+  body?: Record<string, unknown>
+) {
   return new Promise<Record<string, unknown>>((resolve, reject) => {
     const payload = body ? JSON.stringify(body) : undefined;
     const req = request(
@@ -242,7 +348,10 @@ async function sendJsonRequest(
         });
         res.on("end", () => {
           try {
-            resolve(JSON.parse(Buffer.concat(chunks).toString("utf8")) as Record<string, unknown>);
+            resolve({
+              statusCode: res.statusCode ?? 0,
+              payload: JSON.parse(Buffer.concat(chunks).toString("utf8")) as Record<string, unknown>
+            } as unknown as Record<string, unknown>);
           } catch (error) {
             reject(error);
           }

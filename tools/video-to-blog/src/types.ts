@@ -8,6 +8,9 @@ export type VideoToBlogConfig = {
   pythonBin: string;
   whisperModel: string;
   tempRoot: string;
+  transcriptionEngine?: TranscriptionEngine;
+  openAiTranscriptionModel?: string;
+  premiumTranscriptionFallback?: PremiumTranscriptionFallback;
 };
 
 export type VideoToBlogRuntime = {
@@ -78,6 +81,9 @@ export type Transcript = {
   text: string;
   segments: TranscriptSegment[];
 };
+
+export type TranscriptionEngine = "local" | "openai";
+export type PremiumTranscriptionFallback = "local" | "none";
 
 export type ComposedArticle = {
   slug: string;

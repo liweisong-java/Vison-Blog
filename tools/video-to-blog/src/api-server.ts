@@ -27,6 +27,22 @@ type ApiServerDeps = {
   getVideoToBlogStatus: (runtime: VideoToBlogRuntime) => Promise<Record<string, unknown>>;
 };
 
+function normalizeApiErrorMessage(message: string) {
+  if (message.includes("Fresh cookies") && message.includes("Douyin")) {
+    return "抖音当前要求更有效的浏览器会话，自动提取暂时失败。请先在本机 Chrome 中正常打开这个视频，或切换到“使用我提供的文本”模式。";
+  }
+
+  if (message.includes("spawn yt-dlp ENOENT")) {
+    return "本机还没有安装 yt-dlp，当前无法自动提取视频文字。";
+  }
+
+  if (message.includes("faster_whisper") || message.includes("faster-whisper")) {
+    return "本机还没有可用的转写环境，当前无法自动识别音频内容。";
+  }
+
+  return message;
+}
+
 export function createVideoToBlogRequestHandler(deps: ApiServerDeps) {
   let lastResult: { processed: number; results: Array<Record<string, unknown>> } | null = null;
   let lastError: string | null = null;
@@ -68,10 +84,11 @@ export function createVideoToBlogRequestHandler(deps: ApiServerDeps) {
           processed: totalProcessed,
           results: mergedResults
         };
-        lastError = null;
+        lastError = readLatestFailureMessage(lastResult?.results ?? []);
         return lastResult;
       } catch (error) {
-        lastError = error instanceof Error ? error.message : String(error);
+        const message = error instanceof Error ? error.message : String(error);
+        lastError = normalizeApiErrorMessage(message);
         throw error;
       } finally {
         activeRun = null;
@@ -113,6 +130,18 @@ export function createVideoToBlogRequestHandler(deps: ApiServerDeps) {
       });
       const result = await ensureQueueDrained();
       const status = await deps.getVideoToBlogStatus(deps.runtime);
+      const failureMessage = readJobFailureMessage(result.results, job.id);
+
+      if (failureMessage) {
+        writeJson(res, 422, {
+          ok: false,
+          job,
+          result,
+          status,
+          message: failureMessage
+        });
+        return;
+      }
 
       writeJson(res, 200, {
         ok: true,
@@ -144,7 +173,7 @@ export function startVideoToBlogApiServer(
       const message = error instanceof Error ? error.message : String(error);
       writeJson(res, 500, {
         ok: false,
-        message
+        message: normalizeApiErrorMessage(message)
       });
     });
   });
@@ -221,4 +250,24 @@ function writeJson(res: ServerResponse, status: number, value: unknown) {
   res.statusCode = status;
   res.setHeader("Content-Type", "application/json; charset=utf-8");
   res.end(JSON.stringify(value, null, 2));
+}
+
+function readJobFailureMessage(results: Array<Record<string, unknown>>, jobId: string) {
+  const match = results.find((entry) => entry.id === jobId);
+  if (!match || typeof match.error !== "string" || !match.error.trim()) {
+    return null;
+  }
+
+  return normalizeApiErrorMessage(match.error);
+}
+
+function readLatestFailureMessage(results: Array<Record<string, unknown>>) {
+  for (let index = results.length - 1; index >= 0; index -= 1) {
+    const entry = results[index];
+    if (typeof entry?.error === "string" && entry.error.trim()) {
+      return normalizeApiErrorMessage(entry.error);
+    }
+  }
+
+  return null;
 }

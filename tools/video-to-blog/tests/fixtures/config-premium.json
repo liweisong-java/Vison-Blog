@@ -4,15 +4,11 @@
   "deployRoot": "/data/Vison-Blog",
   "ytDlpBin": "yt-dlp",
   "ytDlpArgs": [],
-  "ytDlpArgsByPlatform": {
-    "youtube": [],
-    "bilibili": [],
-    "douyin": []
-  },
-  "pythonBin": "python3",
+  "ytDlpArgsByPlatform": {},
+  "pythonBin": ".venv-video-to-blog/bin/python",
   "whisperModel": "large-v3",
   "tempRoot": ".superpowers/video-to-blog/tmp",
-  "transcriptionEngine": "local",
+  "transcriptionEngine": "openai",
   "openAiTranscriptionModel": "gpt-4o-transcribe",
   "premiumTranscriptionFallback": "local"
 }

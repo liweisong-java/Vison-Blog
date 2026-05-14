@@ -81,6 +81,8 @@ describe("operations docs", () => {
     expect(readme).toContain("pnpm video:enqueue --url <链接>");
     expect(runbook).toContain("yt-dlp");
     expect(runbook).toContain("faster-whisper");
+    expect(runbook).toContain("OPENAI_API_KEY");
+    expect(runbook).toContain("gpt-4o-transcribe");
     expect(runbook).toContain("pnpm video:run");
     expect(runbook).toContain("pnpm video:serve");
   });

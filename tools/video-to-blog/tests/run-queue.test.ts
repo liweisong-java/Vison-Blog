@@ -416,4 +416,123 @@ describe("runVideoQueue", () => {
     const queue = await readQueueState(runtime.queuePath);
     expect(queue.jobs[0]?.status).toBe("succeeded");
   });
+
+  it("uses the premium transcription engine before the local fallback when audio has no subtitles", async () => {
+    const root = await mkdtemp(join(tmpdir(), "video-to-blog-premium-run-"));
+    const contentRoot = join(root, "apps/blog/src/content/posts");
+    const toolRoot = join(root, "tools/video-to-blog");
+    const runtime = {
+      workspaceRoot: root,
+      toolRoot,
+      envPath: join(toolRoot, ".env"),
+      configPath: join(toolRoot, "video-to-blog.config.json"),
+      stateRoot: join(root, ".superpowers/video-to-blog"),
+      queuePath: join(root, ".superpowers/video-to-blog/queue.json"),
+      jobsRoot: join(root, ".superpowers/video-to-blog/jobs"),
+      manifestPath: join(root, ".superpowers/video-to-blog/manifest.json"),
+      tempRoot: join(root, ".superpowers/video-to-blog/tmp"),
+      repoLockPath: join(root, ".superpowers/locks/repo.lock")
+    };
+
+    await mkdir(contentRoot, { recursive: true });
+    await mkdir(join(root, "scripts"), { recursive: true });
+    await mkdir(join(toolRoot, "python"), { recursive: true });
+    await writeFile(join(root, "scripts/generate-private-dashboard.mjs"), "console.log('ok')\n", "utf8");
+    await writeFile(join(toolRoot, "python/transcribe.py"), "print('{}')\n", "utf8");
+
+    await enqueueVideoJob(runtime.queuePath, {
+      id: "job-premium-1",
+      url: "https://www.youtube.com/watch?v=premium123",
+      status: "queued",
+      createdAt: "2026-05-14T00:00:00.000Z",
+      updatedAt: "2026-05-14T00:00:00.000Z"
+    });
+
+    const runCalls: Array<{ command: string; args: string[] }> = [];
+    const result = await runVideoQueue({
+        config: {
+          contentRoot,
+          stateRoot: runtime.stateRoot,
+          deployRoot: join(root, "deploy"),
+          ytDlpBin: "yt-dlp",
+          ytDlpArgs: [],
+          ytDlpArgsByPlatform: {},
+          pythonBin: "python3",
+          whisperModel: "large-v3",
+          tempRoot: runtime.tempRoot,
+          transcriptionEngine: "openai",
+          openAiTranscriptionModel: "gpt-4o-transcribe",
+          premiumTranscriptionFallback: "local"
+        },
+        runtime,
+        env: {
+          VIDEO_TO_BLOG_BRANCH: "master",
+          VIDEO_TO_BLOG_REMOTE: "origin",
+          OPENAI_API_KEY: "test-key"
+        },
+        transcribe: async ({ subtitleFiles, audioPath }) => {
+          expect(subtitleFiles).toEqual([]);
+          expect(audioPath).toContain("audio.mp3");
+          return {
+            source: "asr",
+            language: "zh",
+            text: "这是高质量转写结果。",
+            segments: [
+              {
+                start: 0,
+                end: 1,
+                text: "这是高质量转写结果。"
+              }
+            ]
+          };
+        },
+        now: () => "2026-05-14T00:00:00.000Z",
+        buildSite: async () => {
+          const distDir = join(root, "apps/blog/dist");
+          await mkdir(distDir, { recursive: true });
+          await writeFile(join(distDir, "index.html"), "<h1>premium</h1>", "utf8");
+        },
+        commitAndPush: async () => ({
+          committed: true,
+          pushed: true,
+          stagedFiles: [join(contentRoot, "youtube-premium123", "index.mdx")],
+          commitHash: "commit-premium"
+        }),
+        run: async (command, args) => {
+          runCalls.push({ command, args });
+          const joined = `${command} ${args.join(" ")}`;
+
+          if (joined.startsWith("yt-dlp --dump-single-json")) {
+            return {
+              stdout: JSON.stringify({
+                id: "premium123",
+                title: "高质量转写测试",
+                webpage_url: "https://www.youtube.com/watch?v=premium123",
+                subtitles: {},
+                automatic_captions: {}
+              }),
+              stderr: ""
+            };
+          }
+
+          if (joined.includes("--write-subs")) {
+            return { stdout: "", stderr: "" };
+          }
+
+          if (joined.includes("-f bestaudio/best")) {
+            const audioDir = join(runtime.jobsRoot, "job-premium-1", "audio");
+            await mkdir(audioDir, { recursive: true });
+            await writeFile(join(audioDir, "audio.mp3"), "fake audio", "utf8");
+            return { stdout: "", stderr: "" };
+          }
+
+          throw new Error(`Unexpected command: ${joined}`);
+        }
+      });
+
+    expect(result.processed).toBe(1);
+    const article = await readFile(join(contentRoot, "youtube-premium123", "index.mdx"), "utf8");
+    expect(article).toContain("这是高质量转写结果");
+    expect(runCalls.some((call) => call.args.includes("transcribe.py"))).toBe(false);
+  });
 });

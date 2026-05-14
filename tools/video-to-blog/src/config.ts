@@ -18,7 +18,10 @@ const rawConfigSchema = z.object({
     .default({}),
   pythonBin: z.string().min(1),
   whisperModel: z.string().min(1),
-  tempRoot: z.string().min(1)
+  tempRoot: z.string().min(1),
+  transcriptionEngine: z.enum(["local", "openai"]).optional(),
+  openAiTranscriptionModel: z.string().min(1).optional(),
+  premiumTranscriptionFallback: z.enum(["local", "none"]).optional()
 });
 
 export async function loadVideoToBlogConfig(fileUrl: URL, repoRoot: string): Promise<VideoToBlogConfig> {
@@ -30,6 +33,7 @@ export async function loadVideoToBlogConfig(fileUrl: URL, repoRoot: string): Pro
     contentRoot: resolve(repoRoot, parsed.contentRoot),
     stateRoot: resolve(repoRoot, parsed.stateRoot),
     deployRoot: resolve(parsed.deployRoot),
+    pythonBin: resolve(repoRoot, parsed.pythonBin),
     tempRoot: resolve(repoRoot, parsed.tempRoot)
   };
 }

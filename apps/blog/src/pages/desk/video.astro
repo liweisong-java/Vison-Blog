@@ -21,7 +21,7 @@ const data = await loadPrivateDashboard();
         <span class="desk-hero__badge">Video</span>
       </div>
       <h1>视频转博客</h1>
-      <p class="desk-hero__summary">只贴视频链接就能自动尝试提取字幕或转写音频；如果你已经整理好文本，也可以直接贴进来覆盖。</p>
+      <p class="desk-hero__summary">优先尝试高质量字幕与转写链路生成博客；如果你已经整理好文本，也可以直接贴进来覆盖。</p>
     </section>
 
     <nav class="desk-inline-nav" aria-label="Desk navigation">
@@ -35,7 +35,7 @@ const data = await loadPrivateDashboard();
           <p class="desk-video-card__label">Video To Blog</p>
           <h2>选择生成方式</h2>
         </div>
-        <p class="desk-video-card__hint">默认就是自动模式，只贴链接也能开始；只有你想覆盖文字内容时，才切到手动文本模式。</p>
+        <p class="desk-video-card__hint">默认就是自动模式，只贴链接也能开始；系统会优先走质量更高的转写链路，只有你想覆盖文字内容时，才切到手动文本模式。</p>
       </div>
 
       <label class="desk-field">
@@ -70,7 +70,7 @@ const data = await loadPrivateDashboard();
       </div>
 
       <div class="desk-mode-panel" data-video-mode-panel="auto">
-        <p><strong>自动模式：</strong> 你只需要贴链接。系统会先抓字幕，抓不到再下载音频做转写。</p>
+        <p><strong>自动模式：</strong> 你只需要贴链接。系统会先抓字幕，抓不到再下载音频并优先走高质量转写。</p>
       </div>
 
       <div class="desk-mode-panel" data-video-mode-panel="manual" hidden>
@@ -88,7 +88,7 @@ const data = await loadPrivateDashboard();
       </label>
 
       <div class="desk-video-notes" aria-label="使用说明">
-        <p><strong>自动模式：</strong> 适合大多数情况，省事，但文字质量取决于字幕和转写结果。</p>
+        <p><strong>自动模式：</strong> 适合大多数情况，系统会优先使用质量更高的字幕和转写结果。</p>
         <p><strong>手动模式：</strong> 适合你已经整理好文稿，生成更快，也更可控。</p>
       </div>
 
