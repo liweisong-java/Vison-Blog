@@ -1019,6 +1019,58 @@ describe("syncPublishedNotes", () => {
     ).rejects.toThrow(/manual-entry/);
   });
 
+  it("falls back to a stable post-id slug when two notes would otherwise generate the same slug", async () => {
+    const writeBundle = vi.fn();
+
+    const result = await syncPublishedNotes({
+      dryRun: false,
+      config: baseConfig,
+      client: {
+        queryDocuments: vi.fn().mockResolvedValue([
+          {
+            id: "20260514232824-szd9kso",
+            content: "Agent上下文维护的工业级三层架构与实践",
+            hpath: "/Agent上下文维护的工业级三层架构与实践",
+            updated: "20260514232824"
+          },
+          {
+            id: "20260515113100-6d74uvm",
+            content: "Agent 状态机的工业级设计：从线性链路到图状拓扑的演进",
+            hpath: "/Agent 状态机的工业级设计：从线性链路到图状拓扑的演进",
+            updated: "20260515113100"
+          }
+        ]),
+        getBlockAttrs: vi.fn().mockResolvedValue({
+          "blog-pub": "true",
+          "blog-cat": "tech"
+        }),
+        exportMarkdown: vi.fn().mockResolvedValue({
+          content: "这是一篇足够长的技术文章内容，用于验证 slug 自动避让不会阻塞整轮发布。"
+        })
+      },
+      collectContentEntries: vi.fn().mockResolvedValue([]),
+      writeBundle,
+      removeManagedPost: vi.fn(),
+      runBlogChecks: vi.fn(),
+      commitAndPush: vi.fn().mockResolvedValue({ committed: false }),
+      triggerDeploy: vi.fn()
+    });
+
+    expect(result.written).toEqual(["agent", "post-6d74uvm"]);
+    expect(writeBundle).toHaveBeenCalledWith(
+      "/tmp/content",
+      expect.objectContaining({
+        filePath: "agent/index.mdx"
+      })
+    );
+    expect(writeBundle).toHaveBeenCalledWith(
+      "/tmp/content",
+      expect.objectContaining({
+        filePath: "post-6d74uvm/index.mdx"
+      })
+    );
+  });
+
   it("triggers the deploy hook only after a real content commit", async () => {
     const triggerDeploy = vi.fn();
 

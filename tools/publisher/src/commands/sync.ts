@@ -189,6 +189,17 @@ function deriveSlug({
   return `post-${idTail || "note"}`;
 }
 
+function fallbackSlugFromId(docId: string) {
+  const idTail = docId
+    .slice(-7)
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/-+/g, "-")
+    .replace(/^-|-$/g, "");
+
+  return `post-${idTail || "note"}`;
+}
+
 function normalizePublishedNote(
   doc: SiYuanDocument,
   attrs: Record<string, string>,
@@ -334,6 +345,69 @@ function ensureUniqueSlugs({
   }
 }
 
+function resolveSlugCollisions({
+  existingEntries,
+  publishedNotes
+}: {
+  existingEntries: ManagedEntry[];
+  publishedNotes: PublishedNote[];
+}) {
+  const reserved = new Map<string, ManagedEntry>();
+  for (const entry of existingEntries) {
+    reserved.set(entry.slug, entry);
+  }
+
+  publishedNotes.sort((left, right) => {
+    const leftHasManagedSlug = reserved.get(left.slug)?.sourceId === left.id;
+    const rightHasManagedSlug = reserved.get(right.slug)?.sourceId === right.id;
+
+    if (leftHasManagedSlug === rightHasManagedSlug) {
+      return 0;
+    }
+
+    return leftHasManagedSlug ? -1 : 1;
+  });
+
+  const noteById = new Map(publishedNotes.map((note) => [note.id, note]));
+  const seen = new Map<string, PublishedNote>();
+  for (const note of publishedNotes) {
+    const existingEntry = reserved.get(note.slug);
+    const collisionWithExisting =
+      existingEntry &&
+      existingEntry.sourceId !== note.id &&
+      !noteById.has(existingEntry.sourceId ?? "");
+    const collisionWithSeen =
+      seen.has(note.slug) && seen.get(note.slug)?.id !== note.id;
+
+    if (!collisionWithExisting && !collisionWithSeen) {
+      seen.set(note.slug, note);
+      continue;
+    }
+
+    if (collisionWithExisting) {
+      throw new Error(
+        `Slug collision detected for "${note.slug}". Update the note slug before publishing.`
+      );
+    }
+
+    const fallbackSlug = fallbackSlugFromId(note.id);
+    const fallbackExistingEntry = reserved.get(fallbackSlug);
+    const fallbackSeen = seen.get(fallbackSlug);
+    const fallbackBlocked =
+      (fallbackExistingEntry && fallbackExistingEntry.sourceId !== note.id) ||
+      (fallbackSeen && fallbackSeen.id !== note.id);
+
+    if (fallbackBlocked) {
+      throw new Error(
+        `Slug collision detected for "${note.slug}". Update the note slug before publishing.`
+      );
+    }
+
+    note.slug = fallbackSlug;
+    seen.set(note.slug, note);
+  }
+}
+
 function getWechatRemovedSlugs({
   removed,
   publishedNotes
@@ -450,6 +524,7 @@ export async function syncPublishedNotes({
       throw new Error(`Unable to publish some notes:\n${formatInvalidNotes(invalidNotes)}`);
     }
 
+    resolveSlugCollisions({ existingEntries, publishedNotes });
     ensureUniqueSlugs({ existingEntries, publishedNotes });
 
     const bundles = [];

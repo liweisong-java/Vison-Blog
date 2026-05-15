@@ -178,7 +178,10 @@ export async function installAutoPublishLaunchAgentCommand({
     workingDirectory: workspaceRoot,
     watchPaths: [notebookWatchPath],
     standardLogPath: paths.logPath,
-    intervalSeconds
+    intervalSeconds,
+    environmentVariables: {
+      PATH: "/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin"
+    }
   });
 
   await writeFile(paths.plistPath, plist, "utf8");

@@ -31,13 +31,18 @@ describe("launchd helpers", () => {
         "/Users/liweisong/Library/Application Support/SiYuan/data/20260511123547-6ld6hlk"
       ],
       standardLogPath: "/Users/liweisong/Library/Logs/vision-blog-auto-publish.log",
-      intervalSeconds: 300
+      intervalSeconds: 300,
+      environmentVariables: {
+        PATH: "/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin"
+      }
     });
 
     expect(plist).toContain("com.liweisong.vision-blog.publisher");
     expect(plist).toContain("/opt/homebrew/bin/pnpm");
     expect(plist).toContain("<key>WatchPaths</key>");
     expect(plist).toContain("<integer>300</integer>");
+    expect(plist).toContain("<key>EnvironmentVariables</key>");
+    expect(plist).toContain("/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin");
   });
 
   it("prefers an actually existing pnpm binary over a missing workspace shim", async () => {

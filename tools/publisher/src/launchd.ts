@@ -35,7 +35,8 @@ export function buildLaunchdPlist({
   workingDirectory,
   watchPaths,
   standardLogPath,
-  intervalSeconds
+  intervalSeconds,
+  environmentVariables = {}
 }: {
   label: string;
   program: string;
@@ -44,6 +45,7 @@ export function buildLaunchdPlist({
   watchPaths: string[];
   standardLogPath: string;
   intervalSeconds: number;
+  environmentVariables?: Record<string, string>;
 }) {
   const programArguments = [program, ...args]
     .map((value) => `    <string>${escapeXml(value)}</string>`)
@@ -51,6 +53,15 @@ export function buildLaunchdPlist({
   const watchPathsXml = watchPaths
     .map((value) => `    <string>${escapeXml(value)}</string>`)
     .join("\n");
+  const environmentVariablesXml = Object.entries(environmentVariables)
+    .map(
+      ([key, value]) =>
+        `    <key>${escapeXml(key)}</key>\n    <string>${escapeXml(value)}</string>`
+    )
+    .join("\n");
+  const environmentBlock = environmentVariablesXml
+    ? `  <key>EnvironmentVariables</key>\n  <dict>\n${environmentVariablesXml}\n  </dict>\n`
+    : "";
 
   return `<?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
@@ -66,7 +77,7 @@ ${programArguments}
   <string>${escapeXml(workingDirectory)}</string>
   <key>RunAtLoad</key>
   <true/>
-  <key>StartInterval</key>
+${environmentBlock}  <key>StartInterval</key>
   <integer>${intervalSeconds}</integer>
   <key>WatchPaths</key>
   <array>
