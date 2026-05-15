@@ -17,6 +17,49 @@ function stripInvisibleCharacters(markdown: string) {
   return markdown.replace(/[\u200B-\u200D\uFEFF]/g, "");
 }
 
+const allowedMdxTagPattern =
+  /<\/?(?:Callout|QuoteBlock|EmbedCard|Columns|details|summary|div|u|sub|sup|br)\b[^>]*\/?>/g;
+
+function escapeUnsafeMdxText(markdown: string) {
+  const lines = markdown.split("\n");
+  const output: string[] = [];
+  let inCodeFence = false;
+
+  for (const line of lines) {
+    if (/^```/.test(line)) {
+      inCodeFence = !inCodeFence;
+      output.push(line);
+      continue;
+    }
+
+    if (inCodeFence) {
+      output.push(line);
+      continue;
+    }
+
+    const placeholders: string[] = [];
+    const protectedLine = line.replace(allowedMdxTagPattern, (match) => {
+      const token = `__MDX_SAFE_TAG_${placeholders.length}__`;
+      placeholders.push(match);
+      return token;
+    });
+
+    const escapedLine = protectedLine
+      .replace(/</g, "&lt;")
+      .replace(/\{/g, "&#123;")
+      .replace(/\}/g, "&#125;");
+
+    output.push(
+      placeholders.reduce(
+        (current, tag, index) => current.replace(`__MDX_SAFE_TAG_${index}__`, tag),
+        escapedLine
+      )
+    );
+  }
+
+  return output.join("\n");
+}
+
 function stripLeadingTitleHeadings(markdown: string, title: string) {
   const normalizedTitle = title.trim();
   if (!normalizedTitle) {
@@ -63,7 +106,8 @@ export async function buildPostBundle({
 }) {
   const normalizedMarkdown = normalizeMarkdownBody(markdown, note.title);
   const semanticMarkdown = normalizeSiyuanStructures(normalizedMarkdown);
-  const { assets, rewrittenMarkdown } = rewriteAssetPaths(semanticMarkdown);
+  const escapedMarkdown = escapeUnsafeMdxText(semanticMarkdown);
+  const { assets, rewrittenMarkdown } = rewriteAssetPaths(escapedMarkdown);
   const coverAssetPath = note.cover?.trim();
   if (
     coverAssetPath &&

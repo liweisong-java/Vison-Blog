@@ -56,6 +56,29 @@ async function resolvePushTarget({
   throw new Error("Unable to determine a safe publish branch for automatic content sync.");
 }
 
+async function pushWithRetry({
+  git,
+  remote,
+  pushBranch
+}: {
+  git: ReturnType<typeof simpleGit>;
+  remote: string;
+  pushBranch: string;
+}) {
+  try {
+    await git.push(remote, `HEAD:${pushBranch}`);
+  } catch (error) {
+    const message = error instanceof Error ? error.message : String(error);
+    if (!/fetch first|non-fast-forward|rejected/i.test(message)) {
+      throw error;
+    }
+
+    await git.raw(["fetch", remote, pushBranch]);
+    await git.raw(["rebase", `refs/remotes/${remote}/${pushBranch}`]);
+    await git.push(remote, `HEAD:${pushBranch}`);
+  }
+}
+
 export async function commitAndPush({
   repoRoot,
   branch,
@@ -98,6 +121,6 @@ export async function commitAndPush({
   const pushBranch = await resolvePushTarget({ git, branch, remote });
   await git.commit(message);
   const commitHash = (await git.raw(["rev-parse", "HEAD"])).trim();
-  await git.push(remote, `HEAD:${pushBranch}`);
+  await pushWithRetry({ git, remote, pushBranch });
   return { committed: true, pushed: true, commitHash, stagedFiles };
 }

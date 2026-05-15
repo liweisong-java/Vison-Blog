@@ -336,6 +336,66 @@ console.log("hello")
     });
   });
 
+  it("escapes raw angle-bracket markers in ordinary text so generated mdx still builds", async () => {
+    const bundle = await buildPostBundle({
+      note: {
+        id: "doc-tech-angle-marker",
+        title: "Prompt 注入备忘",
+        slug: "prompt-injection-notes",
+        category: "tech",
+        excerpt: "普通正文里的特殊标记不应该把 MDX 构建打挂。",
+        featured: false,
+        publishedAt: "2026-05-15",
+        tags: ["security", "prompt"]
+      },
+      markdown:
+        "Transformer 对末尾信息更敏感，攻击者会插入特殊标记（如<<END>>）诱导模型忽略前文规则。"
+    });
+
+    expect(bundle.body).toContain("&lt;&lt;END>>");
+    expect(bundle.body).not.toContain("（如<<END>>）");
+  });
+
+  it("escapes raw brace markers in ordinary text so generated mdx still builds", async () => {
+    const bundle = await buildPostBundle({
+      note: {
+        id: "doc-tech-brace-marker",
+        title: "规则模板备忘",
+        slug: "brace-marker-notes",
+        category: "tech",
+        excerpt: "普通正文里的花括号不能把 MDX 解析打断。",
+        featured: false,
+        publishedAt: "2026-05-15",
+        tags: ["security", "regex"]
+      },
+      markdown:
+        "constraint_rules = {\n    \"时间\": r\"\\d{4}年\\d{1,2}月(?:\\d{1,2}日)?|合同有效期\\d+年\",\n}"
+    });
+
+    expect(bundle.body).toContain("constraint_rules = &#123;");
+    expect(bundle.body).toContain("\\d&#123;4&#125;");
+  });
+
+  it("escapes raw generic angle-bracket type syntax in ordinary text while preserving allowed mdx tags", async () => {
+    const bundle = await buildPostBundle({
+      note: {
+        id: "doc-tech-generic-syntax",
+        title: "泛型语法备忘",
+        slug: "generic-syntax-notes",
+        category: "tech",
+        excerpt: "普通正文里的泛型语法不能被 MDX 当成标签。",
+        featured: false,
+        publishedAt: "2026-05-15",
+        tags: ["java"]
+      },
+      markdown:
+        'Java 示例：List<String> users = new ArrayList<String>();\n\n<u>保留这一段强调</u>'
+    });
+
+    expect(bundle.body).toContain("List&lt;String> users = new ArrayList&lt;String>();");
+    expect(bundle.body).toContain("<u>保留这一段强调</u>");
+  });
+
   it("builds a wechat-friendly markdown export", async () => {
     const article = await buildWechatArticle({
       note: {

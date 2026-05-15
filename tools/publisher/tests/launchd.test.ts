@@ -4,6 +4,7 @@ import {
   getLaunchdLabel,
   getLaunchdPaths
 } from "../src/launchd.js";
+import { resolvePnpmBinary } from "../src/commands/auto.js";
 
 describe("launchd helpers", () => {
   it("builds stable launchd paths from the workspace root", () => {
@@ -37,5 +38,13 @@ describe("launchd helpers", () => {
     expect(plist).toContain("/opt/homebrew/bin/pnpm");
     expect(plist).toContain("<key>WatchPaths</key>");
     expect(plist).toContain("<integer>300</integer>");
+  });
+
+  it("prefers an actually existing pnpm binary over a missing workspace shim", async () => {
+    const result = await resolvePnpmBinary("/Users/liweisong/工作区/Vison-Blog", async (candidate) =>
+      candidate === "/opt/homebrew/bin/pnpm"
+    );
+
+    expect(result).toBe("/opt/homebrew/bin/pnpm");
   });
 });

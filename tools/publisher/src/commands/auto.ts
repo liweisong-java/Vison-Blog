@@ -1,4 +1,4 @@
-import { mkdir, open, readFile, rm, unlink, writeFile } from "node:fs/promises";
+import { access, constants, mkdir, open, readFile, rm, unlink, writeFile } from "node:fs/promises";
 import { dirname, join } from "node:path";
 import { env } from "node:process";
 import { buildLaunchdPlist, getLaunchdLabel, getLaunchdParentDirectories, getLaunchdPaths } from "../launchd.js";
@@ -46,7 +46,19 @@ async function withLock<T>(lockPath: string, job: () => Promise<T>) {
   }
 }
 
-function resolvePnpmBinary(workspaceRoot: string) {
+async function fileExists(value: string) {
+  try {
+    await access(value, constants.F_OK | constants.X_OK);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+export async function resolvePnpmBinary(
+  workspaceRoot: string,
+  exists: (candidate: string) => Promise<boolean> = fileExists
+) {
   const candidates = [
     env.PNPM_BIN,
     join(workspaceRoot, "node_modules", ".bin", "pnpm"),
@@ -55,7 +67,17 @@ function resolvePnpmBinary(workspaceRoot: string) {
     "pnpm"
   ].filter((value): value is string => Boolean(value));
 
-  return candidates[0];
+  for (const candidate of candidates) {
+    if (candidate === "pnpm") {
+      return candidate;
+    }
+
+    if (await exists(candidate)) {
+      return candidate;
+    }
+  }
+
+  return "pnpm";
 }
 
 async function loadEnvFile(envPath: string) {
@@ -139,7 +161,7 @@ export async function installAutoPublishLaunchAgentCommand({
 
   const paths = getLaunchdPaths({ homeDir, workspaceRoot });
   const envValues = await loadEnvFile(envPath);
-  const program = resolvePnpmBinary(workspaceRoot);
+  const program = await resolvePnpmBinary(workspaceRoot);
   const branch = envValues.get("PUBLISH_BRANCH") || "当前上游分支";
   const notebookWatchPath = join(siyuanWorkspaceDir, "data", notebookId);
 

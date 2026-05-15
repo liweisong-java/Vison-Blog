@@ -243,4 +243,60 @@ describe("commitAndPush", () => {
       stagedFiles: ["apps/blog/src/content/posts/post-6voggsk/index.mdx"]
     });
   });
+
+  it("rebases and retries when the remote branch has advanced", async () => {
+    let pushAttempts = 0;
+    raw.mockImplementation(async (args: string[]) => {
+      const command = args.join(" ");
+
+      if (command === "diff --cached --name-only") {
+        return "apps/blog/src/content/posts/post-6voggsk/index.mdx\n";
+      }
+
+      if (command === "branch --show-current") {
+        return "master\n";
+      }
+
+      if (command === "rev-parse --abbrev-ref --symbolic-full-name @{u}") {
+        return "origin/master\n";
+      }
+
+      if (command === "rev-parse HEAD") {
+        return "dea1efacafe1234\n";
+      }
+
+      if (command === "rebase refs/remotes/origin/master") {
+        return "";
+      }
+
+      if (command === "fetch origin master") {
+        return "";
+      }
+
+      throw new Error(`Unexpected git raw command: ${command}`);
+    });
+    push.mockImplementation(async () => {
+      pushAttempts += 1;
+      if (pushAttempts === 1) {
+        throw new Error("! [rejected] HEAD -> master (fetch first)");
+      }
+    });
+
+    const { commitAndPush } = await import("../src/git");
+    const result = await commitAndPush({
+      repoRoot: "/tmp/vision-blog",
+      branch: "master",
+      remote: "origin",
+      message: "chore(content): sync siyuan posts",
+      includePaths: ["/tmp/vision-blog/apps/blog/src/content/posts"]
+    });
+
+    expect(push).toHaveBeenCalledTimes(2);
+    expect(result).toEqual({
+      committed: true,
+      pushed: true,
+      commitHash: "dea1efacafe1234",
+      stagedFiles: ["apps/blog/src/content/posts/post-6voggsk/index.mdx"]
+    });
+  });
 });
