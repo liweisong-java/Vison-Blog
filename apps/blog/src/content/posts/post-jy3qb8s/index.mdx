@@ -54,12 +54,12 @@ import re
 
 # 定义硬约束识别规则（可根据行业扩展）
 
-constraint_rules = {  
-    "时间": r"\d{4}年\d{1,2}月(?:\d{1,2}日)?|合同有效期\d+年",  
+constraint_rules = &#123;  
+    "时间": r"\d&#123;4&#125;年\d&#123;1,2&#125;月(?:\d&#123;1,2&#125;日)?|合同有效期\d+年",  
     "数字标识": r"[A-Za-z0-9\-]+(?:合同号|型号|编号)|[0-9]+[万/亿/元/台]",  
     "专有名词": r"[华为/苹果/腾讯]+|[《][^》]+[》]",  # 可替换为行业词库  
     "否定限定": r"不|未|无|不予|仅|仅限"  
-}
+&#125;
 
 # 批量识别上下文硬约束
 
@@ -114,7 +114,7 @@ def compress_text_with_constraints(original_text, constraints):
     for constraint in constraints:  
         if constraint not in compressed_text:  
             # 用特殊标记突出硬约束，方便模型识别  
-            compressed_text = f"【核心约束】{constraint} | " + compressed_text  
+            compressed_text = f"【核心约束】&#123;constraint&#125; | " + compressed_text  
     return compressed_text
 
 # 测试：模拟压缩后丢失部分约束的场景
@@ -129,20 +129,20 @@ print(compressed_text)
 Java实现思路（适配SpringBoot AI应用）  
 import java.util.List;
 
-public class ConstraintProtector {  
+public class ConstraintProtector &#123;  
     // 硬约束保留逻辑  
-    public String keepConstraints(String compressedText, List<String> constraints) {  
+    public String keepConstraints(String compressedText, List&lt;String> constraints) &#123;  
         StringBuilder sb = new StringBuilder();  
         // 先添加所有缺失的硬约束  
-        for (String constraint : constraints) {  
-            if (!compressedText.contains(constraint)) {  
+        for (String constraint : constraints) &#123;  
+            if (!compressedText.contains(constraint)) &#123;  
                 sb.append("【核心约束】").append(constraint).append(" | ");  
-            }  
-        }  
+            &#125;  
+        &#125;  
         sb.append(compressedText);  
         return sb.toString();  
-    }  
-}
+    &#125;  
+&#125;
 
 // 集成到RAG系统的压缩流程中  
 // ConstraintProtector protector = new ConstraintProtector();  
@@ -158,9 +158,9 @@ public class ConstraintProtector {
 2. 核心约束缺失时，直接告知“关键信息不足，无法回答”；
 3. 禁止篡改约束中的时间、数字、否定词等关键内容。
 
-【核心约束】：{constraints_str}  
-【参考上下文】：{compressed_text}  
-【用户问题】：{user_question}  
+【核心约束】：&#123;constraints_str&#125;  
+【参考上下文】：&#123;compressed_text&#125;  
+【用户问题】：&#123;user_question&#125;  
 示例Prompt效果  
 请根据以下信息回答用户问题，严格遵守以下要求：
 
