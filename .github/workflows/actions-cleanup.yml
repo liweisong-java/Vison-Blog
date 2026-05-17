@@ -1,0 +1,144 @@
+name: actions-cleanup
+
+on:
+  schedule:
+    - cron: "25 4 * * 0"
+  workflow_dispatch:
+    inputs:
+      older_than_days:
+        description: "只清理多少天之前的已完成 runs"
+        required: false
+        default: "21"
+      keep_latest:
+        description: "每个 workflow 至少保留最近多少条记录"
+        required: false
+        default: "20"
+      dry_run:
+        description: "只预演，不真正删除"
+        required: false
+        type: boolean
+        default: true
+
+concurrency:
+  group: actions-cleanup
+  cancel-in-progress: true
+
+permissions:
+  actions: write
+  contents: read
+
+jobs:
+  cleanup:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Cleanup old workflow runs
+        uses: actions/github-script@v7
+        env:
+          DEFAULT_OLDER_THAN_DAYS: "21"
+          DEFAULT_KEEP_LATEST: "20"
+        with:
+          script: |
+            const eventName = context.eventName;
+            const isManualRun = eventName === "workflow_dispatch";
+            const input = context.payload.inputs ?? {};
+
+            const olderThanDays = Number.parseInt(
+              isManualRun ? (input.older_than_days ?? process.env.DEFAULT_OLDER_THAN_DAYS) : process.env.DEFAULT_OLDER_THAN_DAYS,
+              10
+            );
+            const keepLatest = Number.parseInt(
+              isManualRun ? (input.keep_latest ?? process.env.DEFAULT_KEEP_LATEST) : process.env.DEFAULT_KEEP_LATEST,
+              10
+            );
+            const dryRun = isManualRun ? String(input.dry_run ?? "true") === "true" : false;
+
+            if (!Number.isFinite(olderThanDays) || olderThanDays < 1) {
+              core.setFailed(`older_than_days must be a positive integer, received: ${olderThanDays}`);
+              return;
+            }
+
+            if (!Number.isFinite(keepLatest) || keepLatest < 0) {
+              core.setFailed(`keep_latest must be zero or a positive integer, received: ${keepLatest}`);
+              return;
+            }
+
+            const cutoff = Date.now() - olderThanDays * 24 * 60 * 60 * 1000;
+            const owner = context.repo.owner;
+            const repo = context.repo.repo;
+            const runs = await github.paginate(
+              github.rest.actions.listWorkflowRunsForRepo,
+              {
+                owner,
+                repo,
+                per_page: 100
+              },
+              (response) => response.data.workflow_runs
+            );
+
+            const completedRuns = runs.filter((run) => run.status === "completed");
+            const groupedRuns = new Map();
+
+            for (const run of completedRuns) {
+              const groupKey = String(run.workflow_id ?? run.path ?? "unknown");
+              const existing = groupedRuns.get(groupKey) ?? [];
+              existing.push(run);
+              groupedRuns.set(groupKey, existing);
+            }
+
+            const deletionQueue = [];
+
+            for (const groupRuns of groupedRuns.values()) {
+              groupRuns.sort((left, right) => {
+                return new Date(right.created_at).getTime() - new Date(left.created_at).getTime();
+              });
+
+              const candidates = groupRuns
+                .slice(keepLatest)
+                .filter((run) => new Date(run.created_at).getTime() < cutoff);
+
+              deletionQueue.push(...candidates);
+            }
+
+            if (deletionQueue.length === 0) {
+              core.notice(
+                `No workflow runs matched the cleanup rule. older_than_days=${olderThanDays}, keep_latest=${keepLatest}, dry_run=${dryRun}`
+              );
+              return;
+            }
+
+            const summaryLines = deletionQueue.slice(0, 30).map((run) => {
+              return `- ${run.name ?? "unknown"} #${run.run_number} (${run.display_title}) [${run.created_at}]`;
+            });
+
+            core.summary
+              .addHeading("Actions cleanup summary")
+              .addRaw(`Mode: ${dryRun ? "dry-run" : "delete"}`)
+              .addEOL()
+              .addRaw(`Rules: older_than_days=${olderThanDays}, keep_latest=${keepLatest}`)
+              .addEOL()
+              .addRaw(`Matched runs: ${deletionQueue.length}`)
+              .addEOL()
+              .addList(summaryLines.length > 0 ? summaryLines : ["No runs matched"])
+              .addEOL();
+
+            if (deletionQueue.length > summaryLines.length) {
+              core.summary.addRaw(`... and ${deletionQueue.length - summaryLines.length} more`).addEOL();
+            }
+
+            if (dryRun) {
+              core.notice(`Dry run matched ${deletionQueue.length} workflow runs. No data was deleted.`);
+              await core.summary.write();
+              return;
+            }
+
+            for (const run of deletionQueue) {
+              await github.rest.actions.deleteWorkflowRun({
+                owner,
+                repo,
+                run_id: run.id
+              });
+              core.info(`Deleted workflow run ${run.id} (${run.name ?? "unknown"} #${run.run_number})`);
+            }
+
+            core.notice(`Deleted ${deletionQueue.length} workflow runs.`);
+            await core.summary.write();
