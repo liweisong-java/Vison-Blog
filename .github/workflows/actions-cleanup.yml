@@ -38,8 +38,8 @@ jobs:
       - name: Cleanup old workflow runs
         uses: actions/github-script@v8
         env:
-          DEFAULT_OLDER_THAN_DAYS: "21"
-          DEFAULT_KEEP_LATEST: "20"
+          DEFAULT_OLDER_THAN_DAYS: "1"
+          DEFAULT_KEEP_LATEST: "3"
         with:
           script: |
             const eventName = context.eventName;
