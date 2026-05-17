@@ -65,13 +65,24 @@ jobs:
             const cutoff = Date.now() - olderThanDays * 24 * 60 * 60 * 1000;
             const owner = context.repo.owner;
             const repo = context.repo.repo;
-            const runs = await github.paginate(github.rest.actions.listWorkflowRunsForRepo, {
-              owner,
-              repo,
-              per_page: 100
-            });
+            const runs = [];
+            for await (const response of github.paginate.iterator(
+              github.rest.actions.listWorkflowRunsForRepo,
+              {
+                owner,
+                repo,
+                per_page: 100
+              }
+            )) {
+              const pageRuns = response?.data?.workflow_runs;
+              if (Array.isArray(pageRuns)) {
+                runs.push(...pageRuns);
+              }
+            }
 
-            const completedRuns = runs.filter((run) => run && run.status === "completed");
+            const completedRuns = runs.filter(
+              (run) => run && typeof run === "object" && run.status === "completed"
+            );
             const groupedRuns = new Map();
 
             for (const run of completedRuns) {
