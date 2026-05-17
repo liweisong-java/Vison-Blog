@@ -1,12 +1,11 @@
 ---
 import { getCollection } from "astro:content";
-import CategoryFilter from "../components/CategoryFilter.astro";
 import PostCard from "../components/PostCard.astro";
 import SearchPanel from "../components/SearchPanel.astro";
 import { siteConfig } from "../data/site";
 import BaseLayout from "../layouts/BaseLayout.astro";
 import { getAllTags, sortPublishedPosts, splitFeaturedPosts } from "../lib/content";
-import { formatDisplayDate, getCategoryLabel } from "../lib/presenters";
+import { formatDisplayDate } from "../lib/presenters";
 
 const posts = sortPublishedPosts(await getCollection("posts", ({ data }) => data.publish));
 const [featuredPosts] = splitFeaturedPosts(posts);
@@ -20,6 +19,7 @@ const spotlightTags = getAllTags(posts).slice(0, 10);
 <BaseLayout title={siteConfig.title} description={siteConfig.description}>
   <section class="home-intro">
     <div class="home-intro__main">
+      <p class="eyebrow">个人写作</p>
       <h1>{siteConfig.title}</h1>
     </div>
     <div class="home-intro__meta">
@@ -36,16 +36,9 @@ const spotlightTags = getAllTags(posts).slice(0, 10);
       </div>
       <article class="lead-entry">
         <div class="lead-entry__meta">
-          <span>{getCategoryLabel(leadPost.data.category)}</span>
           <span>{formatDisplayDate(leadPost.data.publishedAt)}</span>
         </div>
         <h2><a href={`/posts/${leadPost.data.slug}/`}>{leadPost.data.title}</a></h2>
-        <p>{leadPost.data.excerpt}</p>
-        <ul class="tag-list">
-          {leadPost.data.tags.map((tag) => (
-            <li><a href={`/tags/${tag}/`}>#{tag}</a></li>
-          ))}
-        </ul>
       </article>
     </section>
   )}
@@ -59,18 +52,12 @@ const spotlightTags = getAllTags(posts).slice(0, 10);
         </div>
       </div>
       <SearchPanel posts={recentPosts} />
-      <CategoryFilter />
       <div class="post-list">
         {recentPosts.map((post) => <PostCard post={post} />)}
       </div>
     </div>
 
     <aside class="reading-layout__side">
-      <section class="side-section">
-        <p class="eyebrow">分类</p>
-        <h2>技术 / 生活</h2>
-      </section>
-
       <section class="side-section">
         <p class="eyebrow">快速入口</p>
         <ul class="side-links">
