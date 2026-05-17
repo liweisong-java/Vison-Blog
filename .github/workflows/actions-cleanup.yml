@@ -32,7 +32,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Cleanup old workflow runs
-        uses: actions/github-script@v7
+        uses: actions/github-script@v8
         env:
           DEFAULT_OLDER_THAN_DAYS: "21"
           DEFAULT_KEEP_LATEST: "20"
@@ -65,17 +65,13 @@ jobs:
             const cutoff = Date.now() - olderThanDays * 24 * 60 * 60 * 1000;
             const owner = context.repo.owner;
             const repo = context.repo.repo;
-            const runs = await github.paginate(
-              github.rest.actions.listWorkflowRunsForRepo,
-              {
-                owner,
-                repo,
-                per_page: 100
-              },
-              (response) => response.data.workflow_runs
-            );
+            const runs = await github.paginate(github.rest.actions.listWorkflowRunsForRepo, {
+              owner,
+              repo,
+              per_page: 100
+            });
 
-            const completedRuns = runs.filter((run) => run.status === "completed");
+            const completedRuns = runs.filter((run) => run && run.status === "completed");
             const groupedRuns = new Map();
 
             for (const run of completedRuns) {
