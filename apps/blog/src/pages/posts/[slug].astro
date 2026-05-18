@@ -10,12 +10,11 @@ import QuoteBlock from "../../components/mdx/QuoteBlock.astro";
 import { siteConfig } from "../../data/site";
 import BaseLayout from "../../layouts/BaseLayout.astro";
 import {
-  getArticleLead,
   getRelatedPosts,
   groupArticleHeadings,
   sortPublishedPosts
 } from "../../lib/content";
-import { formatDisplayDate, getCategoryLabel } from "../../lib/presenters";
+import { formatDisplayDate } from "../../lib/presenters";
 
 export async function getStaticPaths() {
   const posts = await getCollection("posts", ({ data }) => data.publish);
@@ -29,8 +28,6 @@ const { post } = Astro.props;
 const allPosts = sortPublishedPosts(await getCollection("posts", ({ data }) => data.publish));
 const { Content, headings } = await render(post);
 const relatedPosts = getRelatedPosts(post, allPosts);
-const categoryLabel = getCategoryLabel(post.data.category);
-const articleLead = getArticleLead(post.data.excerpt, post.body);
 const groupedHeadings = groupArticleHeadings(headings);
 const hasRelatedPosts = relatedPosts.length > 0;
 ---
@@ -43,11 +40,9 @@ const hasRelatedPosts = relatedPosts.length > 0;
   <article class="article-shell">
     <header class="article-header">
       <div class="article-kicker">
-        <span>{categoryLabel}</span>
         <span>{formatDisplayDate(post.data.publishedAt)}</span>
       </div>
       <h1>{post.data.title}</h1>
-      {articleLead && <p class="article-summary">{articleLead}</p>}
     </header>
     {post.data.cover && (
       <div class="article-cover">
@@ -57,7 +52,7 @@ const hasRelatedPosts = relatedPosts.length > 0;
     <div class="article-grid">
       <div class="article-main">
         <ArticleToc headings={groupedHeadings} variant="mobile" />
-        <div class="prose">
+        <div class="prose article-prose">
           <Content
             components={{
               Callout,

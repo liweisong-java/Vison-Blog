@@ -2,12 +2,10 @@ export const siteUrl = process.env.SITE_URL ?? "https://example.com";
 
 export const siteConfig = {
   title: "伟松的博客",
-  description: "记录代码、工具与日常生活的中文个人博客。",
+    description: "记录写作、思考、代码、工具与日常片段的中文个人博客。",
   siteUrl,
   nav: [
     { href: "/", label: "首页" },
-    { href: "/category/tech/", label: "技术" },
-    { href: "/category/life/", label: "生活" },
     { href: "/archive/", label: "归档" },
     { href: "/about/", label: "关于我" }
   ],

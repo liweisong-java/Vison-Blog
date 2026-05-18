@@ -1,16 +1,16 @@
-import { readdir, readFile } from "node:fs/promises";
-import { join, resolve } from "node:path";
-import { fileURLToPath } from "node:url";
+import {readdir, readFile} from "node:fs/promises";
+import {join, resolve} from "node:path";
+import {fileURLToPath} from "node:url";
 import {
-  emptyPublisherStats,
-  emptyTrafficStats,
-  getRangeStart,
-  privateDashboardPath,
-  publisherStatePath,
-  readJsonFile,
-  umamiSnapshotPath,
-  writeJsonFile,
-  workspaceRoot
+    emptyPublisherStats,
+    emptyTrafficStats,
+    getRangeStart,
+    privateDashboardPath,
+    publisherStatePath,
+    readJsonFile,
+    umamiSnapshotPath,
+    workspaceRoot,
+    writeJsonFile
 } from "./private-dashboard-utils.mjs";
 
 const postsRoot = resolve(workspaceRoot, "apps/blog/src/content/posts");
@@ -130,21 +130,18 @@ export async function buildContentDashboard(files, now = new Date()) {
     const publishedAt = typeof data.publishedAt === "string" ? toDate(data.publishedAt) : new Date(data.publishedAt);
     const tags = Array.isArray(data.tags) ? data.tags.filter(Boolean) : [];
     posts.push({
-      category: data.category === "tech" ? "tech" : "life",
       publishedAt,
       tags,
       words: wordCount(parsed.content)
     });
   }
 
-  const categoryCounts = { tech: 0, life: 0 };
   const tagCounts = new Map();
   let totalWords = 0;
   let postsLast30Days = 0;
   const threshold = getRangeStart(30, now).getTime();
 
   for (const post of posts) {
-    categoryCounts[post.category] += 1;
     totalWords += post.words;
     if (post.publishedAt.getTime() >= threshold) {
       postsLast30Days += 1;
@@ -158,7 +155,6 @@ export async function buildContentDashboard(files, now = new Date()) {
   return {
     totalPosts: posts.length,
     postsLast30Days,
-    categories: categoryCounts,
     totalTags: tagCounts.size,
     topTags: sortTopTags(tagCounts).slice(0, 8),
     totalWords,
@@ -209,7 +205,6 @@ export async function generatePrivateDashboard(now = new Date()) {
     summary: buildSummary(content, traffic, publisher),
     content: {
       totalPosts: content.totalPosts,
-      categories: content.categories,
       totalTags: content.totalTags,
       topTags: content.topTags,
       totalWords: content.totalWords,

@@ -1,7 +1,7 @@
-import { readFile } from "node:fs/promises";
-import { resolve } from "node:path";
-import { z } from "zod";
-import type { PublisherConfig } from "./types.js";
+import {readFile} from "node:fs/promises";
+import {resolve} from "node:path";
+import {z} from "zod";
+import type {PublisherConfig} from "./types.js";
 
 const rawConfigSchema = z.object({
   notebookId: z.string().min(1),
@@ -13,7 +13,7 @@ const rawConfigSchema = z.object({
   publisherStatePath: z.string().min(1).optional(),
   attrs: z.object({
     publish: z.string().min(1),
-    category: z.string().min(1),
+      category: z.string().min(1).optional(),
     excerpt: z.string().min(1),
     featured: z.string().min(1),
     slug: z.string().min(1),

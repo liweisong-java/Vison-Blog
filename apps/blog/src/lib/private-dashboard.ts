@@ -1,6 +1,6 @@
-import { readFile } from "node:fs/promises";
-import { resolve } from "node:path";
-import { z } from "zod";
+import {readFile} from "node:fs/promises";
+import {resolve} from "node:path";
+import {z} from "zod";
 
 const metricSchema = z.object({
   pageviews: z.number().nonnegative(),
@@ -21,10 +21,6 @@ export const privateDashboardSchema = z.object({
   }),
   content: z.object({
     totalPosts: z.number().nonnegative(),
-    categories: z.object({
-      tech: z.number().nonnegative(),
-      life: z.number().nonnegative()
-    }),
     totalTags: z.number().nonnegative(),
     topTags: z.array(
       z.object({
@@ -93,10 +89,6 @@ export function createEmptyPrivateDashboard(): PrivateDashboard {
     },
     content: {
       totalPosts: 0,
-      categories: {
-        tech: 0,
-        life: 0
-      },
       totalTags: 0,
       topTags: [],
       totalWords: 0,

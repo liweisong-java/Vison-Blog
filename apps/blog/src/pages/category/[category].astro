@@ -1,30 +1,24 @@
 ---
-import { getCollection } from "astro:content";
-import PostCard from "../../components/PostCard.astro";
 import BaseLayout from "../../layouts/BaseLayout.astro";
-import { filterPostsByCategory, sortPublishedPosts } from "../../lib/content";
 
 export async function getStaticPaths() {
   return ["tech", "life"].map((category) => ({ params: { category } }));
 }
-
-const { category } = Astro.params as { category: "tech" | "life" };
-const posts = filterPostsByCategory(
-  sortPublishedPosts(await getCollection("posts", ({ data }) => data.publish)),
-  category
-);
-const label = category === "tech" ? "技术" : "生活";
 ---
 
-<BaseLayout title={`${label} | 伟松的博客`} description={`${label}分类文章列表。`}>
+<BaseLayout title="文章 | 伟松的博客" description="博客内容统一按时间流展示。">
   <div class="category-page">
     <section class="page-intro page-intro--compact">
-      <h1>{label}</h1>
-      <p class="post-meta">共 {posts.length} 篇</p>
+      <h1>文章</h1>
+      <p class="post-meta">内容入口已统一。</p>
     </section>
 
-    <div class="post-list category-posts">
-      {posts.map((post) => <PostCard post={post} />)}
-    </div>
+    <p class="page-intro__summary">
+      这里不再单独分栏目展示，所有文章都会按统一内容流整理。你可以直接返回首页继续阅读。
+    </p>
+
+    <p class="post-meta">
+      <a href="/">返回首页</a>
+    </p>
   </div>
 </BaseLayout>

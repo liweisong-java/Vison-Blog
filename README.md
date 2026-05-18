@@ -219,13 +219,12 @@ pnpm publish:server-run
 - 放在当前博客笔记本里的普通文档，默认都会参与发布
 - 标题或路径里包含 `draft`、`草稿`、`未发布`、`未完成` 的文档会自动跳过
 - `slug`、`excerpt`、`publishedAt` 会自动生成
-- `category` 优先读属性，其次按标题、路径、正文关键词自动判断；判断不出时默认归到 `生活`
+- 不再要求分类属性，所有内容会直接进入统一内容流
 - `wechatReady` 默认开启，也就是会同时导出一份公众号兼容稿
 
 只有在你想手动覆盖默认行为时，才需要补这些可选属性：
 
 - `blog-pub`：填 `false` 可阻止该文发布
-- `blog-cat`：手动指定 `tech` 或 `life`
 - `blog-slug`：手动指定文章路径
 - `blog-excerpt`：手动指定摘要
 - `blog-date`：手动指定发布日期，格式 `YYYY-MM-DD`
@@ -236,6 +235,7 @@ pnpm publish:server-run
 - `blog-wechat`：填 `false` 可关闭公众号兼容稿导出
 
 如果你思源里之前已经用了 `custom-blog-*` 这一套命名，发布器也会继续识别，不需要回头批量改属性名。
+如果你之前还保留了 `blog-cat` 或 `custom-blog-cat`，发布器依然兼容；只是新内容已经不再需要它。
 
 ## 常用命令
 
@@ -287,6 +287,7 @@ pnpm publish:server-run
 - [思源发布器使用手册](docs/runbooks/siyuan-publisher.md)
 - [服务器静态部署说明](docs/runbooks/server-deploy.md)
 - [私有统计页运维说明](docs/runbooks/private-dashboard.md)
+- [GitHub Actions 清理说明](docs/runbooks/actions-cleanup.md)
 - [Vercel 可选部署说明](docs/runbooks/vercel-setup.md)
 
 ## 私有统计页
@@ -314,6 +315,19 @@ pnpm private:dashboard:traffic
 2. 在 GitHub Secrets 中配置 `UMAMI_BASE_URL`、`UMAMI_API_TOKEN`、`UMAMI_WEBSITE_ID`
 3. 通过 `private-dashboard-refresh` workflow 定时刷新流量快照
 4. 让 `deploy` workflow 在构建前执行 `pnpm private:dashboard`
+
+## GitHub Actions 清理
+
+如果你觉得仓库里的 workflow 运行记录太多、太频繁，现在内置了一个专门的清理工具：
+
+- workflow 文件：`.github/workflows/actions-cleanup.yml`
+- 支持每周自动清理一次
+- 支持手动执行时先 `dry_run` 预演
+- 默认只清理 `21` 天前、且每个 workflow 超过最近 `20` 条之外的已完成记录
+
+详细规则见：
+
+- [GitHub Actions 清理说明](docs/runbooks/actions-cleanup.md)
 
 ## 当前状态
 

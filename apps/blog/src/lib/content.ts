@@ -12,7 +12,7 @@ export const postSchema = z.object({
     .string()
     .max(220)
     .refine((value) => countReadableUnits(value) >= 4, "excerpt must contain enough readable content"),
-  category: z.enum(["tech", "life"]),
+    category: z.enum(["tech", "life"]).optional(),
   tags: z.array(z.string().min(1)).default([]),
   featured: z.boolean().default(false),
   publish: z.boolean().default(true),
@@ -50,13 +50,6 @@ export function getTagSummaries<T extends { data: { tags: string[] } }>(posts: T
 
 export function splitFeaturedPosts<T extends { data: { featured: boolean } }>(posts: T[]) {
   return [posts.filter((post) => post.data.featured), posts.filter((post) => !post.data.featured)] as const;
-}
-
-export function filterPostsByCategory<T extends { data: { category: "tech" | "life" } }>(
-  posts: T[],
-  category: "tech" | "life"
-) {
-  return posts.filter((post) => post.data.category === category);
 }
 
 export function getArchiveGroups<T extends { data: { publishedAt: Date } }>(posts: T[]) {
@@ -110,6 +103,89 @@ export function getArticleLead(excerpt: string | undefined, body: string | undef
         .map((chunk) => chunk.text);
 
     return chunks[0] ?? "";
+}
+
+function normalizeInlineText(value: string) {
+    return value.replace(/\s+/g, " ").trim();
+}
+
+function stripLeadingTitle(title: string, excerpt: string) {
+    const normalizedTitle = normalizeInlineText(title);
+    let normalizedExcerpt = normalizeInlineText(excerpt);
+
+    if (!normalizedTitle || !normalizedExcerpt.startsWith(normalizedTitle)) {
+        return normalizedExcerpt;
+    }
+
+    normalizedExcerpt = normalizedExcerpt.slice(normalizedTitle.length).trimStart();
+    return normalizedExcerpt.replace(/^[：:，,。.\-—\s]+/, "").trimStart();
+}
+
+function stripGeneratedSummaryPrefix(excerpt: string) {
+    return excerpt.replace(/^(摘要|导语|概述)\s*[：:]?\s*/u, "").trimStart();
+}
+
+function trimToCompleteSentence(excerpt: string) {
+    const match = excerpt.match(/^(.+?[。！？!?])/u);
+    if (match?.[1]) {
+        return match[1].trim();
+    }
+
+    return excerpt.trim();
+}
+
+function getBodyLead(body: string | undefined) {
+    if (!body?.trim()) {
+        return "";
+    }
+
+    const chunks = body
+        .split(/\n\s*\n/g)
+        .map((chunk) => ({
+            raw: chunk.trim(),
+            text: chunk
+                .replace(/^#{1,6}\s+/gm, "")
+                .replace(/!\[[^\]]*\]\([^)]+\)/g, "")
+                .replace(/\[[^\]]+\]\([^)]+\)/g, "")
+                .replace(/[*_`>#-]/g, " ")
+                .replace(/\s+/g, " ")
+                .trim()
+        }))
+        .filter((chunk) => chunk.text)
+        .filter((chunk) => !/^#{1,6}\s/.test(chunk.raw))
+        .map((chunk) => chunk.text);
+
+    return chunks[0] ?? "";
+}
+
+export function getExcerptPreview(
+    title: string,
+    excerpt: string | undefined,
+    body: string | undefined
+) {
+    const normalizedTitle = normalizeInlineText(title);
+    const normalizedExcerpt = excerpt?.trim();
+
+    if (!normalizedExcerpt) {
+        return getBodyLead(body);
+    }
+
+    let preview = stripLeadingTitle(normalizedTitle, normalizedExcerpt);
+    preview = stripGeneratedSummaryPrefix(preview);
+    preview = trimToCompleteSentence(preview);
+
+    if (!preview) {
+        return getBodyLead(body);
+    }
+
+    if (preview.length < 40) {
+        const bodyLead = getBodyLead(body);
+        if (bodyLead) {
+            return bodyLead;
+        }
+    }
+
+    return preview;
 }
 
 type ArticleHeading = {

@@ -1,6 +1,6 @@
 import matter from "gray-matter";
-import type { PublishedNote } from "./types.js";
-import { normalizeSiyuanStructures } from "./markdown-normalizers.js";
+import type {PublishedNote} from "./types.js";
+import {normalizeSiyuanStructures} from "./markdown-normalizers.js";
 
 const assetPattern = /assets\/[A-Za-z0-9._/-]+/g;
 const assetValuePattern = /^assets\/[A-Za-z0-9._/-]+$/;
@@ -125,7 +125,6 @@ export async function buildPostBundle({
     slug: note.slug,
     publishedAt: note.publishedAt,
     excerpt: note.excerpt,
-    category: note.category,
     tags: note.tags,
     featured: note.featured,
     publish: true,

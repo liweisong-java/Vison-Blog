@@ -1,10 +1,10 @@
 import matter from "gray-matter";
-import { mkdir, mkdtemp, writeFile } from "node:fs/promises";
-import { join } from "node:path";
-import { tmpdir } from "node:os";
-import { beforeEach, describe, expect, it, vi } from "vitest";
-import { syncPublishedNotes } from "../src/commands/sync";
-import { createInitialPublisherState } from "../src/publisher-state.js";
+import {mkdir, mkdtemp, writeFile} from "node:fs/promises";
+import {join} from "node:path";
+import {tmpdir} from "node:os";
+import {beforeEach, describe, expect, it, vi} from "vitest";
+import {syncPublishedNotes} from "../src/commands/sync";
+import {createInitialPublisherState} from "../src/publisher-state.js";
 
 vi.mock("../src/fs", async () => {
   const actual = await vi.importActual<typeof import("../src/fs")>("../src/fs");
@@ -272,6 +272,12 @@ describe("syncPublishedNotes", () => {
         body: expect.stringContaining("The same note can become a polished article")
       })
     );
+      expect(writeBundle).toHaveBeenCalledWith(
+          "/tmp/content",
+          expect.objectContaining({
+              body: expect.not.stringContaining("category:")
+          })
+      );
   });
 
   it("falls back to a generated excerpt when an old custom excerpt is too short", async () => {
@@ -457,7 +463,7 @@ describe("syncPublishedNotes", () => {
       "/tmp/content",
       expect.objectContaining({
         filePath: "post-9cky1bo/index.mdx",
-        body: expect.stringContaining("category: life")
+          body: expect.not.stringContaining("category:")
       })
     );
   });
@@ -509,7 +515,7 @@ describe("syncPublishedNotes", () => {
     );
   });
 
-  it("infers a tech category from the title and body when the category attr is missing", async () => {
+    it("publishes normally when the legacy category attr is missing", async () => {
     const writeBundle = vi.fn();
 
     await syncPublishedNotes({
@@ -540,7 +546,7 @@ describe("syncPublishedNotes", () => {
     expect(writeBundle).toHaveBeenCalledWith(
       "/tmp/content",
       expect.objectContaining({
-        body: expect.stringContaining("category: tech")
+          body: expect.not.stringContaining("category:")
       })
     );
   });

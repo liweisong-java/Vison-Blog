@@ -1,10 +1,10 @@
-import { describe, expect, it } from "vitest";
+import {describe, expect, it} from "vitest";
 import {
-  createEmptyPrivateDashboard,
-  getPublisherStatusLabel,
-  privateDashboardSchema,
-  summarizeDeskStatus,
-  summarizeDashboard
+    createEmptyPrivateDashboard,
+    getPublisherStatusLabel,
+    privateDashboardSchema,
+    summarizeDashboard,
+    summarizeDeskStatus
 } from "../src/lib/private-dashboard";
 
 describe("private dashboard", () => {
@@ -21,7 +21,6 @@ describe("private dashboard", () => {
       },
       content: {
         totalPosts: 4,
-        categories: { tech: 2, life: 2 },
         totalTags: 8,
         topTags: [{ tag: "astro", count: 2 }],
         totalWords: 3200,

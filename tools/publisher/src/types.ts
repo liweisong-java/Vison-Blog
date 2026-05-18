@@ -1,6 +1,6 @@
 export type PublisherAttrs = {
   publish: string;
-  category: string;
+    category?: string;
   excerpt: string;
   featured: string;
   slug: string;
@@ -63,7 +63,6 @@ export type PublishedNote = {
   id: string;
   title: string;
   slug: string;
-  category: "tech" | "life";
   excerpt: string;
   featured: boolean;
   publishedAt: string;

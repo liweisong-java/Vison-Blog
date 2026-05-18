@@ -7,7 +7,6 @@
   "localDeployRoot": "/data/Vison-Blog",
   "attrs": {
     "publish": "blog-pub",
-    "category": "blog-cat",
     "excerpt": "blog-excerpt",
     "featured": "blog-top",
     "slug": "blog-slug",

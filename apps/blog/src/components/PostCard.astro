@@ -1,32 +1,20 @@
 ---
-import { formatDisplayDate, getCategoryLabel } from "../lib/presenters";
+import { formatDisplayDate } from "../lib/presenters";
 
 const { post } = Astro.props;
-const categoryLabel = getCategoryLabel(post.data.category);
 ---
 
 <article
   class="post-card"
-  data-category={post.data.category}
   data-search-card
   data-search-title={post.data.title.toLowerCase()}
-  data-search-excerpt={post.data.excerpt.toLowerCase()}
+  data-search-excerpt={post.data.title.toLowerCase()}
   data-search-tags={post.data.tags.join(" ").toLowerCase()}
 >
-  {post.data.cover && (
-    <div class="post-card-cover">
-      <img src={post.data.cover} alt={post.data.title} loading="lazy" />
+  <a href={`/posts/${post.data.slug}/`} class="post-card-link">
+    <div class="post-card-meta">
+      <span class="post-meta">{formatDisplayDate(post.data.publishedAt)}</span>
     </div>
-  )}
-  <div class="post-card-meta">
-    <span class="post-meta">{categoryLabel}</span>
-    <span class="post-meta">{formatDisplayDate(post.data.publishedAt)}</span>
-  </div>
-  <h3 class="post-card-title"><a href={`/posts/${post.data.slug}/`}>{post.data.title}</a></h3>
-  <p class="post-card-excerpt">{post.data.excerpt}</p>
-  <ul class="tag-list">
-    {post.data.tags.map((tag: string) => (
-      <li><a href={`/tags/${tag}/`}>#{tag}</a></li>
-    ))}
-  </ul>
+    <h3 class="post-card-title">{post.data.title}</h3>
+  </a>
 </article>

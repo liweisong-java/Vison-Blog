@@ -113,13 +113,12 @@ pnpm publish:init
 - 当前博客笔记本里的普通文档，默认直接进入发布候选
 - 标题或路径里含有 `draft`、`草稿`、`未发布`、`未完成` 的文档，会自动跳过
 - `slug`、`excerpt`、`publishedAt` 自动生成
-- `category` 优先读属性，其次按标题、路径、正文里的关键词自动判断
+- 不再要求 `category`，所有文章会直接进入统一内容流
 - `wechatReady` 默认开启
 
 只有需要覆盖默认行为时，才建议补属性：
 
 - `blog-pub=false`：显式不发布
-- `blog-cat=tech|life`：手动指定分类
 - `blog-slug`：手动指定路径
 - `blog-excerpt`：手动指定摘要
 - `blog-date`：手动指定发布日期
@@ -130,6 +129,7 @@ pnpm publish:init
 - `blog-wechat=false`：不导出公众号兼容稿
 
 如果你已经在思源里用了 `custom-blog-*` 前缀的旧字段，发布器会继续兼容识别。
+如果旧文章里还保留了 `blog-cat` 或 `custom-blog-cat`，也不需要专门清理，发布器会继续兼容。
 
 ## 每次发文的顺序
 
@@ -301,7 +301,7 @@ systemctl enable --now vision-blog-publisher.timer
 ## 常见问题
 
 - `pnpm publish:doctor` 不通过：先检查思源是否已启动、API token 是否正确、工作区路径是否写对
-- `pnpm publish:dry-run` 报字段错误：通常是你手动填写的 `blog-cat`、`blog-date` 或 `blog-slug` 不符合格式
+- `pnpm publish:dry-run` 报字段错误：通常是你手动填写的 `blog-date`、`blog-slug`，或者遗留的 `blog-cat` 值不符合格式
 - 同步后没触发部署：先确认这次是否真的产生了 git 提交；如果用的是 GitHub Actions 部署，再去看仓库 Actions；如果用的是外部平台，再检查 `PUBLISH_DEPLOY_HOOK`
 - 公众号导出稿没有更新：检查 `blog-wechat` 是否为 `true`，以及 `wechatExportDir` 是否已配置
 - 服务器主导模式下手机 App 不能直接连服务器：这是思源官方服务端模式的限制，建议用手机浏览器访问服务器上的思源

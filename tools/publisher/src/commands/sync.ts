@@ -1,14 +1,10 @@
-import { access } from "node:fs/promises";
-import { join } from "node:path";
-import type { PublishedNote, PublisherConfig, SiYuanDocument } from "../types.js";
-import { buildPostBundle, buildWechatArticle } from "../markdown.js";
-import { copyAssetFiles } from "../fs.js";
-import { normalizeSiyuanStructures } from "../markdown-normalizers.js";
-import {
-  createInitialPublisherState,
-  recordPublisherFailure,
-  recordPublisherSuccess
-} from "../publisher-state.js";
+import {access} from "node:fs/promises";
+import {join} from "node:path";
+import type {PublishedNote, PublisherConfig, SiYuanDocument} from "../types.js";
+import {buildPostBundle, buildWechatArticle} from "../markdown.js";
+import {copyAssetFiles} from "../fs.js";
+import {normalizeSiyuanStructures} from "../markdown-normalizers.js";
+import {createInitialPublisherState, recordPublisherFailure, recordPublisherSuccess} from "../publisher-state.js";
 
 type ManagedEntry = {
   slug: string;
@@ -30,8 +26,6 @@ const transliterationMap: Record<string, string> = {
 };
 const slugPattern = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
 const draftPattern = /(?:^|\/)(?:draft|drafts|草稿|未发布|未完成)(?:\/|$)|^(?:草稿|draft)[:：-]/iu;
-const techKeywordPattern =
-  /(ai|人工智能|技术|开发|代码|编程|java|javascript|typescript|node|astro|vercel|prompt|workflow|工作流|接口|数据库|前端|后端|算法|部署|调试|性能|系统|工程)/iu;
 const invisibleCharPattern = /[\u200B-\u200D\uFEFF]/gu;
 
 function readAttrVariants(attrs: Record<string, string>, key: string) {
@@ -143,17 +137,6 @@ function shouldSkipByDraftConvention(doc: SiYuanDocument) {
   return draftPattern.test(doc.hpath) || draftPattern.test(doc.content);
 }
 
-function inferCategory({
-  doc,
-  markdown
-}: {
-  doc: SiYuanDocument;
-  markdown: string;
-}) {
-  const signal = `${doc.hpath}\n${doc.content}\n${markdown}`;
-  return techKeywordPattern.test(signal) ? "tech" : "life";
-}
-
 function deriveSlug({
   doc,
   attrs,
@@ -217,15 +200,11 @@ function normalizePublishedNote(
   }
 
   const reasons: string[] = [];
-  const categoryAttr = readAttrVariants(attrs, config.attrs.category);
-  let category: "tech" | "life";
-  if (!categoryAttr) {
-    category = inferCategory({ doc, markdown });
-  } else if (categoryAttr === "tech" || categoryAttr === "life") {
-    category = categoryAttr;
-  } else {
+    const categoryAttr = config.attrs.category
+        ? readAttrVariants(attrs, config.attrs.category)
+        : undefined;
+    if (categoryAttr && categoryAttr !== "tech" && categoryAttr !== "life") {
     reasons.push("category must be tech or life");
-    category = "life";
   }
 
   const slug = deriveSlug({ doc, attrs, existingEntries });
@@ -277,7 +256,6 @@ function normalizePublishedNote(
       id: doc.id,
       title: doc.content,
       slug,
-      category,
       excerpt,
       featured: featuredAttr ?? false,
       publishedAt,

@@ -1,10 +1,10 @@
-import { expect, test } from "@playwright/test";
+import {expect, test} from "@playwright/test";
 
 test("route pages exist for categories, tags, archive, and about", async ({ page }) => {
   await page.goto("/category/tech/");
-  await expect(page.getByRole("heading", { name: "技术" })).toBeVisible();
-  await expect(page.getByText(/这里收录技术实践、工具心得/i)).toBeHidden();
-  await expect(page.locator(".category-page .post-meta")).toContainText("共 0 篇");
+    await expect(page.getByRole("heading", {name: "文章"})).toBeVisible();
+    await expect(page.getByText("内容入口已统一。")).toBeVisible();
+    await expect(page.getByText(/这里不再单独分栏目展示/i)).toBeVisible();
   await expect(page.getByText(/预计阅读/i)).toHaveCount(0);
 
   await page.goto("/tags/");

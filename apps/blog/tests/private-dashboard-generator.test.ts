@@ -1,7 +1,7 @@
-import { mkdtemp, writeFile } from "node:fs/promises";
-import { tmpdir } from "node:os";
-import { join } from "node:path";
-import { afterEach, describe, expect, it } from "vitest";
+import {mkdtemp, writeFile} from "node:fs/promises";
+import {tmpdir} from "node:os";
+import {join} from "node:path";
+import {afterEach, describe, expect, it} from "vitest";
 
 const tempRoots: string[] = [];
 
@@ -56,8 +56,7 @@ publish: true
     const result = await buildContentDashboard([postA, postB], new Date("2026-05-12T12:00:00.000Z"));
 
     expect(result.totalPosts).toBe(2);
-    expect(result.categories.tech).toBe(1);
-    expect(result.categories.life).toBe(1);
     expect(result.topTags[0]).toEqual({ tag: "ai", count: 1 });
+      expect(result.totalWords).toBeGreaterThan(0);
   });
 });

@@ -1,5 +1,5 @@
-import { describe, expect, it } from "vitest";
-import { buildPostBundle, buildWechatArticle } from "../src/markdown";
+import {describe, expect, it} from "vitest";
+import {buildPostBundle, buildWechatArticle} from "../src/markdown";
 
 describe("buildPostBundle", () => {
   it("rewrites SiYuan asset paths into local MDX asset paths", async () => {
@@ -22,6 +22,7 @@ describe("buildPostBundle", () => {
     expect(bundle.body).toContain("slug: from-notes-to-site");
     expect(bundle.body).toContain("![Shot](./image-demo.png)");
     expect(bundle.body).toContain("cover: ./cover-hero.png");
+      expect(bundle.body).not.toContain("\ncategory:");
     expect(bundle.assets).toEqual([
       { sourcePath: "assets/image-demo.png", fileName: "image-demo.png" },
       { sourcePath: "assets/cover-hero.png", fileName: "cover-hero.png" }

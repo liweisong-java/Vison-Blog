@@ -2,6 +2,7 @@ import {describe, expect, it} from "vitest";
 import {
     getAllTags,
     getArticleLead,
+    getExcerptPreview,
     getReadingTime,
     getSearchResults,
     getTagSummaries,
@@ -11,14 +12,13 @@ import {
 } from "../src/lib/content";
 
 describe("post schema", () => {
-  it("accepts valid tech and life posts", () => {
+    it("accepts posts whether category is present or omitted", () => {
     expect(
       postSchema.safeParse({
         title: "From Notes to Site",
         slug: "from-notes-to-site",
         publishedAt: "2026-05-10",
         excerpt: "How a SiYuan note becomes a deployed editorial article.",
-        category: "tech",
         tags: ["astro", "siyuan"],
         featured: true,
         publish: true,
@@ -49,7 +49,6 @@ describe("post schema", () => {
         slug: "from-notes-to-site",
         publishedAt: "2026-05-10",
         excerpt: "How a SiYuan note becomes a deployed editorial article.",
-        category: "tech",
         tags: ["astro", "siyuan"],
         featured: true,
         publish: true,
@@ -68,7 +67,6 @@ describe("post schema", () => {
         slug: "manual-entry",
         publishedAt: "2026-05-11",
         excerpt: "A hand-written article that lives in the repo without coming from SiYuan sync.",
-        category: "tech",
         tags: ["manual"],
         featured: false,
         publish: true
@@ -83,7 +81,6 @@ describe("post schema", () => {
         slug: "this-is-a-blog",
         publishedAt: "2026-05-11",
         excerpt: "这是一个博客",
-        category: "life",
         tags: [],
         featured: false,
         publish: true
@@ -163,6 +160,30 @@ describe("content helpers", () => {
     it("builds a concise article lead from excerpt or body text", () => {
         expect(getArticleLead("现成摘要", "# 标题\n\n正文")).toBe("现成摘要");
         expect(getArticleLead(undefined, "# 标题\n\n第一段内容。\n\n第二段内容。")).toBe("第一段内容。");
+    });
+
+    it("removes duplicated titles from synced excerpts and keeps a complete Chinese sentence", () => {
+        expect(
+            getExcerptPreview(
+                "Agent 的短期记忆、长期记忆与向量记忆：如何让它真正“记住事”",
+                "Agent 的短期记忆、长期记忆与向量记忆：如何让它真正“记住事” Agent 之所以能摆脱“单次对话失忆”的困境，实现连贯交互、个性化响应和持续学习，核心在于其记忆系统的合理设计——短期记忆、长期记忆与向量记忆并非孤立存在，而是一套协同工作的体系。很多开发者搭建的 Agent",
+                "# 标题\n\nAgent 之所以能摆脱“单次对话失忆”的困境，实现连贯交互、个性化响应和持续学习，核心在于其记忆系统的合理设计——短期记忆、长期记忆与向量记忆并非孤立存在，而是一套协同工作的体系。"
+            )
+        ).toBe(
+            "Agent 之所以能摆脱“单次对话失忆”的困境，实现连贯交互、个性化响应和持续学习，核心在于其记忆系统的合理设计——短期记忆、长期记忆与向量记忆并非孤立存在，而是一套协同工作的体系。"
+        );
+    });
+
+    it("strips generated 摘要 prefixes from synced excerpts", () => {
+        expect(
+            getExcerptPreview(
+                "Agent 状态机的工业级设计：从线性链路到图状拓扑的演进",
+                "Agent 状态机的工业级设计：从线性链路到图状拓扑的演进 摘要 在2026年，工业级Agent系统的落地已从实验原型转向生产环境的核心基础设施，而状态机的设计范式演进成为关键驱动力。",
+                undefined
+            )
+        ).toBe(
+            "在2026年，工业级Agent系统的落地已从实验原型转向生产环境的核心基础设施，而状态机的设计范式演进成为关键驱动力。"
+        );
     });
 
     it("groups h2 and h3 headings for article toc rendering", () => {

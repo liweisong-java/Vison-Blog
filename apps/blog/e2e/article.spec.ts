@@ -10,7 +10,7 @@ test("article page renders a lighter reading-first layout", async ({page}) => {
     await expect(page.locator(".article-header").getByText(/预计阅读/i)).toHaveCount(0);
     await expect(page.getByText(/评论区会在站点完成 giscus 配置后显示/i)).toHaveCount(0);
     await expect(page.locator("[data-comments-root]")).toHaveCount(0);
-  await expect(page.locator(".article-summary")).toBeVisible();
+    await expect(page.locator(".article-summary")).toHaveCount(0);
   expect(await page.locator(".prose h2").count()).toBeGreaterThan(0);
   expect(await page.locator(".prose li").count()).toBeGreaterThan(0);
   expect(await page.locator(".prose strong").count()).toBeGreaterThan(0);

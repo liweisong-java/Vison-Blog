@@ -86,6 +86,26 @@ describe("operations docs", () => {
     expect(deployWorkflow).toContain("pnpm private:dashboard");
   });
 
+    it("ships a scheduled GitHub Actions cleanup workflow with a Chinese runbook", async () => {
+        const readme = await readFile(resolve(process.cwd(), "../../README.md"), "utf8");
+        const runbook = await readFile(
+            resolve(process.cwd(), "../../docs/runbooks/actions-cleanup.md"),
+            "utf8"
+        );
+        const workflow = await readFile(
+            resolve(process.cwd(), "../../.github/workflows/actions-cleanup.yml"),
+            "utf8"
+        );
+
+        expect(readme).toContain("actions-cleanup");
+        expect(runbook).toContain("workflow runs");
+        expect(runbook).toContain("dry_run");
+        expect(workflow).toContain("schedule:");
+        expect(workflow).toContain("workflow_dispatch:");
+        expect(workflow).toContain("deleteWorkflowRun");
+        expect(workflow).toContain("actions: write");
+    });
+
   it("documents the server-led publishing workflow", async () => {
     const readme = await readFile(resolve(process.cwd(), "../../README.md"), "utf8");
     const deployRunbook = await readFile(

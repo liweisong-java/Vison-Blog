@@ -1,11 +1,12 @@
-import { expect, test } from "@playwright/test";
+import {expect, test} from "@playwright/test";
 
-test("category pages render as concise collections", async ({ page }) => {
+test("legacy category pages fall back to the unified reading flow", async ({page}) => {
   await page.goto("/category/life/");
 
-  await expect(page.getByRole("heading", { name: "生活" })).toBeVisible();
-  await expect(page.getByText(/慢一点的观察/i)).toHaveCount(0);
-  await expect(page.locator(".category-posts .post-card").first()).toBeVisible();
+    await expect(page.getByRole("heading", {name: "文章"})).toBeVisible();
+    await expect(page.getByText(/内容入口已统一/i)).toBeVisible();
+    await expect(page.getByText(/这里不再单独分栏目展示/i)).toBeVisible();
+    await expect(page.getByRole("link", {name: "返回首页"})).toBeVisible();
 });
 
 test("archive page behaves like a time index", async ({ page }) => {

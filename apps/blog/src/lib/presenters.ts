@@ -1,7 +1,3 @@
-export function getCategoryLabel(category: "tech" | "life") {
-  return category === "tech" ? "技术" : "生活";
-}
-
 export function formatReadingTime(minutes: number) {
   return `预计阅读 ${minutes} 分钟`;
 }

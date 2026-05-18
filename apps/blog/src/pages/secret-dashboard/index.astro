@@ -3,12 +3,10 @@ import BaseLayout from "../../layouts/BaseLayout.astro";
 import {
   formatDashboardDate,
   loadPrivateDashboard,
-  summarizeDashboard,
-  toPercent
+  summarizeDashboard
 } from "../../lib/private-dashboard";
 
 const data = await loadPrivateDashboard();
-const totalCategoryCount = data.content.categories.tech + data.content.categories.life;
 ---
 
 <BaseLayout
@@ -55,18 +53,14 @@ const totalCategoryCount = data.content.categories.tech + data.content.categorie
       <article class="dashboard-panel">
         <div class="dashboard-panel__header">
           <div>
-            <p class="dashboard-panel__label">分类占比</p>
-            <h2>内容结构</h2>
+            <p class="dashboard-panel__label">写作画像</p>
+            <h2>内容密度</h2>
           </div>
         </div>
         <div class="dashboard-stack">
           <div class="dashboard-row">
-            <span>技术</span>
-            <span>{data.content.categories.tech} 篇 · {toPercent(data.content.categories.tech, totalCategoryCount)}</span>
-          </div>
-          <div class="dashboard-row">
-            <span>生活</span>
-            <span>{data.content.categories.life} 篇 · {toPercent(data.content.categories.life, totalCategoryCount)}</span>
+            <span>累计文章</span>
+            <span>{data.content.totalPosts} 篇</span>
           </div>
           <div class="dashboard-row">
             <span>总字数</span>

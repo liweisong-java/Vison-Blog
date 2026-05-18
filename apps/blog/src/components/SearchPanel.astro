@@ -7,7 +7,6 @@ const { posts } = Astro.props as {
       tags: string[];
       slug: string;
       publishedAt: Date;
-      category: "tech" | "life";
     };
   }>;
 };
@@ -30,8 +29,7 @@ const { posts } = Astro.props as {
     slug: post.data.slug,
     title: post.data.title,
     excerpt: post.data.excerpt,
-    tags: post.data.tags,
-    category: post.data.category
+    tags: post.data.tags
   }))
 )} />
 
@@ -60,13 +58,12 @@ const { posts } = Astro.props as {
     const query = target.value.trim().toLowerCase();
 
     for (const card of cards) {
-      const categoryHidden = card.hasAttribute("hidden") && card.getAttribute("data-filter-hidden") === "true";
       const searchMatch = matches(card, query);
 
       card.toggleAttribute("data-search-hidden", !searchMatch);
-      if (searchMatch && !categoryHidden) {
+      if (searchMatch) {
         card.removeAttribute("hidden");
-      } else if (!searchMatch) {
+      } else {
         card.setAttribute("hidden", "");
       }
     }
