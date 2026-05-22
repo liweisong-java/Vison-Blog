@@ -16,29 +16,9 @@ export const sharedPageComponents: SharedLayout = {
 // components for pages that display a single page (e.g. a single note)
 export const defaultContentPageLayout: PageLayout = {
   beforeBody: [
-    Component.ConditionalRender({
-      component: Component.Breadcrumbs({
-        rootName: "首页",
-      }),
-      condition: (page) => page.fileData.slug !== "index",
-    }),
     Component.ArticleTitle(),
-    Component.ConditionalRender({
-      component: Component.TagList(),
-      condition: (page) => page.fileData.slug !== "index",
-    }),
   ],
-  left: [
-    Component.Flex({
-      components: [
-        {
-          Component: Component.Search(),
-          grow: true,
-        },
-        { Component: Component.ReaderMode() },
-      ],
-    }),
-  ],
+  left: [],
   right: [
     Component.DesktopOnly(Component.TableOfContents()),
   ],
@@ -47,15 +27,6 @@ export const defaultContentPageLayout: PageLayout = {
 // components for pages that display lists of pages  (e.g. tags or folders)
 export const defaultListPageLayout: PageLayout = {
   beforeBody: [Component.Breadcrumbs({ rootName: "首页" }), Component.ArticleTitle()],
-  left: [
-    Component.Flex({
-      components: [
-        {
-          Component: Component.Search(),
-          grow: true,
-        },
-      ],
-    }),
-  ],
+  left: [],
   right: [],
 }

@@ -32,7 +32,8 @@ export default ((opts?: Partial<Options>) => {
 
     const id = `toc-${numTocs++}`
     return (
-      <div class={classNames(displayClass, "toc")}>
+      <div class={classNames(displayClass, "article-toc-shell")}>
+        <div class="toc">
         <button
           type="button"
           class={fileData.collapseToc ? "collapsed toc-header" : "toc-header"}
@@ -67,6 +68,7 @@ export default ((opts?: Partial<Options>) => {
             </li>
           ))}
         </OverflowList>
+        </div>
       </div>
     )
   }

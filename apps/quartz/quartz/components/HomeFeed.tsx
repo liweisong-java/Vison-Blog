@@ -31,24 +31,31 @@ const HomeFeed: QuartzComponent = ({ cfg, fileData, allFiles }: QuartzComponentP
   }
 
   return (
-    <section class="home-feed">
-      <ol class="home-feed-list">
-        {posts.map((post) => {
-          const title = post.frontmatter?.title ?? post.slug ?? "未命名文章"
-          return (
-            <li class="home-feed-item">
-              <a href={resolveRelative(fileData.slug!, post.slug!)} class="home-feed-link internal">
-                <span class="home-feed-title">{title}</span>
-                {post.dates && (
-                  <span class="home-feed-date">
-                    <Date date={getDate(cfg, post)!} locale={cfg.locale} />
+    <section class="home-shell">
+      <header class="home-shell__intro">
+        <p class="home-shell__eyebrow">最近更新</p>
+      </header>
+      <section class="home-feed">
+        <ol class="home-feed-list">
+          {posts.map((post) => {
+            const title = post.frontmatter?.title ?? post.slug ?? "未命名文章"
+            return (
+              <li class="home-feed-item">
+                <a href={resolveRelative(fileData.slug!, post.slug!)} class="home-feed-link internal">
+                  <span class="home-feed-main">
+                    <span class="home-feed-title">{title}</span>
                   </span>
-                )}
-              </a>
-            </li>
-          )
-        })}
-      </ol>
+                  {post.dates && (
+                    <span class="home-feed-date">
+                      <Date date={getDate(cfg, post)!} locale={cfg.locale} />
+                    </span>
+                  )}
+                </a>
+              </li>
+            )
+          })}
+        </ol>
+      </section>
     </section>
   )
 }

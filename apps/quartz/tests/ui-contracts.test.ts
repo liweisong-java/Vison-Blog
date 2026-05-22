@@ -17,6 +17,7 @@ describe("quartz ui contracts", () => {
     expect(footer).not.toContain("Created with");
     expect(footer).not.toContain("Quartz v");
     expect(quartzConfig).not.toContain("Plugin.FolderPage()");
+    expect(layout).not.toContain("ReaderMode()");
   });
 
   it("keeps the custom styles from hiding the main article body", async () => {
@@ -44,5 +45,28 @@ describe("quartz ui contracts", () => {
     );
 
     expect(publicRootEntries).toContain("index.html");
+  });
+
+  it("keeps the home feed tuned for Chinese blog reading instead of single-line tool cards", async () => {
+    const homeFeedStyle = await readFile(resolve(process.cwd(), "quartz/components/styles/homeFeed.scss"), "utf8");
+
+    expect(homeFeedStyle).toContain("white-space: nowrap");
+    expect(homeFeedStyle).toContain("text-overflow: ellipsis");
+  });
+
+  it("keeps article chrome lighter than a documentation sidebar layout", async () => {
+    const customScss = await readFile(resolve(process.cwd(), "quartz/styles/custom.scss"), "utf8");
+    const layout = await readFile(resolve(process.cwd(), "quartz.layout.ts"), "utf8");
+    const contentLayoutBlock = layout.match(
+      /export const defaultContentPageLayout:[\s\S]*?}\n\n\/\/ components for pages that display lists/
+    )?.[0] ?? "";
+
+    expect(customScss).toContain(".article-toc-shell");
+    expect(customScss).toContain(".home-shell");
+    expect(customScss).toContain(".center article.article-shell a.internal:not(.tag-link)");
+    expect(customScss).toContain("background-color: transparent");
+    expect(customScss).toContain(".center article.article-shell {\n  border: 0;");
+    expect(contentLayoutBlock).not.toContain("Breadcrumbs");
+    expect(contentLayoutBlock).not.toContain("TagList");
   });
 });
