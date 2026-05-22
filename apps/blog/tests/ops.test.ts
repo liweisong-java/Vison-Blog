@@ -191,6 +191,23 @@ describe("operations docs", () => {
     expect(quartzReadme).toContain("content/vault/posts");
   });
 
+  it("keeps the lockfile aligned with quartz workspace dependencies for frozen server installs", async () => {
+    const lockfile = await readFile(resolve(process.cwd(), "../../pnpm-lock.yaml"), "utf8");
+    const quartzPackageJson = JSON.parse(
+      await readFile(resolve(process.cwd(), "../../apps/quartz/package.json"), "utf8")
+    ) as {
+      dependencies?: Record<string, string>;
+      devDependencies?: Record<string, string>;
+    };
+    const quartzImporterSection = lockfile
+      .split("  apps/quartz:")[1]
+      ?.split("\n  tools/")[0];
+
+    expect(quartzImporterSection).toBeDefined();
+    expect(quartzImporterSection).toContain("vitest:");
+    expect(quartzImporterSection).toContain(`specifier: ${quartzPackageJson.devDependencies?.vitest}`);
+  });
+
   it("ignores generated quartz build output from git", async () => {
     const gitignore = await readFile(resolve(process.cwd(), "../../.gitignore"), "utf8");
 
