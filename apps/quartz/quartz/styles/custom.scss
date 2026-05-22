@@ -1,0 +1,224 @@
+@use "./base.scss";
+
+:root {
+  --homeMaxWidth: 46rem;
+}
+
+.left.sidebar,
+.right.sidebar {
+  gap: 1rem;
+}
+
+.left.sidebar {
+  position: sticky;
+  top: 1.2rem;
+}
+
+.left.sidebar .search {
+  margin-top: 0;
+}
+
+.page {
+  min-height: 100vh;
+}
+
+.center {
+  max-width: var(--homeMaxWidth);
+}
+
+.center .page-header {
+  margin-bottom: 1.35rem;
+}
+
+.page-header .popover-hint {
+  display: grid;
+  gap: 0.6rem;
+}
+
+.article-title {
+  margin: 0;
+  letter-spacing: 0.01em;
+  font-size: clamp(1.85rem, 3.2vw, 2.7rem);
+  line-height: 1.18;
+  text-wrap: balance;
+}
+
+.center article > h1:first-child {
+  display: none;
+}
+
+.content-meta {
+  color: var(--gray);
+  font-size: 0.88rem;
+}
+
+.center article.article-shell {
+  border-radius: 28px;
+  border: 1px solid var(--lightgray);
+  background: color-mix(in srgb, var(--light) 92%, white);
+  box-shadow: 0 18px 50px rgba(36, 31, 26, 0.05);
+  padding: clamp(1.2rem, 2.4vw, 2.4rem);
+}
+
+.center article.home-intro {
+  padding: 0;
+  border: 0;
+  box-shadow: none;
+  background: transparent;
+}
+
+.center article > p:first-child {
+  margin-top: 0;
+}
+
+.center article > p:last-child {
+  margin-bottom: 0;
+}
+
+.popover .description,
+.page-listing .desc,
+.recent-notes .desc {
+  display: none;
+}
+
+.callout {
+  border-radius: 18px;
+}
+
+.callout .callout-title {
+  letter-spacing: 0.01em;
+}
+
+.embed-card {
+  margin: 1.4rem 0;
+  padding: 1rem 1.1rem;
+  border: 1px dashed var(--lightgray);
+  border-radius: 18px;
+  color: var(--darkgray);
+  background: color-mix(in srgb, var(--highlight) 42%, transparent);
+}
+
+article.popover-hint h1,
+article.popover-hint .article-title {
+  margin-top: 0;
+}
+
+.breadcrumb-container {
+  margin-bottom: 0.35rem;
+  color: var(--gray);
+  font-size: 0.84rem;
+}
+
+.breadcrumb-container a {
+  color: inherit;
+}
+
+.page-listing {
+  margin-top: 1.5rem;
+}
+
+.page-listing > p {
+  margin: 0 0 0.9rem;
+  color: var(--gray);
+  font-size: 0.9rem;
+}
+
+footer {
+  margin-top: 2rem;
+  margin-bottom: 3rem;
+  opacity: 1;
+}
+
+footer ul {
+  margin-top: 0;
+}
+
+footer a {
+  color: var(--gray);
+}
+
+.section-ul {
+  margin-top: 0;
+}
+
+.section-li {
+  margin-bottom: 0.8rem;
+}
+
+.section .desc h3,
+.recent-notes .desc h3 {
+  margin: 0;
+}
+
+.section .desc h3 a,
+.recent-notes .desc h3 a {
+  display: inline-block;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  line-height: 1.45;
+}
+
+.section .meta,
+.recent-notes .meta {
+  color: var(--gray);
+  font-size: 0.82rem;
+}
+
+.tags {
+  gap: 0.35rem;
+}
+
+.tags > li a.internal.tag-link {
+  border-radius: 999px;
+  padding: 0.16rem 0.5rem;
+  font-size: 0.76rem;
+}
+
+.page-footer:empty,
+.right.sidebar:empty {
+  display: none;
+}
+
+@media all and (max-width: 800px) {
+  .left.sidebar {
+    position: static;
+  }
+
+  .center {
+    max-width: 100%;
+  }
+
+  .center .page-header {
+    margin-bottom: 1rem;
+  }
+
+  .center article.article-shell {
+    border-radius: 20px;
+    padding: 1rem 0.95rem 1.2rem;
+    box-shadow: none;
+  }
+
+  .article-title {
+    font-size: 1.56rem;
+    line-height: 1.24;
+  }
+
+  .left.sidebar {
+    gap: 0.5rem;
+  }
+
+  .right.sidebar {
+    padding-top: 0;
+  }
+
+  .page-listing > p {
+    font-size: 0.84rem;
+  }
+
+  footer {
+    margin-top: 1.4rem;
+    margin-bottom: 2rem;
+  }
+}

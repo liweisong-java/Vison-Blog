@@ -4,7 +4,7 @@ import fg from "fast-glob";
 import matter from "gray-matter";
 
 export async function collectContentEntries(contentRoot: string) {
-  const files = await fg("**/index.mdx", { cwd: contentRoot });
+  const files = await fg(["**/index.mdx", "**/index.md"], { cwd: contentRoot });
   const posts = [];
 
   for (const relativePath of files) {
@@ -13,7 +13,7 @@ export async function collectContentEntries(contentRoot: string) {
     posts.push({
       slug: String(parsed.data.slug ?? relativePath.split("/")[0]),
       sourceId: typeof parsed.data.sourceId === "string" ? parsed.data.sourceId : undefined,
-      directory: absolutePath.replace(/\/index\.mdx$/, "")
+      directory: absolutePath.replace(/\/index\.(md|mdx)$/, "")
     });
   }
 

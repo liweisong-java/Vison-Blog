@@ -1,6 +1,6 @@
 export type PublisherAttrs = {
   publish: string;
-    category?: string;
+  category?: string;
   excerpt: string;
   featured: string;
   slug: string;
@@ -11,7 +11,44 @@ export type PublisherAttrs = {
   wechatReady?: string;
 };
 
+export type PublisherSourceConfig =
+  | {
+      type: "siyuan";
+      notebookId: string;
+      workspaceDir: string;
+    }
+  | {
+      type: "obsidian";
+      vaultDir: string;
+      notesDir?: string;
+      assetsDir?: string;
+    };
+
+export type PublisherVaultConfig = {
+  rootDir: string;
+  postsDir: string;
+  assetsDir: string;
+};
+
+export type PublisherContentTarget = {
+  name: string;
+  format: "astro-mdx" | "quartz-markdown";
+  rootDir: string;
+};
+
 export type PublisherConfig = {
+  source: PublisherSourceConfig;
+  vault: PublisherVaultConfig;
+  astroContentDir?: string;
+  contentTargets: PublisherContentTarget[];
+  wechatExportDir?: string;
+  deployHookUrl?: string;
+  localDeployRoot?: string;
+  publisherStatePath?: string;
+  attrs: PublisherAttrs;
+};
+
+export type LegacyPublisherConfig = {
   notebookId: string;
   siyuanWorkspaceDir: string;
   contentRoot: string;

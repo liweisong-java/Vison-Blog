@@ -1,7 +1,15 @@
 {
-  "notebookId": "20200812220555-lj3enxa",
-  "siyuanWorkspaceDir": "/path/to/SiYuan",
-  "contentRoot": "apps/blog/src/content/posts",
+  "source": {
+    "type": "siyuan",
+    "notebookId": "20200812220555-lj3enxa",
+    "workspaceDir": "/path/to/SiYuan"
+  },
+  "vault": {
+    "rootDir": "content/vault",
+    "postsDir": "posts",
+    "assetsDir": "assets"
+  },
+  "astroContentDir": "apps/blog/src/content/posts",
   "wechatExportDir": "exports/wechat",
   "deployHookUrl": "https://deploy-hook.example.com",
   "localDeployRoot": "/data/Vison-Blog",

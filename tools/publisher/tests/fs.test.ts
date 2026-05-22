@@ -17,12 +17,12 @@ describe("writeBundle", () => {
     tempDirectories.push(root);
 
     const articleDirectory = join(root, "ai-usage-notes");
-    const filePath = join(articleDirectory, "index.mdx");
+    const filePath = join(articleDirectory, "index.md");
     await mkdir(articleDirectory, { recursive: true });
     await writeFile(filePath, "---\ntitle: old\n---\nold body\n", "utf8");
 
     await writeBundle(root, {
-      filePath: "ai-usage-notes/index.mdx",
+      filePath: "ai-usage-notes/index.md",
       body: "---\ntitle: new\n---\nnew body\n"
     });
 
@@ -34,10 +34,10 @@ describe("writeBundle", () => {
     tempDirectories.push(root);
 
     await writeBundle(root, {
-      filePath: "ai-usage-notes/index.mdx",
+      filePath: "ai-usage-notes/index.md",
       body: "---\ntitle: new\n---\nnew body\n"
     });
 
-    await expect(stat(join(root, "ai-usage-notes", "index.mdx.tmp"))).rejects.toThrow();
+    await expect(stat(join(root, "ai-usage-notes", "index.md.tmp"))).rejects.toThrow();
   });
 });

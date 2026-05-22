@@ -18,7 +18,7 @@ describe("private dashboard generator", () => {
     const root = await mkdtemp(join(tmpdir(), "vision-dashboard-"));
     tempRoots.push(root);
 
-    const postA = join(root, "tech-note.mdx");
+    const postA = join(root, "tech-note.md");
     const postB = join(root, "life-note.mdx");
 
     await writeFile(

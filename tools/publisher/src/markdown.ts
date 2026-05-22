@@ -97,6 +97,33 @@ function rewriteAssetPaths(markdown: string) {
   };
 }
 
+function buildFrontmatter(note: PublishedNote, coverPath?: string) {
+  const frontmatter: Record<string, unknown> = {
+    title: note.title,
+    slug: note.slug,
+    publishedAt: note.publishedAt,
+    excerpt: note.excerpt,
+    tags: note.tags,
+    featured: note.featured,
+    publish: true,
+    sourceId: note.id
+  };
+
+  if (coverPath) {
+    frontmatter.cover = coverPath;
+  }
+
+  if (note.canonicalUrl) {
+    frontmatter.canonicalUrl = note.canonicalUrl;
+  }
+
+  if (typeof note.wechatReady === "boolean") {
+    frontmatter.wechatReady = note.wechatReady;
+  }
+
+  return frontmatter;
+}
+
 export async function buildPostBundle({
   note,
   markdown
@@ -120,35 +147,58 @@ export async function buildPostBundle({
     });
   }
 
-  const frontmatter: Record<string, unknown> = {
-    title: note.title,
-    slug: note.slug,
-    publishedAt: note.publishedAt,
-    excerpt: note.excerpt,
-    tags: note.tags,
-    featured: note.featured,
-    publish: true,
-    sourceId: note.id
-  };
-
-  if (note.cover) {
-    const coverAsset = assets.find((asset) => asset.sourcePath === note.cover);
-    frontmatter.cover = coverAsset ? `./${coverAsset.fileName}` : note.cover;
-  }
-
-  if (note.canonicalUrl) {
-    frontmatter.canonicalUrl = note.canonicalUrl;
-  }
-
-  if (typeof note.wechatReady === "boolean") {
-    frontmatter.wechatReady = note.wechatReady;
-  }
+  const coverAsset = note.cover ? assets.find((asset) => asset.sourcePath === note.cover) : undefined;
+  const frontmatter = buildFrontmatter(
+    note,
+    note.cover ? (coverAsset ? `./${coverAsset.fileName}` : note.cover) : undefined
+  );
 
   const body = matter.stringify(rewrittenMarkdown, frontmatter);
 
   return {
     slug: note.slug,
     filePath: `${note.slug}/index.mdx`,
+    body,
+    assets
+  };
+}
+
+export async function buildVaultPostBundle({
+  note,
+  markdown
+}: {
+  note: PublishedNote;
+  markdown: string;
+}) {
+  const normalizedMarkdown = normalizeMarkdownBody(markdown, note.title);
+  const semanticMarkdown = normalizeSiyuanStructures(normalizedMarkdown, "quartz");
+  const { assets, rewrittenMarkdown } = rewriteAssetPaths(semanticMarkdown);
+  const coverAssetPath = note.cover?.trim();
+
+  if (
+    coverAssetPath &&
+    assetValuePattern.test(coverAssetPath) &&
+    !assets.some((asset) => asset.sourcePath === coverAssetPath)
+  ) {
+    assets.push({
+      sourcePath: coverAssetPath,
+      fileName: coverAssetPath.split("/").at(-1) ?? coverAssetPath
+    });
+  }
+
+  const coverAsset = note.cover ? assets.find((asset) => asset.sourcePath === note.cover) : undefined;
+  const frontmatter = buildFrontmatter(
+    note,
+    note.cover ? (coverAsset ? `./${coverAsset.fileName}` : note.cover) : undefined
+  );
+  frontmatter.description = note.excerpt;
+  frontmatter.published = note.publishedAt;
+
+  const body = matter.stringify(rewrittenMarkdown, frontmatter);
+
+  return {
+    slug: note.slug,
+    filePath: `${note.slug}/index.md`,
     body,
     assets
   };

@@ -89,12 +89,15 @@ pnpm publish:init
 
 最少要填写：
 
-- `notebookId`
-- `siyuanWorkspaceDir`
+- `source.type`
+- `source.notebookId`
+- `source.workspaceDir`
 
 其余常用字段：
 
-- `contentRoot`：博客文章输出目录
+- `vault.rootDir`：统一内容中间层根目录
+- `vault.postsDir`：文章输出子目录，推荐 `posts`
+- `vault.assetsDir`：资源输出子目录，推荐 `assets`
 - `wechatExportDir`：公众号兼容稿导出目录
 - `deployHookUrl`：可选，只有你还需要额外触发外部平台部署时才会使用
 - `localDeployRoot`：可选。服务器主导模式下，本地静态站的发布根目录，比如 `/data/Vison-Blog`
@@ -162,10 +165,12 @@ pnpm publish:sync
 正式同步时会做这些事：
 
 - 从思源读取当前博客笔记本里的可发布文档
-- 生成或更新 `apps/blog/src/content/posts/**/index.mdx`
+- 生成或更新 `content/vault/posts/**/index.md`
+- 如已配置 `astroContentDir`，同时镜像到 `apps/blog/src/content/posts/**/index.mdx`
+- 拷贝文章资源到统一 Vault 对应目录
 - 清理已取消发布或 `slug` 变化后的旧文章
 - 按配置生成公众号兼容稿
-- 仅提交发布器托管的内容目录
+- 仅提交发布器托管的 Vault 内容目录
 - 真正有内容提交时才会触发部署钩子或推送远端分支
 
 仓库自带的示例文章和你手写放进仓库的文章，如果没有 `sourceId`，发布器会把它们视为非托管内容并保留，不会自动删除。

@@ -33,6 +33,28 @@ describe("operations docs", () => {
     expect(rootPackageJson.scripts?.dev).toBe("pnpm --filter blog dev");
   });
 
+  it("keeps root quartz scripts for local startup", async () => {
+    const rootPackageJson = JSON.parse(
+      await readFile(resolve(process.cwd(), "../../package.json"), "utf8")
+    ) as {
+      scripts?: Record<string, string>;
+    };
+
+    expect(rootPackageJson.scripts?.["dev:quartz"]).toBe("pnpm --filter quartz dev");
+    expect(rootPackageJson.scripts?.["build:quartz"]).toBe("pnpm --filter quartz build");
+  });
+
+  it("keeps quartz in the root verification commands", async () => {
+    const rootPackageJson = JSON.parse(
+      await readFile(resolve(process.cwd(), "../../package.json"), "utf8")
+    ) as {
+      scripts?: Record<string, string>;
+    };
+
+    expect(rootPackageJson.scripts?.test).toContain("pnpm --filter quartz test");
+    expect(rootPackageJson.scripts?.check).toContain("pnpm --filter quartz build");
+  });
+
   it("keeps root publish scripts for a copy-paste friendly workflow", async () => {
     const rootPackageJson = JSON.parse(
       await readFile(resolve(process.cwd(), "../../package.json"), "utf8")
@@ -139,5 +161,77 @@ describe("operations docs", () => {
     expect(page).toContain("/secret-dashboard/");
     expect(page).not.toContain("http://localhost:4321/secret-dashboard/index.html");
     expect(page).toContain("Vison Desk");
+  });
+
+  it("keeps quartz and vault directories for the migration path", async () => {
+    const workspacePackageJson = JSON.parse(
+      await readFile(resolve(process.cwd(), "../../package.json"), "utf8")
+    ) as {
+      scripts?: Record<string, string>;
+    };
+
+    await expect(readFile(resolve(process.cwd(), "../../apps/quartz/package.json"), "utf8")).resolves.toContain(
+      '"name": "quartz"'
+    );
+    await expect(readFile(resolve(process.cwd(), "../../content/vault/posts/.gitkeep"), "utf8")).resolves.toBe("");
+    await expect(readFile(resolve(process.cwd(), "../../content/vault/assets/.gitkeep"), "utf8")).resolves.toBe("");
+    expect(workspacePackageJson.scripts?.["dev:quartz"]).toBe("pnpm --filter quartz dev");
+  });
+
+  it("keeps quartz pointed at the shared vault posts directory", async () => {
+    const quartzPackageJson = JSON.parse(
+      await readFile(resolve(process.cwd(), "../../apps/quartz/package.json"), "utf8")
+    ) as {
+      scripts?: Record<string, string>;
+    };
+    const quartzReadme = await readFile(resolve(process.cwd(), "../../apps/quartz/README.md"), "utf8");
+
+    expect(quartzPackageJson.scripts?.dev).toContain("../../content/vault/posts");
+    expect(quartzPackageJson.scripts?.build).toContain("../../content/vault/posts");
+    expect(quartzReadme).toContain("content/vault/posts");
+  });
+
+  it("ignores generated quartz build output from git", async () => {
+    const gitignore = await readFile(resolve(process.cwd(), "../../.gitignore"), "utf8");
+
+    expect(gitignore).toContain("apps/quartz/public/");
+    expect(gitignore).toContain("apps/quartz/.quartz-cache/");
+  });
+
+  it("ships a real Chinese quartz home instead of a migration placeholder", async () => {
+    const homeEntry = await readFile(resolve(process.cwd(), "../../content/vault/posts/index.md"), "utf8");
+
+    expect(homeEntry).not.toContain("Quartz 迁移骨架已经接入");
+    expect(homeEntry).not.toContain("首页占位文件");
+    expect(homeEntry).toContain("伟松的博客");
+  });
+
+  it("backfills existing Astro posts into the shared quartz vault", async () => {
+    const daoPost = await readFile(
+      resolve(process.cwd(), "../../content/vault/posts/on-dao-notes/index.md"),
+      "utf8"
+    );
+    const agentPost = await readFile(
+      resolve(process.cwd(), "../../content/vault/posts/agent/index.md"),
+      "utf8"
+    );
+
+    expect(daoPost).toContain("title: 天道・五台山论道");
+    expect(agentPost).toContain("title: Agent上下文维护的工业级三层架构与实践");
+  });
+
+  it("keeps the quartz shell free from default framework chrome", async () => {
+    const layout = await readFile(resolve(process.cwd(), "../../apps/quartz/quartz.layout.ts"), "utf8");
+    const footer = await readFile(resolve(process.cwd(), "../../apps/quartz/quartz/components/Footer.tsx"), "utf8");
+    const customScss = await readFile(
+      resolve(process.cwd(), "../../apps/quartz/quartz/styles/custom.scss"),
+      "utf8"
+    );
+
+    expect(layout).not.toContain("Component.PageTitle()");
+    expect(layout).not.toContain("Component.ContentMeta()");
+    expect(footer).not.toContain("Created with");
+    expect(footer).not.toContain("Quartz v");
+    expect(customScss).not.toContain(".page-header + .popover-hint");
   });
 });

@@ -1330,4 +1330,92 @@ describe("syncPublishedNotes", () => {
     expect(result.removed).toEqual(["from-notes-to-site"]);
     expect(removeManagedPost).toHaveBeenCalledWith("/tmp/content", "from-notes-to-site");
   });
+
+  it("writes both quartz markdown and astro mdx targets when the new grouped config is used", async () => {
+    const writeBundle = vi.fn();
+    const removeManagedPost = vi.fn();
+
+    const result = await syncPublishedNotes({
+      dryRun: false,
+      config: {
+        source: {
+          type: "siyuan",
+          notebookId: "demo",
+          workspaceDir: "/tmp/SiYuan"
+        },
+        vault: {
+          rootDir: "/tmp/content/vault",
+          postsDir: "posts",
+          assetsDir: "assets"
+        },
+        astroContentDir: "/tmp/content/astro",
+        contentTargets: [
+          {
+            name: "vault",
+            format: "quartz-markdown",
+            rootDir: "/tmp/content/vault/posts"
+          },
+          {
+            name: "astro",
+            format: "astro-mdx",
+            rootDir: "/tmp/content/astro"
+          }
+        ],
+        attrs: {
+          publish: "blog-pub",
+          excerpt: "blog-excerpt",
+          featured: "blog-top",
+          slug: "blog-slug",
+          tags: "blog-tags",
+          publishedAt: "blog-date"
+        }
+      },
+      client: {
+        queryDocuments: vi.fn().mockResolvedValue([
+          {
+            id: "doc-tech-1",
+            content: "From Notes to Site",
+            hpath: "/Blog/From Notes to Site",
+            updated: "20260510120000"
+          }
+        ]),
+        getBlockAttrs: vi.fn().mockResolvedValue({
+          "blog-pub": "true",
+          "blog-slug": "from-notes-to-site",
+          "blog-excerpt": "How a SiYuan note becomes a deployed editorial article.",
+          "blog-date": "2026-05-10"
+        }),
+        exportMarkdown: vi.fn().mockResolvedValue({
+          content: `::: tip
+这是一段提示内容
+:::
+
+![Shot](assets/image-demo.png)`
+        })
+      },
+      collectContentEntries: vi.fn().mockResolvedValue([]),
+      writeBundle,
+      removeManagedPost,
+      runBlogChecks: vi.fn(),
+      commitAndPush: vi.fn().mockResolvedValue({ committed: false }),
+      triggerDeploy: vi.fn()
+    });
+
+    expect(result.written).toEqual(["from-notes-to-site"]);
+    expect(writeBundle).toHaveBeenCalledWith(
+      "/tmp/content/vault/posts",
+      expect.objectContaining({
+        filePath: "from-notes-to-site/index.md",
+        body: expect.stringContaining("> [!tip]")
+      })
+    );
+    expect(writeBundle).toHaveBeenCalledWith(
+      "/tmp/content/astro",
+      expect.objectContaining({
+        filePath: "from-notes-to-site/index.mdx",
+        body: expect.stringContaining('<Callout type="tip">')
+      })
+    );
+    expect(removeManagedPost).not.toHaveBeenCalled();
+  });
 });

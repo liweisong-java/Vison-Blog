@@ -1,0 +1,13 @@
+{
+  "notebookId": "legacy-notebook",
+  "siyuanWorkspaceDir": "LegacySiYuan",
+  "contentRoot": "apps/blog/src/content/posts",
+  "attrs": {
+    "publish": "blog-pub",
+    "excerpt": "blog-excerpt",
+    "featured": "blog-top",
+    "slug": "blog-slug",
+    "tags": "blog-tags",
+    "publishedAt": "blog-date"
+  }
+}

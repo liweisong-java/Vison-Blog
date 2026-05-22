@@ -3,7 +3,7 @@ function escapeHtmlAttribute(value: string) {
 }
 
 type SuperBlockLayout = "col" | "row";
-type NormalizationMode = "mdx" | "plain";
+type NormalizationMode = "mdx" | "plain" | "quartz";
 
 function isCodeFenceBoundary(line: string) {
   return /^```/.test(line);
@@ -308,6 +308,21 @@ function renderPlainQuote(content: string, source: string) {
   return quoteLines.join("\n");
 }
 
+function renderQuartzCallout(type: string, title: string, content: string, collapsible: boolean) {
+  const lines = content
+    .split("\n")
+    .map((line) => line.trimEnd());
+  const marker = collapsible ? "-" : "";
+  const titleSegment = title ? ` ${title}` : "";
+  const output = [`> [!${type}]${marker}${titleSegment}`.trimEnd()];
+
+  for (const line of lines) {
+    output.push(line ? `> ${line}` : ">");
+  }
+
+  return output.join("\n");
+}
+
 function renderSuperBlock(layout: SuperBlockLayout, content: string, mode: NormalizationMode) {
   if (layout === "col") {
     return renderColumns(content, mode);
@@ -422,6 +437,9 @@ function renderDirectiveBlock(
       if (mode === "plain") {
         return [argument || "展开查看", "", normalizedContent].filter(Boolean).join("\n");
       }
+      if (mode === "quartz") {
+        return renderQuartzCallout("note", argument || "展开查看", normalizedContent, true);
+      }
       return [
         '<details class="blog-fold">',
         `<summary>${escapeHtmlAttribute(argument || "展开查看")}</summary>`,
@@ -437,15 +455,28 @@ function renderDirectiveBlock(
       if (mode === "plain") {
         return normalizedContent;
       }
+      if (mode === "quartz") {
+        return renderQuartzCallout(name, "", normalizedContent, false);
+      }
       return `<Callout type="${escapeHtmlAttribute(name)}">\n\n${normalizedContent}\n\n</Callout>`;
     case "quote":
       if (mode === "plain") {
         return renderPlainQuote(normalizedContent, argument);
       }
+      if (mode === "quartz") {
+        return renderQuartzCallout("quote", argument, normalizedContent, false);
+      }
       return `<QuoteBlock${argument ? ` source="${escapeHtmlAttribute(argument)}"` : ""}>\n\n${normalizedContent}\n\n</QuoteBlock>`;
     case "embed":
       if (mode === "plain") {
         return normalizedContent;
+      }
+      if (mode === "quartz") {
+        return [
+          '<aside class="embed-card">',
+          normalizedContent,
+          "</aside>"
+        ].join("\n\n");
       }
       return `<EmbedCard kind="${escapeHtmlAttribute(argument || "block-ref")}">\n\n${normalizedContent}\n\n</EmbedCard>`;
     case "columns":

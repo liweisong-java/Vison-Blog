@@ -26,7 +26,7 @@ async function collectPostFiles(root) {
       continue;
     }
 
-    if (entry.isFile() && entry.name === "index.mdx") {
+    if (entry.isFile() && (entry.name === "index.mdx" || entry.name === "index.md")) {
       files.push(entryPath);
     }
   }

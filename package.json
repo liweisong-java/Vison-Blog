@@ -5,6 +5,7 @@
   "scripts": {
     "dev": "pnpm --filter blog dev",
     "dev:blog": "pnpm --filter blog dev",
+    "dev:quartz": "pnpm --filter quartz dev",
     "dev:publisher": "pnpm --filter publisher dev",
     "publish:init": "pnpm --filter publisher dev init",
     "publish:doctor": "pnpm --filter publisher dev doctor",
@@ -18,8 +19,9 @@
     "private:dashboard": "node scripts/generate-private-dashboard.mjs",
     "private:dashboard:traffic": "node scripts/fetch-umami-stats.mjs",
     "build": "pnpm --filter blog build && pnpm --filter publisher build",
-    "test": "pnpm --filter blog test && pnpm --filter publisher test",
-    "check": "pnpm --filter blog check && pnpm --filter publisher build",
+    "build:quartz": "pnpm --filter quartz build",
+    "test": "pnpm --filter blog test && pnpm --filter quartz test && pnpm --filter publisher test",
+    "check": "pnpm --filter blog check && pnpm --filter quartz build && pnpm --filter publisher build",
     "e2e": "pnpm --filter blog e2e"
   },
   "devDependencies": {

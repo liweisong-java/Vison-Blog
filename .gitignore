@@ -15,3 +15,6 @@ target/
 apps/blog/test-results/
 playwright-report/
 tools/publisher/publisher.config.json
+apps/quartz/public/
+apps/quartz/.quartz-cache/
+apps/quartz/quartz/.quartz-cache/

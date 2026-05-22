@@ -1,6 +1,6 @@
 # 伟松的博客
 
-一个面向中文写作者的轻量个人博客方案：用 `SiYuan` 写作，用发布器整理内容，用 `Astro` 生成静态站点。
+一个面向中文写作者的轻量个人博客方案：用 `SiYuan` 写作，用发布器整理内容，用 `Astro` 生成当前稳定站点，同时把内容同步到 `Quartz 4` 可直接消费的统一 Markdown 中间层。
 
 它不是传统 CMS，也不是需要数据库的博客后台，而是一套偏“个人基础设施”的写作与发布方案：
 
@@ -45,7 +45,7 @@
 ```text
 浏览器访问服务器上的 SiYuan
   -> tools/publisher 同步思源内容
-  -> apps/blog/src/content/posts
+  -> content/vault/posts
   -> 服务器本机构建 Astro
   -> /data/Vison-Blog/current 原子切换上线
   -> 可选推送 GitHub 做代码与内容备份
@@ -70,9 +70,11 @@
 
 ```text
 .
-├── apps/blog                 # Astro 博客前台、/desk、/secret-dashboard
-├── apps/blog/src/content/posts
-│   └── ...                   # 发布器托管的文章内容
+├── apps/blog                 # 现有 Astro 博客前台、/desk、/secret-dashboard
+├── apps/quartz               # 迁移中的 Quartz 4 前台骨架
+├── content/vault             # 统一 Markdown 内容中间层（迁移预备）
+│   ├── posts                 # 发布器托管的文章内容
+│   └── assets                # 发布器托管的文章资源
 ├── tools/publisher           # 思源发布器、自动发布与服务器安装命令
 ├── scripts                   # 服务器发布循环、私有 dashboard 生成、Umami 拉取
 ├── .github/workflows         # ci / deploy / private-dashboard-refresh / actions-cleanup
@@ -127,6 +129,12 @@ pnpm dev
 pnpm dev:publisher
 ```
 
+如果你准备开始验证新的公开前台骨架，也可以运行：
+
+```bash
+pnpm dev:quartz
+```
+
 ## 仓库里有什么页面
 
 当前仓库已经内置这几类页面：
@@ -144,7 +152,8 @@ pnpm dev:publisher
 - 公开部分：博客首页、文章页、归档、标签、关于我
 - 私人部分：`/desk/` 个人中控台、`/secret-dashboard/` 站点统计
 - 内容来源：`SiYuan`
-- 内容落地：`apps/blog/src/content/posts`
+- 内容落地：`content/vault/posts`（标准 `.md`）
+- 兼容镜像：`apps/blog/src/content/posts`（Astro 继续读取的 `.md/.mdx`）
 
 ## 推荐部署模型
 
@@ -200,8 +209,9 @@ pnpm publish:init
 实际使用时需要编辑初始化生成的本地文件。最少需要补齐：
 
 - `.env` 中的 `SIYUAN_TOKEN`
-- `publisher.config.json` 中的 `notebookId`
-- `publisher.config.json` 中的 `siyuanWorkspaceDir`
+- `publisher.config.json` 中的 `source.type`
+- `publisher.config.json` 中的 `source.notebookId`
+- `publisher.config.json` 中的 `source.workspaceDir`
 
 `PUBLISH_BRANCH` 现在是可选项。默认会优先推送当前分支绑定的上游远端分支；只有你明确想改到别的发布分支时才需要填写，而且会做安全校验，防止误推。
 

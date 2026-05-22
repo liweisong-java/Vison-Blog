@@ -27,6 +27,7 @@ import {resolvePublisherRuntime} from "./runtime.js";
 import {deployLocalStaticSite} from "./local-deploy.js";
 import {buildSystemdService, buildSystemdTimer, getSystemdServiceName, getSystemdUnitPaths} from "./systemd.js";
 import {ensureLatestSiYuanSync} from "./siyuan-sync-gate.js";
+import {createSiYuanSourceAdapter} from "./source-adapters/siyuan-adapter.js";
 
 const execFileAsync = promisify(execFile);
 const runtime = resolvePublisherRuntime({
@@ -116,6 +117,13 @@ async function main() {
     baseUrl: env.SIYUAN_BASE_URL ?? "http://127.0.0.1:6806",
     token: env.SIYUAN_TOKEN
   });
+  const sourceAdapter =
+    config.source.type === "siyuan"
+      ? createSiYuanSourceAdapter({
+          notebookId: config.source.notebookId,
+          client
+        })
+      : null;
 
   if (command === "doctor") {
     printJson(await doctorCommand({ config, client }));
@@ -207,7 +215,10 @@ async function main() {
           branch: env.PUBLISH_BRANCH || env.GITHUB_REF_NAME || undefined,
           remote: env.PUBLISH_REMOTE ?? "origin",
           message: "chore(content): sync siyuan posts",
-          includePaths: [config.contentRoot, ...(config.wechatExportDir ? [config.wechatExportDir] : [])],
+          includePaths: [
+            ...config.contentTargets.map((target) => target.rootDir),
+            ...(config.wechatExportDir ? [config.wechatExportDir] : [])
+          ],
           push: normalizeBooleanEnv(env.PUBLISH_PUSH, true)
         }),
       triggerDeploy: (summary) => triggerDeployHook(config.deployHookUrl ?? env.PUBLISH_DEPLOY_HOOK, summary),
@@ -227,10 +238,18 @@ async function main() {
     }
 
   if (command === "auto-once") {
+    if (!sourceAdapter || config.source.type !== "siyuan") {
+      throw new Error("当前自动发布仅支持思源数据源。");
+    }
+
     printJson(
       await autoPublishOnceCommand({
-        notebookId: config.notebookId,
-        queryDocuments: () => client.queryDocuments(config.notebookId),
+        notebookId: config.source.notebookId,
+        queryDocuments: async () =>
+          (await sourceAdapter.listDocuments()).map((doc) => ({
+            id: doc.id,
+            updated: doc.updatedAt
+          })),
         sync,
         runtime: {
           workspaceRoot: repoRoot,
@@ -244,11 +263,15 @@ async function main() {
   }
 
   if (command === "auto-install") {
+    if (config.source.type !== "siyuan") {
+      throw new Error("当前自动发布安装仅支持思源数据源。");
+    }
+
     printJson(
       await installAutoPublishLaunchAgentCommand({
         workspaceRoot: repoRoot,
-        notebookId: config.notebookId,
-        siyuanWorkspaceDir: config.siyuanWorkspaceDir,
+        notebookId: config.source.notebookId,
+        siyuanWorkspaceDir: config.source.workspaceDir,
         envPath: runtime.envPath,
         runCommand: createRunCommand(execFileAsync)
       })
@@ -284,7 +307,10 @@ async function main() {
             branch: env.PUBLISH_BRANCH || env.GITHUB_REF_NAME || undefined,
             remote: env.PUBLISH_REMOTE ?? "origin",
             message: "chore(content): sync siyuan posts",
-            includePaths: [config.contentRoot, ...(config.wechatExportDir ? [config.wechatExportDir] : [])],
+            includePaths: [
+              ...config.contentTargets.map((target) => target.rootDir),
+              ...(config.wechatExportDir ? [config.wechatExportDir] : [])
+            ],
             push: normalizeBooleanEnv(env.PUBLISH_PUSH, true)
           }),
         triggerDeploy: (summary) =>

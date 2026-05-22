@@ -1,7 +1,7 @@
 import {access} from "node:fs/promises";
 import {join} from "node:path";
-import type {PublishedNote, PublisherConfig, SiYuanDocument} from "../types.js";
-import {buildPostBundle, buildWechatArticle} from "../markdown.js";
+import type {PublishedNote, PublisherConfig, PublisherContentTarget, SiYuanDocument} from "../types.js";
+import {buildPostBundle, buildVaultPostBundle, buildWechatArticle} from "../markdown.js";
 import {copyAssetFiles} from "../fs.js";
 import {normalizeSiyuanStructures} from "../markdown-normalizers.js";
 import {createInitialPublisherState, recordPublisherFailure, recordPublisherSuccess} from "../publisher-state.js";
@@ -17,6 +17,71 @@ type InvalidNote = {
   title: string;
   reasons: string[];
 };
+
+function resolveSiyuanSourceConfig(config: PublisherConfig) {
+  const source = (config as PublisherConfig & {
+    notebookId?: string;
+    siyuanWorkspaceDir?: string;
+  }).source;
+
+  if (source?.type === "siyuan") {
+    return source;
+  }
+
+  const legacyNotebookId = (config as PublisherConfig & { notebookId?: string }).notebookId;
+  const legacyWorkspaceDir = (config as PublisherConfig & { siyuanWorkspaceDir?: string }).siyuanWorkspaceDir;
+
+  if (legacyNotebookId && legacyWorkspaceDir) {
+    return {
+      type: "siyuan" as const,
+      notebookId: legacyNotebookId,
+      workspaceDir: legacyWorkspaceDir
+    };
+  }
+
+  return null;
+}
+
+function resolveContentTargets(config: PublisherConfig) {
+  if (config.contentTargets?.length) {
+    return config.contentTargets;
+  }
+
+  const vault = (config as PublisherConfig & {
+    contentRoot?: string;
+  }).vault;
+
+  if (vault?.rootDir) {
+    return [
+      {
+        name: "vault",
+        format: "quartz-markdown" as const,
+        rootDir: vault.postsDir === "." ? vault.rootDir : join(vault.rootDir, vault.postsDir)
+      }
+    ];
+  }
+
+  const legacyContentRoot = (config as PublisherConfig & { contentRoot?: string }).contentRoot;
+  if (legacyContentRoot) {
+    return [
+      {
+        name: "astro",
+        format: "astro-mdx" as const,
+        rootDir: legacyContentRoot
+      }
+    ];
+  }
+
+  throw new Error("Missing content target in publisher config.");
+}
+
+async function buildBundleForTarget(target: PublisherContentTarget, note: PublishedNote, markdown: string) {
+  if (target.format === "quartz-markdown") {
+    return buildVaultPostBundle({ note, markdown });
+  }
+
+  return buildPostBundle({ note, markdown });
+}
 
 const transliterationMap: Record<string, string> = {
   周: "zhou-",
@@ -467,17 +532,24 @@ export async function syncPublishedNotes({
     now?: () => string;
   };
 }) {
-  const queriedDocs = await client.queryDocuments(config.notebookId);
+  const source = resolveSiyuanSourceConfig(config);
+  if (!source) {
+    throw new Error("当前同步命令仅支持思源数据源。");
+  }
+
+  const contentTargets = resolveContentTargets(config);
+  const primaryContentRoot = contentTargets[0].rootDir;
+  const queriedDocs = await client.queryDocuments(source.notebookId);
   const docs = await filterLiveDocuments({
     docs: queriedDocs,
-    siyuanWorkspaceDir: config.siyuanWorkspaceDir,
-    notebookId: config.notebookId
+    siyuanWorkspaceDir: source.workspaceDir,
+    notebookId: source.notebookId
   });
   const stateStore = publisherState;
   const now = stateStore?.now ?? (() => new Date().toISOString());
 
   try {
-    const existingEntries = await collectContentEntries(config.contentRoot);
+    const existingEntries = await collectContentEntries(primaryContentRoot);
     const publishedNotes: PublishedNote[] = [];
     const invalidNotes: InvalidNote[] = [];
 
@@ -505,11 +577,23 @@ export async function syncPublishedNotes({
     resolveSlugCollisions({ existingEntries, publishedNotes });
     ensureUniqueSlugs({ existingEntries, publishedNotes });
 
-    const bundles = [];
+    const bundlesByTarget = new Map<
+      string,
+      Array<{
+        slug: string;
+        filePath: string;
+        body: string;
+        assets: { sourcePath: string; fileName: string }[];
+      }>
+    >();
     const wechatArticles = [];
     for (const note of publishedNotes) {
       const markdown = await client.exportMarkdown(note.id);
-      bundles.push(await buildPostBundle({ note, markdown: markdown.content }));
+      for (const target of contentTargets) {
+        const bundles = bundlesByTarget.get(target.name) ?? [];
+        bundles.push(await buildBundleForTarget(target, note, markdown.content));
+        bundlesByTarget.set(target.name, bundles);
+      }
       if (config.wechatExportDir && note.wechatReady !== false) {
         wechatArticles.push(await buildWechatArticle({ note, markdown: markdown.content }));
       }
@@ -523,9 +607,12 @@ export async function syncPublishedNotes({
     const wechatRemoved: string[] = [];
 
     if (!dryRun) {
-      for (const bundle of bundles) {
-        await writeBundle(config.contentRoot, bundle);
-        await copyAssetFiles(config.siyuanWorkspaceDir, config.contentRoot, bundle.slug, bundle.assets);
+      for (const target of contentTargets) {
+        const bundles = bundlesByTarget.get(target.name) ?? [];
+        for (const bundle of bundles) {
+          await writeBundle(target.rootDir, bundle);
+          await copyAssetFiles(source.workspaceDir, target.rootDir, bundle.slug, bundle.assets);
+        }
       }
 
       if (config.wechatExportDir) {
@@ -541,7 +628,9 @@ export async function syncPublishedNotes({
       }
 
       for (const slug of removed) {
-        await removeManagedPost(config.contentRoot, slug);
+        for (const target of contentTargets) {
+          await removeManagedPost(target.rootDir, slug);
+        }
       }
 
       await runBlogChecks();
@@ -550,7 +639,7 @@ export async function syncPublishedNotes({
 
       if (committed) {
         await triggerDeploy({
-          written: bundles.map((bundle) => bundle.slug),
+          written: publishedNotes.map((note) => note.slug),
           removed,
           invalid: invalidNotes,
           committed
@@ -560,7 +649,7 @@ export async function syncPublishedNotes({
     }
 
     const result = {
-      written: bundles.map((bundle) => bundle.slug),
+      written: publishedNotes.map((note) => note.slug),
       removed,
       wechatExported,
       wechatRemoved: config.wechatExportDir ? wechatRemoved : wechatRemovedSlugs,

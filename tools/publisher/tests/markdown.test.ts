@@ -1,5 +1,5 @@
 import {describe, expect, it} from "vitest";
-import {buildPostBundle, buildWechatArticle} from "../src/markdown";
+import {buildPostBundle, buildVaultPostBundle, buildWechatArticle} from "../src/markdown";
 
 describe("buildPostBundle", () => {
   it("rewrites SiYuan asset paths into local MDX asset paths", async () => {
@@ -510,5 +510,45 @@ date: 2026-05-11T12:42:35+08:00
 
     expect(article.body).toContain("正文第一段");
     expect(article.body).not.toContain("\u200d");
+  });
+});
+
+describe("buildVaultPostBundle", () => {
+  it("rewrites SiYuan blocks into Quartz-friendly markdown and writes index.md", async () => {
+    const bundle = await buildVaultPostBundle({
+      note: {
+        id: "doc-tech-1",
+        title: "From Notes to Site",
+        slug: "from-notes-to-site",
+        excerpt: "How a SiYuan note becomes a deployed editorial article.",
+        featured: true,
+        publishedAt: "2026-05-10",
+        tags: ["astro", "siyuan"],
+        cover: "assets/cover-hero.png"
+      },
+      markdown: `::: tip
+这是一段提示内容
+:::
+
+::: fold 为什么这样做
+这里是折叠内容
+:::
+
+![Shot](assets/image-demo.png)
+`
+    });
+
+    expect(bundle.filePath).toBe("from-notes-to-site/index.md");
+    expect(bundle.body).toContain("title: From Notes to Site");
+    expect(bundle.body).toContain("description: How a SiYuan note becomes a deployed editorial article.");
+    expect(bundle.body).toContain("> [!tip]");
+    expect(bundle.body).toContain("> 这是一段提示内容");
+    expect(bundle.body).toContain("> [!note]- 为什么这样做");
+    expect(bundle.body).toContain("![Shot](./image-demo.png)");
+    expect(bundle.body).toContain("cover: ./cover-hero.png");
+    expect(bundle.assets).toEqual([
+      { sourcePath: "assets/image-demo.png", fileName: "image-demo.png" },
+      { sourcePath: "assets/cover-hero.png", fileName: "cover-hero.png" }
+    ]);
   });
 });
