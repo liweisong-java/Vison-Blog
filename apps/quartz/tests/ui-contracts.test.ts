@@ -1,6 +1,10 @@
-import { readFile } from "node:fs/promises";
+import {execFile} from "node:child_process";
+import {readFile} from "node:fs/promises";
 import { resolve } from "node:path";
+import {promisify} from "node:util";
 import { describe, expect, it } from "vitest";
+
+const execFileAsync = promisify(execFile);
 
 describe("quartz ui contracts", () => {
   it("keeps the layout focused on content instead of framework chrome", async () => {
@@ -27,5 +31,18 @@ describe("quartz ui contracts", () => {
     expect(homeEntry).not.toContain("Quartz 迁移骨架已经接入");
     expect(homeEntry).not.toContain("首页占位文件");
     expect(homeEntry).toContain("伟松的博客");
+  });
+
+  it("keeps the public quartz output with a root index page", async () => {
+    await execFileAsync("pnpm", ["--filter", "quartz", "build"], {
+      cwd: resolve(process.cwd(), "../.."),
+      maxBuffer: 10 * 1024 * 1024,
+    });
+
+    const publicRootEntries = await import("node:fs/promises").then(({readdir}) =>
+      readdir(resolve(process.cwd(), "public"))
+    );
+
+    expect(publicRootEntries).toContain("index.html");
   });
 });

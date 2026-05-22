@@ -83,8 +83,8 @@ export const ContentPage: QuartzEmitterPlugin<Partial<FullPageLayout>> = (userOp
           containsIndex = true
         }
 
-        // only process the root home page and tag pages elsewhere
-        if (slug === "index" || slug.startsWith("tags/")) continue
+        // tag pages are rendered by the dedicated tag emitter
+        if (slug.startsWith("tags/")) continue
         yield processContent(ctx, tree, file.data, allFiles, opts, resources)
       }
 
@@ -112,7 +112,7 @@ export const ContentPage: QuartzEmitterPlugin<Partial<FullPageLayout>> = (userOp
       for (const [tree, file] of content) {
         const slug = file.data.slug!
         if (!changedSlugs.has(slug)) continue
-        if (slug === "index" || slug.startsWith("tags/")) continue
+        if (slug.startsWith("tags/")) continue
 
         yield processContent(ctx, tree, file.data, allFiles, opts, resources)
       }
