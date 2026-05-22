@@ -1,6 +1,8 @@
 # Agent能力决胜关键：万字深度拆解LLM Tool Description撰写艺术与工程实践
 
-> Agent能力决胜关键：万字深度拆解LLM Tool Description撰写艺术与工程实践 在大模型 Agent 从趣味 Demo 走向企业级工程落地的今天， Function Calling（Tool Use） 已经是智能体具备真实业务价值的唯一核心支柱。 行业内有一句非常
+> Agent能力决胜关键：万字深度拆解LLM Tool Description撰写艺术与工程实践 前言 在大模型 Agent 从趣味 Demo 走向企业级工程落地的今天， Function Calling（Tool Use） 已经是智能体具备真实业务价值的唯一核心支柱。 行业内有一
+
+## 前言
 
 在大模型 Agent 从趣味 Demo 走向企业级工程落地的今天，**Function Calling（Tool Use）**  已经是智能体具备真实业务价值的唯一核心支柱。
 
