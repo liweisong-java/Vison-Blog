@@ -119,8 +119,14 @@ async function main() {
     await run(astroCli, ["build"], {
       cwd: resolve(runtimeDir, "apps/blog")
     });
+    await run("pnpm", ["--filter", "quartz", "build"], {
+      cwd: runtimeDir
+    });
+    await runNodeScript(resolve(runtimeDir, "scripts/build-composite-site.mjs"), [], {
+      cwd: runtimeDir
+    });
 
-    const distDir = process.env.SERVER_PUBLISH_DIST_DIR ?? resolve(runtimeDir, "apps/blog/dist");
+    const distDir = process.env.SERVER_PUBLISH_DIST_DIR ?? resolve(runtimeDir, "site-dist");
     const deployRoot = process.env.SERVER_PUBLISH_DEPLOY_ROOT ?? "/data/Vison-Blog";
 
     await runNodeScript(

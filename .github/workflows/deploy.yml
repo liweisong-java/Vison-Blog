@@ -102,7 +102,7 @@ jobs:
 
           rsync -az --delete \
             -e "ssh -i ~/.ssh/id_ed25519 -p $DEPLOY_PORT" \
-            apps/blog/dist/ \
+            site-dist/ \
             "$DEPLOY_USER@$DEPLOY_HOST:$DEPLOY_ROOT/releases/$GITHUB_SHA/"
 
       - name: Activate release

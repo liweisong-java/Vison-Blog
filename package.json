@@ -18,7 +18,7 @@
     "publish:server-run": "node scripts/server-publish-cycle.mjs",
     "private:dashboard": "node scripts/generate-private-dashboard.mjs",
     "private:dashboard:traffic": "node scripts/fetch-umami-stats.mjs",
-    "build": "pnpm --filter blog build && pnpm --filter publisher build",
+    "build": "pnpm --filter blog build && pnpm --filter quartz build && pnpm --filter publisher build && node scripts/build-composite-site.mjs",
     "build:quartz": "pnpm --filter quartz build",
     "test": "pnpm --filter blog test && pnpm --filter quartz test && pnpm --filter publisher test",
     "check": "pnpm --filter blog check && pnpm --filter quartz build && pnpm --filter publisher build",
